@@ -60,7 +60,8 @@ func (c Config) RedactedDatabaseURL() string {
 // getenvDefault returns the env var's value (after trimming whitespace)
 // if non-empty; otherwise returns fallback.
 func getenvDefault(key, fallback string) string {
-	if v := strings.TrimSpace(os.Getenv(key)); v != "" {
+	v := strings.TrimSpace(os.Getenv(key))
+	if v != "" {
 		return v
 	}
 	return fallback
