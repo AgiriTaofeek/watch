@@ -45,7 +45,7 @@
     "@watch/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^4.1.8",
     "jsdom": "^29.1.1",
     "tsup": "^8.3.5",
     "vitest": "^2.1.8"
