@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: watch-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-watch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-watch}
+      POSTGRES_DB: ${POSTGRES_DB:-watch}
+    ports:
+      - "5432:5432"
+    volumes:
+      - watch_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-watch} -d ${POSTGRES_DB:-watch}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  watch_postgres_data:
+    name: watch_postgres_data

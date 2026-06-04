@@ -1,0 +1,25 @@
+# Node
+node_modules/
+*.log
+.pnpm-store/
+.turbo/
+dist/
+coverage/
+
+# Go
+apps/server/bin/
+apps/server/tmp/
+*.test
+*.out
+
+# Editors/OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Env
+.env
+.env.*
+!.env.example

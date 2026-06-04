@@ -1,0 +1,53 @@
+{
+  "name": "@watch/browser",
+  "version": "0.0.0",
+  "description": "Privacy-first browser SDK for the Watch self-hosted frontend monitor",
+  "author": "AgiriTaofeek",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AgiriTaofeek/watch.git",
+    "directory": "packages/browser"
+  },
+  "homepage": "https://github.com/AgiriTaofeek/watch/tree/main/packages/browser#readme",
+  "bugs": {
+    "url": "https://github.com/AgiriTaofeek/watch/issues"
+  },
+  "keywords": [
+    "frontend-monitoring",
+    "web-vitals",
+    "browser-sdk",
+    "self-hosted",
+    "privacy-first",
+    "observability",
+    "error-tracking",
+    "watch"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@watch/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "jsdom": "^29.1.1",
+    "tsup": "^8.3.5",
+    "vitest": "^2.1.8"
+  }
+}

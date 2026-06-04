@@ -1,0 +1,35 @@
+{
+  "name": "watch",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.19.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "biome check . && turbo run lint",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "turbo run typecheck",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "turbo run build && changeset publish",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@changesets/cli": "^2.27.10",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  }
+}

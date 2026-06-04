@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.go linguist-language=Go
+*.go text eol=lf
+
+# Treat docs as documentation in language stats
+docs/* linguist-documentation
+
+# Binary files
+*.png binary
+*.jpg binary
+*.ico binary
+
+# Lockfiles should not be diffed by default in code review tools
+pnpm-lock.yaml linguist-generated=true
+apps/server/go.sum linguist-generated=true

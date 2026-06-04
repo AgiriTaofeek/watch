@@ -1,0 +1,17 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[javascript]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[jsonc]": { "editor.defaultFormatter": "biomejs.biome" },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
+  },
+  "go.lintTool": "golangci-lint",
+  "go.lintOnSave": "package",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "cmd/**/*.go",
+        "internal/**/*.go",
+        "pkg/**/*.go",
+        "go.mod",
+        "go.sum"
+      ],
+      "outputs": ["bin/**"]
+    },
+    "test": {
+      "inputs": [
+        "cmd/**/*.go",
+        "internal/**/*.go",
+        "pkg/**/*.go",
+        "go.mod",
+        "go.sum"
+      ],
+      "outputs": []
+    },
+    "lint": {
+      "inputs": [
+        "cmd/**/*.go",
+        "internal/**/*.go",
+        "pkg/**/*.go",
+        ".golangci.yml"
+      ]
+    }
+  }
+}
