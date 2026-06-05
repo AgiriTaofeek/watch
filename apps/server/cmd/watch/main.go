@@ -51,6 +51,14 @@ func main() {
 	defer st.Close()
 
 	logger.Info("Connected to Postgres")
+
+	applied, err := store.RunMigrations(cfg.DatabaseURL)
+	if err != nil {
+		logger.Error("failed to run migrations", "error", err)
+		os.Exit(1)
+	}
+	logger.Info("migrations applied", "count", applied)
+
 	logger.Info("watch starting",
 		"listen_addr", cfg.ListenAddr,
 		"log_level", cfg.LogLevel,
