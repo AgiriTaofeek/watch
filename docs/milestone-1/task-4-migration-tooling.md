@@ -57,6 +57,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // registers postgres:// driver
@@ -84,7 +85,13 @@ func RunMigrations(databaseURL string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("init migrate: %w", err)
 	}
-	defer m.Close()
+	defer func() {
+		// Close returns a source error and a database error; neither is
+		// actionable at shutdown, so log rather than fail the run.
+		if srcErr, dbErr := m.Close(); srcErr != nil || dbErr != nil {
+			slog.Warn("closing migrator", "source", srcErr, "database", dbErr)
+		}
+	}()
 
 	before := schemaVersion(m)
 
