@@ -10,8 +10,10 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/AgiriTaofeek/watch/apps/server/internal/config"
+	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
 )
 
 func main() {
@@ -36,6 +38,19 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
+	connectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	st, err := store.New(connectCtx, cfg.DatabaseURL)
+
+	if err != nil {
+		logger.Error("failed to connect to Postgres", "error", err)
+		os.Exit(1)
+	}
+
+	defer st.Close()
+
+	logger.Info("Connected to Postgres")
 	logger.Info("watch starting",
 		"listen_addr", cfg.ListenAddr,
 		"log_level", cfg.LogLevel,
