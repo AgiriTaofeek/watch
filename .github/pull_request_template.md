@@ -1,14 +1,17 @@
-## What
+## What does this change and why?
 
-<!-- What does this PR change? -->
+<!-- What changed and why? Link the milestone/task and the walkthrough doc. -->
 
-## Why
+## How to verify
 
-<!-- Why is this change needed? Link the milestone/issue. -->
+<!-- Commands a reviewer can run to see it work. -->
 
-## How verified
+## Checklist
 
-- [ ] `pnpm lint`
-- [ ] `pnpm typecheck`
-- [ ] `pnpm test`
-- [ ] `pnpm build`
+- [ ] `pnpm lint` passes locally
+- [ ] `pnpm typecheck` passes locally
+- [ ] `pnpm test` passes locally
+- [ ] `pnpm build` succeeds locally
+- [ ] Added a changeset (or N/A — no publishable-package changes)
+- [ ] Updated relevant docs
+- [ ] Screenshots (or N/A)
