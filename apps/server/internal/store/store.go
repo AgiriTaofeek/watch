@@ -49,3 +49,8 @@ func (s *Store) Pool() *pgxpool.Pool { return s.pool }
 
 // Close releases all pooled connections. Call once during shutdown.
 func (s *Store) Close() { s.pool.Close() }
+
+// Ping verifies the database is reachable. Used by the health check endpoint.
+func (s *Store) Ping(ctx context.Context) error {
+	return s.pool.Ping(ctx)
+}
