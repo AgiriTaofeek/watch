@@ -316,71 +316,23 @@ All four green.
 
 ## Lint, commit, push, PR
 
-From repo root:
+From repo root, stage your changes:
 
 ```bash
 git add apps/server/internal/config/config.go \
         apps/server/cmd/watch/main.go \
         docs/milestone-1/task-2-config-loader.md
 git rm apps/server/internal/config/doc.go
-git commit -m "feat: add config loader for watch"
+```
+
+Commit and push. **Generate the commit message at commit time** from your staged diff following [AGENTS.md](../../AGENTS.md) conventions (`<type>: <imperative summary>` — ask Claude to draft it from `git diff --staged` if you like):
+
+```bash
+git commit                                 # write/paste the generated message
 git push -u origin feat/m1-config-loader
 ```
 
-Open the PR. Suggested title:
-
-```
-feat: add config loader for watch
-```
-
-Suggested body:
-
-```markdown
-## What does this change and why?
-
-Second task of Milestone 1. Adds the env-var config loader for the Go
-service. After this PR, every M1 task downstream loads its configuration
-through `internal/config.Load()` rather than calling `os.Getenv` directly.
-
-The walkthrough at [docs/milestone-1/task-2-config-loader.md](docs/milestone-1/task-2-config-loader.md)
-covers the design choices, the Go vocabulary, and what each line does.
-
-Highlights:
-- `internal/config.Config` is the single source of truth for what env
-  vars the server reads.
-- `DATABASE_URL` is required; missing it crashes watch before slog is
-  set up (clear error on stderr, exit 1).
-- `WATCH_LISTEN_ADDR` defaults to `:8080`, `WATCH_LOG_LEVEL` to `info`.
-- `Config.RedactedDatabaseURL()` masks the password so logging the
-  config never exposes credentials.
-- `slog` is wired up with the requested level and installed as default
-  so downstream packages get the same handler.
-
-No third-party deps. Stdlib only.
-
-## How to verify
-
-```bash
-set -a; source .env; set +a
-pnpm --filter @watch/server dev
-# observe the starting log line with redacted database_url
-
-# Ctrl-C — clean shutdown.
-
-DATABASE_URL= pnpm --filter @watch/server dev
-# expect: "config load failed: DATABASE_URL is required" on stderr, exit 1.
-```
-
-## Checklist
-
-- [x] `pnpm lint` passes locally (Biome + golangci-lint)
-- [x] `pnpm typecheck` passes locally
-- [x] `pnpm test` passes locally
-- [x] `pnpm build` succeeds locally
-- [ ] Added a changeset — **N/A**, no publishable-package changes
-- [x] Updated relevant docs — Task 2 walkthrough added at `docs/milestone-1/task-2-config-loader.md`
-- [ ] Screenshots — **N/A**
-```
+Open the PR — the body auto-fills from [.github/pull_request_template.md](../../.github/pull_request_template.md). Fill its sections from the diff (or ask Claude to draft them); the PR title is your commit message.
 
 ## Common gotchas
 
