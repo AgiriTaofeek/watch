@@ -18,6 +18,20 @@ services:
       retries: 10
       start_period: 5s
 
+  pgweb:
+    image: sosedoff/pgweb:0.16.2
+    container_name: watch-pgweb
+    profiles:
+      - db-ui
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGWEB_DATABASE_URL: postgres://${POSTGRES_USER:-watch}:${POSTGRES_PASSWORD:-watch}@postgres:5432/${POSTGRES_DB:-watch}?sslmode=disable
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
 volumes:
   watch_postgres_data:
     name: watch_postgres_data
