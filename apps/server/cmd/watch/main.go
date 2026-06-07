@@ -8,11 +8,11 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/AgiriTaofeek/watch/apps/server/internal/config"
+	"github.com/AgiriTaofeek/watch/apps/server/internal/logging"
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
 )
 
@@ -26,13 +26,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Build the slog handler with the requested level and install it
-	// as the default. Every package that calls slog.* downstream sees
-	// the same handler.
-	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: parseLogLevel(cfg.LogLevel),
-	})
-	logger := slog.New(handler)
+	// Set up logging before doing anything else so all subsequent logs are structured and respect the configured level. The logger is safe for
+	// concurrent use by all packages, so we don't need to pass it around.
+	logger := logging.New(cfg.LogLevel)
 	slog.SetDefault(logger)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -67,20 +63,4 @@ func main() {
 
 	<-ctx.Done()
 	logger.Info("watch shutting down")
-}
-
-// parseLogLevel converts a string log level into the slog.Level enum.
-// Unknown values fall back to LevelInfo so a typo doesn't silently
-// suppress all logs.
-func parseLogLevel(s string) slog.Level {
-	switch strings.ToLower(strings.TrimSpace(s)) {
-	case "debug":
-		return slog.LevelDebug
-	case "warn", "warning":
-		return slog.LevelWarn
-	case "error":
-		return slog.LevelError
-	default:
-		return slog.LevelInfo
-	}
 }
