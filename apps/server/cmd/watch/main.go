@@ -5,12 +5,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/AgiriTaofeek/watch/apps/server/internal/api"
 	"github.com/AgiriTaofeek/watch/apps/server/internal/config"
 	"github.com/AgiriTaofeek/watch/apps/server/internal/logging"
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
@@ -49,18 +52,46 @@ func main() {
 	logger.Info("Connected to Postgres")
 
 	applied, err := store.RunMigrations(cfg.DatabaseURL)
+
 	if err != nil {
 		logger.Error("failed to run migrations", "error", err)
 		os.Exit(1)
 	}
+
 	logger.Info("migrations applied", "count", applied)
 
-	logger.Info("watch starting",
-		"listen_addr", cfg.ListenAddr,
-		"log_level", cfg.LogLevel,
-		"database_url", cfg.RedactedDatabaseURL(),
-	)
+	srv := &http.Server{
+		Addr:    cfg.ListenAddr,
+		Handler: api.New(st).Handler(),
+	}
 
-	<-ctx.Done()
-	logger.Info("watch shutting down")
+	//ListenAndServe blocks, so run it in a goroutine and report its error
+	// on a channel. main then waits for either a server failure or a signal.
+	srvErr := make(chan error, 1)
+
+	go func() {
+		logger.Info("watch starting",
+			"listen_addr", cfg.ListenAddr,
+			"log_level", cfg.LogLevel,
+			"database_url", cfg.RedactedDatabaseURL(),
+		)
+		srvErr <- srv.ListenAndServe()
+	}()
+
+	select {
+	case err := <-srvErr:
+		// ErrServerClosed is the clean-shutdown sentinel; anything else is real.
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("http server error", "error", err)
+		}
+	case <-ctx.Done():
+		logger.Info("watch shutting down")
+	}
+
+	// Drain in-flight requests, up to a deadline, then stop.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error("http server shutdown error", "error", err)
+	}
 }
