@@ -255,57 +255,16 @@ git add apps/server/internal/store/store.go \
         apps/server/go.sum \
         docs/milestone-1/task-3-postgres-pool.md
 git rm apps/server/internal/store/doc.go
-git commit -m "feat: add Postgres connection pool"
+```
+
+Commit and push. **Generate the commit message at commit time** from your staged diff following [AGENTS.md](../../AGENTS.md) conventions (`<type>: <imperative summary>` — ask Claude to draft it from `git diff --staged` if you like):
+
+```bash
+git commit                                 # write/paste the generated message
 git push -u origin feat/m1-postgres-pool
 ```
 
-Open the PR. Suggested title:
-
-```
-feat: add Postgres connection pool
-```
-
-Suggested body:
-
-```markdown
-## What does this change and why?
-
-Third task of Milestone 1. Adds the Postgres connection pool the rest of
-M1 builds on. `internal/store.New` opens a pooled connection via `pgx/v5`
-and pings it so watch fails fast at boot if the database is unreachable.
-`main.go` connects on startup and closes the pool on shutdown.
-
-Walkthrough: [docs/milestone-1/task-3-postgres-pool.md](docs/milestone-1/task-3-postgres-pool.md).
-
-Highlights:
-- First third-party Go dependency: `github.com/jackc/pgx/v5` (+ go.sum).
-- `internal/store.Store` wraps `*pgxpool.Pool`; nothing else imports pgx.
-- Startup `Ping` with a 10s timeout → clear error + exit 1 on a bad/down DB.
-- Clean shutdown closes the pool via `defer`.
-
-## How to verify
-
-```bash
-set -a; source .env; set +a
-docker compose -f deploy/docker-compose.yml up -d
-pnpm --filter @watch/server dev
-# expect "connected to Postgres" then "watch starting"; Ctrl-C = clean shutdown
-
-docker compose -f deploy/docker-compose.yml down
-pnpm --filter @watch/server dev
-# expect "failed to connect to Postgres" + exit 1
-```
-
-## Checklist
-
-- [x] `pnpm lint` passes locally (Biome + golangci-lint)
-- [x] `pnpm typecheck` passes locally
-- [x] `pnpm test` passes locally
-- [x] `pnpm build` succeeds locally
-- [ ] Added a changeset — **N/A**, no publishable-package changes
-- [x] Updated relevant docs — Task 3 walkthrough added
-- [ ] Screenshots — **N/A**
-```
+Open the PR — the body auto-fills from [.github/pull_request_template.md](../../.github/pull_request_template.md). Fill its sections from the diff (or ask Claude to draft them); the PR title is your commit message.
 
 ## Common gotchas
 

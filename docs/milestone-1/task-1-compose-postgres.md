@@ -216,52 +216,20 @@ From the repo root, run the standard local checks (none should fail — this tas
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
-All green. Commit:
+All green. Stage your changes:
 
 ```bash
 git add deploy/docker-compose.yml .env.example docs/milestone-1/task-1-compose-postgres.md
-git commit -m "feat: add docker compose with postgres for local dev"
+```
+
+Commit and push. **Generate the commit message at commit time** from your staged diff following [AGENTS.md](../../AGENTS.md) conventions (`<type>: <imperative summary>` — ask Claude to draft it from `git diff --staged` if you like):
+
+```bash
+git commit                                   # write/paste the generated message
 git push -u origin feat/m1-compose-postgres
 ```
 
-Open the PR with the title above. Body:
-
-```markdown
-## What does this change and why?
-
-First task of Milestone 1. Stands up Postgres 17 locally via Docker
-Compose so the next M1 tasks (config loader, connection pool,
-migrations, HTTP server) have a real database to talk to.
-
-See [docs/milestone-1/README.md §8 Task 1](docs/milestone-1/README.md#task-1--featm1-compose-postgres)
-for the task spec, and the new walkthrough at
-[docs/milestone-1/task-1-compose-postgres.md](docs/milestone-1/task-1-compose-postgres.md)
-for the per-line explanation of what landed.
-
-Nothing in `apps/server/` is touched — Go code starts in Task 2.
-
-## How to verify
-
-```bash
-cp .env.example .env
-docker compose -f deploy/docker-compose.yml up -d
-docker compose -f deploy/docker-compose.yml ps          # postgres should be (healthy)
-psql "$DATABASE_URL" -c "SELECT version();"             # returns a Postgres 17 version string
-docker compose -f deploy/docker-compose.yml down
-docker compose -f deploy/docker-compose.yml up -d
-psql "$DATABASE_URL" -c "SELECT 1;"                     # still works; volume persisted
-```
-
-## Checklist
-
-- [x] `pnpm lint` passes locally
-- [x] `pnpm typecheck` passes locally
-- [x] `pnpm test` passes locally
-- [x] `pnpm build` succeeds locally
-- [ ] Added a changeset — **N/A**, no publishable-package changes
-- [x] Updated relevant docs — Task 1 walkthrough added at `docs/milestone-1/task-1-compose-postgres.md`
-- [ ] Screenshots — **N/A**
-```
+Open the PR — the body auto-fills from [.github/pull_request_template.md](../../.github/pull_request_template.md). Fill its sections from the diff (or ask Claude to draft them); the PR title is your commit message.
 
 ## Common gotchas
 
