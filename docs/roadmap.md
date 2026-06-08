@@ -95,6 +95,34 @@
 - Stack trace resolution
 - Before/after release comparison
 
+## Milestone Review And Refactoring
+
+After each milestone is complete and working end to end, pause for a focused
+refactoring pass before expanding the product surface.
+
+The goal is not to rewrite for aesthetics. The goal is to compare the code we
+just shipped against strong production Go codebases, extract practical lessons,
+and upgrade both the Watch codebase and our Go mental model.
+
+Reference projects to study during these passes:
+
+- Caddy — server lifecycle, configuration, modules, and operational polish
+- PocketBase — small-product architecture, embedded app shape, and pragmatic Go
+  APIs
+- MinIO — storage-heavy service design, reliability patterns, and production
+  discipline
+- Traefik — HTTP routing, middleware composition, observability, and deployment
+  ergonomics
+
+Each review should produce small, deliberate follow-up changes:
+
+- simpler package boundaries
+- clearer dependency ownership
+- better shutdown and lifecycle handling
+- sharper error handling and logging
+- stronger tests around the milestone's critical paths
+- documentation updates that capture what was learned
+
 ## Main Risk
 
 The project fails if it becomes too broad too early.
