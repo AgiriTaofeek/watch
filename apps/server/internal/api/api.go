@@ -41,6 +41,11 @@ func (a *API) handleHealth(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	writeJSON(w, http.StatusOK, map[string]string{
+		"status": "ok",
+		"db":     "reachable",
+	})
 }
 
 // writeJSON encodes body as JSON with the given status code.

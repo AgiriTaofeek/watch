@@ -236,17 +236,22 @@ git checkout main && git pull
 git checkout -b feat/m1-foundational-schema
 ```
 
-Stage and commit:
+Stage your changes:
 
 ```bash
 git add apps/server/internal/store/migrations/0001_foundational_tables.up.sql \
         apps/server/internal/store/migrations/0001_foundational_tables.down.sql \
         docs/milestone-1/task-5-foundational-schema.md
-git commit -m "feat: add foundational database schema"
+```
+
+Commit and push. **Generate the commit message at commit time** from your staged diff following [AGENTS.md](../../AGENTS.md) conventions (`<type>: <imperative summary>` — ask Claude to draft it from `git diff --staged` if you like):
+
+```bash
+git commit                                    # write/paste the generated message
 git push -u origin feat/m1-foundational-schema
 ```
 
-Open the PR using the **Task 5** entry in [commit-and-pr-guide.md](commit-and-pr-guide.md) — title `feat: add foundational database schema`.
+Open the PR — the body auto-fills from [.github/pull_request_template.md](../../.github/pull_request_template.md). Fill its sections from the diff (or ask Claude to draft them); the PR title is your commit message.
 
 ## Common gotchas
 
