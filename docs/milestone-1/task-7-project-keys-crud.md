@@ -217,7 +217,11 @@ func (s *Store) ListProjects(ctx context.Context) ([]ProjectDetail, error) {
 
 // CreateEnvironment adds an environment to an existing project.
 func (s *Store) CreateEnvironment(ctx context.Context, projectID, name string) (Environment, error) {
-	if !s.exists(ctx, "projects", projectID) {
+	ok, err := s.exists(ctx, "projects", projectID)
+	if err != nil {
+		return Environment{}, err
+	}
+	if !ok {
 		return Environment{}, ErrNotFound
 	}
 	return insertEnvironment(ctx, s.pool, projectID, name)
@@ -225,7 +229,11 @@ func (s *Store) CreateEnvironment(ctx context.Context, projectID, name string) (
 
 // CreateIngestionKey mints a new key on an existing environment.
 func (s *Store) CreateIngestionKey(ctx context.Context, environmentID string) (IngestionKey, error) {
-	if !s.exists(ctx, "environments", environmentID) {
+	ok, err := s.exists(ctx, "environments", environmentID)
+	if err != nil {
+		return IngestionKey{}, err
+	}
+	if !ok {
 		return IngestionKey{}, ErrNotFound
 	}
 	return insertIngestionKey(ctx, s.pool, environmentID)
@@ -233,6 +241,9 @@ func (s *Store) CreateIngestionKey(ctx context.Context, environmentID string) (I
 
 // RevokeKey soft-revokes a key. Returns ErrNotFound if no active key matched.
 func (s *Store) RevokeKey(ctx context.Context, keyID string) error {
+	if !validUUID(keyID) {
+		return ErrNotFound
+	}
 	tag, err := s.pool.Exec(ctx,
 		`UPDATE ingestion_keys SET revoked_at = now()
 		 WHERE id = $1::uuid AND revoked_at IS NULL`, keyID)
@@ -297,12 +308,31 @@ func insertIngestionKey(ctx context.Context, q querier, environmentID string) (I
 	return k, nil
 }
 
-func (s *Store) exists(ctx context.Context, table, id string) bool {
+// exists reports whether a row with the given id exists in table. A malformed
+// id is reported as (false, nil) — it can't match any row. A genuine query
+// failure (e.g. DB outage) is returned as an error, so callers don't mistake
+// it for "not found" and return a misleading 404.
+func (s *Store) exists(ctx context.Context, table, id string) (bool, error) {
+	if !validUUID(id) {
+		return false, nil
+	}
 	var one int
 	err := s.pool.QueryRow(ctx,
 		fmt.Sprintf(`SELECT 1 FROM %s WHERE id = $1::uuid`, table), id).Scan(&one)
-	return err == nil
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	return false, fmt.Errorf("exists(%s): %w", table, err)
 }
+
+var uuidRe = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+
+// validUUID reports whether s is a well-formed UUID string. Used to reject
+// malformed path ids before they reach a `$1::uuid` cast.
+func validUUID(s string) bool { return uuidRe.MatchString(s) }
 
 // newPublicKey returns an opaque, SDK-embeddable key: "pk_" + 24 hex chars.
 func newPublicKey() string {
@@ -327,9 +357,9 @@ func slugify(name string) string {
 - **`RevokedAt *string`** — a pointer so JSON shows `null` for an active key and a timestamp once revoked. `revoked_at::text` yields `NULL` → `nil`.
 - The `::text` / `$1::uuid` casts are the dependency-free UUID handling from the primer.
 
-## File 2 — `apps/server/internal/api/projects.go`
+## File 2 — `apps/server/internal/api/project.go`
 
-Handlers live in the `api` package and reuse `writeJSON` from `api.go`. Create `projects.go`:
+Handlers live in the `api` package and reuse `writeJSON` from `api.go`. Create `project.go`:
 
 ```go
 package api
@@ -516,7 +546,7 @@ Stage your changes:
 
 ```bash
 git add apps/server/internal/store/projects.go \
-        apps/server/internal/api/projects.go \
+        apps/server/internal/api/project.go \
         apps/server/internal/api/api.go \
         docs/milestone-1/task-7-project-keys-crud.md
 ```

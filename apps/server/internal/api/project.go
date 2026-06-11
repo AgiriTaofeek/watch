@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
 )
 
 func (a *API) handleCreateProject(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MiB
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -18,6 +20,7 @@ func (a *API) handleCreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Name = strings.TrimSpace(req.Name)
 	if req.Name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
@@ -42,6 +45,8 @@ func (a *API) handleListProjects(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) handleCreateEnvironment(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MiB
+
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -51,6 +56,7 @@ func (a *API) handleCreateEnvironment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.Name = strings.TrimSpace(req.Name)
 	if req.Name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
