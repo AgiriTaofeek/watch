@@ -63,6 +63,13 @@ func main() {
 	srv := &http.Server{
 		Addr:    cfg.ListenAddr,
 		Handler: api.New(st).Handler(),
+		// Timeouts guard against slow/abusive clients (Slowloris) and leaked
+		// connections. Without them a single stalled client can pin a goroutine
+		// and a connection indefinitely.
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	//ListenAndServe blocks, so run it in a goroutine and report its error

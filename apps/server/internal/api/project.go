@@ -27,9 +27,8 @@ func (a *API) handleCreateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	project, err := a.store.CreateProject(r.Context(), req.Name)
-
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not create project")
+		a.serverError(w, r, err, "could not create project")
 		return
 	}
 	writeJSON(w, http.StatusCreated, project)
@@ -38,7 +37,7 @@ func (a *API) handleCreateProject(w http.ResponseWriter, r *http.Request) {
 func (a *API) handleListProjects(w http.ResponseWriter, r *http.Request) {
 	projects, err := a.store.ListProjects(r.Context())
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not list projects")
+		a.serverError(w, r, err, "could not list projects")
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"projects": projects})
@@ -69,7 +68,7 @@ func (a *API) handleCreateEnvironment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not create environment")
+		a.serverError(w, r, err, "could not create environment")
 		return
 	}
 
@@ -84,7 +83,7 @@ func (a *API) handleCreateKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not create key")
+		a.serverError(w, r, err, "could not create key")
 		return
 	}
 	writeJSON(w, http.StatusCreated, key)
@@ -97,7 +96,7 @@ func (a *API) handleRevokeKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "could not revoke key")
+		a.serverError(w, r, err, "could not revoke key")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

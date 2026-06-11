@@ -5,6 +5,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -21,7 +22,10 @@ func New(st *store.Store) *API {
 	return &API{store: st}
 }
 
-// Handler builds the router for the whole HTTP surface.
+// Handler builds the router for the whole HTTP surface, wrapped in the
+// middleware chain. Order (outer → inner): requestID tags the request and
+// context; requestLogger times and logs it; recoverer turns panics into a
+// logged 500 captured by the logger.
 func (a *API) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", a.handleHealth)
@@ -32,19 +36,21 @@ func (a *API) Handler() http.Handler {
 	mux.HandleFunc("POST /api/environments/{id}/keys", a.handleCreateKey)
 	mux.HandleFunc("DELETE /api/keys/{id}", a.handleRevokeKey)
 
-	return mux
+	return requestID(requestLogger(recoverer(mux)))
 }
 
 // handleHealth reports process liveness and database connectivity.
-// 200 = up and DB reachable; 503 = up but a dependency is degraded.
+// 200 = up and DB reachable; 503 = up but a dependency is degraded. The
+// underlying DB error is logged, not returned, to avoid leaking internals.
 func (a *API) handleHealth(w http.ResponseWriter, r *http.Request) {
-
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 	if err := a.store.Ping(ctx); err != nil {
+		slog.ErrorContext(r.Context(), "health check: database unreachable",
+			"error", err, "request_id", RequestIDFromContext(r.Context()))
 		writeJSON(w, http.StatusServiceUnavailable, map[string]string{
 			"status": "degraded",
-			"db":     err.Error(),
+			"db":     "unreachable",
 		})
 		return
 	}
@@ -60,4 +66,13 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(body)
+}
+
+// serverError logs the underlying error (with the request id) and returns a
+// generic message to the client. Use it for every 5xx so failures are
+// debuggable from logs without leaking internals to callers.
+func (a *API) serverError(w http.ResponseWriter, r *http.Request, err error, clientMsg string) {
+	slog.ErrorContext(r.Context(), clientMsg,
+		"error", err, "request_id", RequestIDFromContext(r.Context()))
+	writeError(w, http.StatusInternalServerError, clientMsg)
 }
