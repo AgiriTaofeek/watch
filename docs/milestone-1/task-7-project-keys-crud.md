@@ -104,7 +104,7 @@ func (s *Store) CreateProject(ctx context.Context, name string) (ProjectDetail, 
 	if err != nil {
 		return ProjectDetail{}, fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback(ctx) // no-op after a successful Commit
+	defer func() { _ = tx.Rollback(ctx) }() // no-op after a successful Commit
 
 	orgID, err := defaultOrganizationID(ctx, tx)
 	if err != nil {
