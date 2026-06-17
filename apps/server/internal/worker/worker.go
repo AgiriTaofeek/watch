@@ -132,7 +132,7 @@ func (w *Worker) aggregateErrorRollups(ctx context.Context, hourStart time.Time)
 			Release:       c.Release,
 			PeriodStart:   c.PeriodStart,
 			ErrorCount:    c.Count,
-			SessionCount:  c.SessionCount,
+			SessionCount:  int64(len(c.SessionIDs)),
 		}
 		if err := w.store.UpsertErrorRollup(ctx, p); err != nil {
 			slog.ErrorContext(ctx, "worker: upsert error rollup", "error", err)
@@ -154,9 +154,9 @@ func (w *Worker) aggregateVitalRollups(ctx context.Context, hourStart time.Time)
 		periodStart                             time.Time
 	}
 	type bucket struct {
-		sum     float64
-		count   int64
-		samples []float64
+		sum      float64
+		samples  []float64
+		sessions map[string]struct{}
 	}
 	buckets := make(map[key]*bucket)
 
@@ -172,15 +172,15 @@ func (w *Worker) aggregateVitalRollups(ctx context.Context, hourStart time.Time)
 		}
 		b, ok := buckets[k]
 		if !ok {
-			b = &bucket{}
+			b = &bucket{sessions: make(map[string]struct{})}
 			buckets[k] = b
 		}
 		b.sum += s.Value
-		b.count++
 		// Cap stored samples at 200 per bucket to bound the array size.
 		if len(b.samples) < 200 {
 			b.samples = append(b.samples, s.Value)
 		}
+		b.sessions[s.SessionID] = struct{}{}
 	}
 
 	for k, b := range buckets {
@@ -191,7 +191,7 @@ func (w *Worker) aggregateVitalRollups(ctx context.Context, hourStart time.Time)
 			Release:       k.release,
 			PeriodStart:   k.periodStart,
 			MetricName:    k.metric,
-			SampleCount:   b.count,
+			SampleCount:   int64(len(b.samples)),
 			SumValue:      b.sum,
 			Samples:       b.samples,
 		}

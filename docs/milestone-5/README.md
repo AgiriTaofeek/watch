@@ -55,7 +55,7 @@ New API endpoints
 
 | File | Responsibility |
 |------|---------------|
-| `store/migrations/0004_rollups_and_issues.up.sql` | Schema: issues, issue_users, error_rollups, vital_rollups, raw_events.issue_id |
+| `store/migrations/0004_rollups_and_issues.up.sql` | Schema: issues, error_rollups, vital_rollups, raw_events.issue_id |
 | `store/issues.go` | Issue type + UpsertIssue, ListIssues, GetIssue, UpdateIssueStatus |
 | `store/rollups.go` | Rollup types + FetchVitalSamples, FetchErrorCounts, UpsertErrorRollup, UpsertVitalRollup, QueryErrorRollups, QueryVitalRollups |
 | `store/events.go` | FetchUnprocessedErrors, AssignIssue, DeleteExpiredEvents (added) |
@@ -133,7 +133,7 @@ The shared data types (`UnprocessedError`, `UpsertIssueParams`, `VitalSample`, e
 
 ### p75 from capped sample arrays
 
-Exact percentile computation requires seeing all values. Storing every raw vital value in the rollup table would be unbounded. Instead, `vital_rollups.samples` stores up to 200 values per (project, env, route, release, hour, metric) bucket. `sample_count` still tracks the full number of raw events in the bucket; only the retained percentile sample array is capped. After 200 samples the p75 estimate degrades gracefully under high volume, but the mean remains exact.
+Exact percentile computation requires seeing all values. Storing every raw vital value in the rollup table would be unbounded. Instead, `vital_rollups.samples` stores up to 200 values per (project, env, route, release, hour, metric) bucket. After 200 the array stops growing — the estimate degrades gracefully under high volume, but for v1 project sizes it is exact.
 
 p75 is computed in Go at query time, not stored:
 
@@ -147,14 +147,14 @@ func p75(samples []float64) float64 {
 
 ### Re-running the aggregator is safe (idempotent)
 
-Rollup upserts use replacement semantics such as `DO UPDATE SET error_count = EXCLUDED.error_count` and `sample_count = EXCLUDED.sample_count` (not `+= EXCLUDED...`). Re-running the aggregator for the same completed hour overwrites the rollup with the same freshly computed value — it does not double-count. This makes the worker safe to restart, re-run after a crash, or backfill.
+The rollup upsert uses `DO UPDATE SET error_count = EXCLUDED.error_count` (not `+= EXCLUDED.error_count`). Re-running the aggregator for the same hour overwrites the rollup with the same value — it does not double-count. This makes the worker safe to restart, re-run after a crash, or backfill.
 
 ---
 
 ## 6. Task Breakdown
 
 ### Task 1 — `feat/m5-schema`
-Migration 0004: `issues`, `issue_users`, `error_rollups`, `vital_rollups` tables, `raw_events.issue_id` column, and the partial index on unprocessed errors.
+Migration 0004: `issues`, `error_rollups`, `vital_rollups` tables, `raw_events.issue_id` column, and the partial index on unprocessed errors.
 
 ### Task 2 — `feat/m5-fingerprint`
 `worker/fingerprint.go`: `normalizeMessage` with compiled regexes; `FingerprintError` using SHA-256. Tests confirm normalization rules and output format.
