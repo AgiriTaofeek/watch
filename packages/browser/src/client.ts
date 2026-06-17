@@ -6,6 +6,7 @@ import { installErrorHandlers } from "./errors"
 import type { FrontendErrorPayload } from "./errors"
 import { installNavigationInstrumentation } from "./navigation"
 import { installNetworkInstrumentation } from "./network"
+import { truncateString } from "./redact"
 import { getSessionID } from "./session"
 import { Transport } from "./transport"
 import { collectVitals } from "./vitals"
@@ -37,6 +38,7 @@ interface WatchClient {
 }
 
 let _client: WatchClient | null = null
+let _routePattern: string | undefined
 
 function parseDSN(dsn: string): ParsedDSN {
   let url: URL
@@ -58,7 +60,33 @@ function parseDSN(dsn: string): ParsedDSN {
 }
 
 function currentRoute(): string {
-  return typeof window !== "undefined" ? window.location.pathname : ""
+  return (
+    _routePattern ??
+    (typeof window !== "undefined" ? window.location.pathname : "")
+  )
+}
+
+// Sets the current route pattern for all subsequent events. Framework
+// integrations call this when the active route changes so the dashboard can
+// group events by route template (e.g. "/users/:id") rather than actual URL.
+export function setRoute(pattern: string): void {
+  _routePattern = pattern
+}
+
+// Reports a framework-level render error (e.g. from a React error boundary).
+// Attaches the current breadcrumb snapshot so the error has diagnostic context.
+export function captureError(
+  error: Error,
+  options?: { componentStack?: string },
+): void {
+  captureEvent("frontend_error", {
+    name: error.name,
+    message: truncateString(error.message),
+    stack: error.stack ? truncateString(error.stack) : undefined,
+    mechanism: "error_boundary",
+    component_stack: options?.componentStack,
+    breadcrumbs: _client?.breadcrumbs.getAll() ?? [],
+  })
 }
 
 function nowISO(): string {
@@ -170,4 +198,5 @@ export function _resetClient(): void {
     for (const fn of _client.cleanup) fn()
   }
   _client = null
+  _routePattern = undefined
 }

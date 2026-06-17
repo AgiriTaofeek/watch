@@ -8,7 +8,13 @@ export type { AssetLoadPayload } from "./assets"
 export type { WebVitalPayload } from "./vitals"
 
 import type { BreadcrumbEntry } from "./breadcrumbs"
-import { type InitOptions, addBreadcrumbToClient, initClient } from "./client"
+import {
+  type InitOptions,
+  addBreadcrumbToClient,
+  captureError,
+  initClient,
+  setRoute,
+} from "./client"
 
 // Initialises the Watch SDK. Call once, as early as possible on the page.
 // dsn format: https://<ingestion-key>@<watch-server-host>
@@ -23,3 +29,10 @@ export function init(options: InitOptions): void {
 export function addBreadcrumb(entry: Omit<BreadcrumbEntry, "timestamp">): void {
   addBreadcrumbToClient(entry)
 }
+
+// Reports a framework-level render error (e.g. from a React error boundary).
+export { captureError }
+
+// Sets the current route pattern so all subsequent events carry the route
+// template (e.g. "/users/:id") rather than the actual URL path.
+export { setRoute }
