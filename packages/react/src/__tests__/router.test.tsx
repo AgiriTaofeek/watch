@@ -9,17 +9,25 @@ vi.mock("@watch/browser", () => ({
 
 vi.mock("react-router", () => ({
   useMatches: vi.fn(),
+  useLocation: vi.fn(),
 }))
 
 import { setRoute } from "@watch/browser"
-import { useMatches } from "react-router"
+import { useLocation, useMatches } from "react-router"
 
 afterEach(() => {
   vi.clearAllMocks()
 })
 
-function setup(matches: Partial<UIMatch>[]): void {
+function setup(matches: Partial<UIMatch>[], pathname = "/"): void {
   vi.mocked(useMatches).mockReturnValue(matches as UIMatch[])
+  vi.mocked(useLocation).mockReturnValue({
+    pathname,
+    search: "",
+    hash: "",
+    state: null,
+    key: "default",
+  })
 }
 
 describe("WatchRouterContext", () => {
@@ -90,12 +98,13 @@ describe("WatchRouterContext", () => {
     expect(route).not.toContain("watch")
   })
 
-  it("does not call setRoute when matches array is empty", () => {
-    setup([])
+  it("falls back to location.pathname when matches array is empty", () => {
+    setup([], "/some/path")
 
     render(<WatchRouterContext />)
 
-    expect(setRoute).not.toHaveBeenCalled()
+    // No route matches — fall back to raw pathname rather than silently skipping.
+    expect(setRoute).toHaveBeenCalledWith("/some/path")
   })
 
   it("renders nothing (null)", () => {
