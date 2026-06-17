@@ -68,7 +68,7 @@ func TestFingerprintError_OutputIs16HexChars(t *testing.T) {
 		t.Fatalf("expected 16-char hex fingerprint, got %q (len %d)", fp, len(fp))
 	}
 	for _, c := range fp {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') {
 			t.Fatalf("expected lowercase hex fingerprint, got %q", fp)
 		}
 	}

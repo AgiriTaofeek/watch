@@ -33,7 +33,7 @@ type UpsertIssueParams struct {
 	EnvironmentID string
 	Fingerprint   string
 	Title         string
-	Culprit       string  // route pattern; empty string when unknown
+	Culprit       string // route pattern; empty string when unknown
 	LastSeenAt    time.Time
 	UserIDHash    *string // non-nil increments user_count
 }
