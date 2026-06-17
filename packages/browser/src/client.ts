@@ -46,13 +46,21 @@ function parseDSN(dsn: string): ParsedDSN {
     url = new URL(dsn)
   } catch {
     throw new Error(
-      `Watch: invalid DSN "${dsn}". Expected format: https://<key>@<host>`,
+      `Watch: invalid DSN "${dsn}". Expected format: https://<host>/ingest/<key>`,
     )
   }
-  const key = url.username
-  if (!key) {
+
+  const legacyKey = url.username
+  if (legacyKey) {
+    const base = `${url.protocol}//${url.host}`
+    return { key: legacyKey, endpoint: `${base}/ingest/${legacyKey}` }
+  }
+
+  const parts = url.pathname.split("/").filter(Boolean)
+  const key = parts[1]
+  if (parts.length !== 2 || parts[0] !== "ingest" || !key) {
     throw new Error(
-      "Watch: DSN must include the ingestion key as the URL username (e.g. https://pk_abc123@your-server.com)",
+      "Watch: DSN must be the ingestion endpoint URL (e.g. https://watch.example.com/ingest/pk_abc123)",
     )
   }
   const base = `${url.protocol}//${url.host}`

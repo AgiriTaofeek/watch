@@ -1,12 +1,15 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
@@ -24,13 +27,16 @@ var validEventTypes = map[string]bool{
 	"deployment":      true,
 }
 
-// ingestEnvelope holds only the envelope fields needed for validation and
-// storage. The raw body is stored verbatim so no fields are lost.
+// ingestEnvelope is the strict top-level shape accepted by the ingestion API.
+// Project identity is derived from the ingestion key, not trusted from JSON.
 type ingestEnvelope struct {
-	Service   string  `json:"service"`
-	Timestamp string  `json:"timestamp"`
-	Type      string  `json:"type"`
-	Release   *string `json:"release"`
+	Environment string         `json:"environment"`
+	Release     *string        `json:"release,omitempty"`
+	Service     string         `json:"service"`
+	Timestamp   string         `json:"timestamp"`
+	Type        string         `json:"type"`
+	Context     map[string]any `json:"context"`
+	Payload     map[string]any `json:"payload"`
 }
 
 func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
@@ -52,14 +58,9 @@ func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Origin check: the allowed-origins column on projects is deferred to a
-	// later migration. For now, log the origin for observability only.
-	if origin := r.Header.Get("Origin"); origin != "" {
-		slog.DebugContext(ctx, "ingest request origin",
-			"origin", origin,
-			"key_id", key.KeyID,
-			"request_id", RequestIDFromContext(ctx),
-		)
+	if origin := r.Header.Get("Origin"); origin != "" && !originAllowed(origin, key.AllowedOrigins) {
+		a.dropAndRespond(ctx, w, &key.EnvironmentID, "blocked_origin", http.StatusForbidden, "origin is not allowed")
+		return
 	}
 
 	// 2. Read body with size guard.
@@ -75,13 +76,19 @@ func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
 
 	// 3. Decode the envelope.
 	var env ingestEnvelope
-	if err := json.Unmarshal(body, &env); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(body))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&env); err != nil {
+		a.dropAndRespond(ctx, w, &key.EnvironmentID, "invalid_schema", http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	if err := dec.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		a.dropAndRespond(ctx, w, &key.EnvironmentID, "invalid_schema", http.StatusBadRequest, "invalid JSON body")
 		return
 	}
 
 	// 4. Validate required envelope fields.
-	if env.Service != "frontend" || env.Type == "" || env.Timestamp == "" {
+	if env.Environment == "" || env.Service != "frontend" || env.Type == "" || env.Timestamp == "" || env.Context == nil || env.Payload == nil {
 		a.dropAndRespond(ctx, w, &key.EnvironmentID, "invalid_schema", http.StatusBadRequest, "missing required envelope fields")
 		return
 	}
@@ -95,7 +102,15 @@ func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 5. Persist the raw event. The full body is stored verbatim as payload.
+	env.Context = redactMap(env.Context)
+	env.Payload = redactMap(env.Payload)
+	sanitized, err := json.Marshal(env)
+	if err != nil {
+		a.serverError(w, r, err, "could not sanitize event")
+		return
+	}
+
+	// 5. Persist the sanitized event envelope.
 	if err := a.store.InsertRawEvent(ctx, store.RawEvent{
 		IngestionKeyID: key.KeyID,
 		EnvironmentID:  key.EnvironmentID,
@@ -103,7 +118,7 @@ func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
 		EventType:      env.Type,
 		Release:        env.Release,
 		EventTimestamp: ts,
-		Payload:        body,
+		Payload:        sanitized,
 	}); err != nil {
 		a.serverError(w, r, err, "could not store event")
 		return
@@ -125,4 +140,96 @@ func (a *API) dropAndRespond(ctx context.Context, w http.ResponseWriter, environ
 		)
 	}
 	writeError(w, status, msg)
+}
+
+func originAllowed(origin string, allowed []string) bool {
+	if len(allowed) == 0 {
+		return true
+	}
+	for _, candidate := range allowed {
+		if origin == candidate {
+			return true
+		}
+	}
+	return false
+}
+
+var sensitiveKeys = map[string]bool{
+	"authorization": true,
+	"cookie":        true,
+	"set-cookie":    true,
+	"password":      true,
+	"passwd":        true,
+	"secret":        true,
+	"token":         true,
+	"api_key":       true,
+	"apikey":        true,
+	"access_token":  true,
+	"auth":          true,
+	"x-auth-token":  true,
+	"x-api-key":     true,
+}
+
+func redactMap(input map[string]any) map[string]any {
+	out := make(map[string]any, len(input))
+	for key, value := range input {
+		if isSensitiveKey(key) {
+			out[key] = "[redacted]"
+			continue
+		}
+		out[key] = redactValue(value)
+	}
+	return out
+}
+
+func redactValue(value any) any {
+	switch v := value.(type) {
+	case map[string]any:
+		return redactMap(v)
+	case []any:
+		out := make([]any, len(v))
+		for i := range v {
+			out[i] = redactValue(v[i])
+		}
+		return out
+	case string:
+		return redactURLQuery(v)
+	default:
+		return v
+	}
+}
+
+func redactURLQuery(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil || u.RawQuery == "" {
+		return raw
+	}
+	q := u.Query()
+	changed := false
+	for key := range q {
+		if isSensitiveKey(key) {
+			q.Set(key, "[redacted]")
+			changed = true
+		}
+	}
+	if !changed {
+		return raw
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func isSensitiveKey(key string) bool {
+	key = strings.ToLower(key)
+	if sensitiveKeys[key] {
+		return true
+	}
+	return strings.Contains(key, "token") ||
+		strings.Contains(key, "password") ||
+		strings.Contains(key, "passwd") ||
+		strings.Contains(key, "secret") ||
+		strings.Contains(key, "api_key") ||
+		strings.Contains(key, "apikey") ||
+		strings.Contains(key, "authorization") ||
+		strings.Contains(key, "cookie")
 }

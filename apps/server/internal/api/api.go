@@ -12,14 +12,57 @@ import (
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
 )
 
-// API wires the HTTP handlers to their dependencies.
-type API struct {
-	store *store.Store
+// Store is the database behavior the HTTP layer needs. The concrete
+// *store.Store satisfies this interface; tests use a small fake so handler
+// behavior can be exercised without a Postgres process.
+type Store interface {
+	Ping(ctx context.Context) error
+	LookupIngestionKey(ctx context.Context, publicKey string) (store.KeyLookup, error)
+	InsertRawEvent(ctx context.Context, e store.RawEvent) error
+	IncrementDroppedCounter(ctx context.Context, environmentID *string, reason string, day time.Time) error
+	CreateFirstOwner(ctx context.Context, email, passwordHash string) (store.User, error)
+	GetUserByEmail(ctx context.Context, email string) (store.User, error)
+	GetUserByID(ctx context.Context, id string) (store.User, error)
+	CreateSession(ctx context.Context, id, userID, csrfToken string, expiresAt time.Time) (store.Session, error)
+	LookupSession(ctx context.Context, id string) (store.Session, error)
+	DeleteSession(ctx context.Context, id string) error
+	CreateProject(ctx context.Context, name string, allowedOrigins []string) (store.ProjectDetail, error)
+	ListProjects(ctx context.Context) ([]store.ProjectDetail, error)
+	CreateEnvironment(ctx context.Context, projectID, name string) (store.Environment, error)
+	CreateIngestionKey(ctx context.Context, environmentID string) (store.IngestionKey, error)
+	RevokeKey(ctx context.Context, keyID string) error
 }
 
-// new returns an API backed by the given store.
-func New(st *store.Store) *API {
-	return &API{store: st}
+// CookieSecureMode controls the Secure attribute on dashboard auth cookies.
+type CookieSecureMode string
+
+const (
+	CookieSecureAuto  CookieSecureMode = "auto"
+	CookieSecureTrue  CookieSecureMode = "true"
+	CookieSecureFalse CookieSecureMode = "false"
+)
+
+// Options controls behavior that differs between deployments.
+type Options struct {
+	CookieSecure CookieSecureMode
+}
+
+// API wires the HTTP handlers to their dependencies.
+type API struct {
+	store        Store
+	cookieSecure CookieSecureMode
+}
+
+// New returns an API backed by the given store.
+func New(st Store, opts ...Options) *API {
+	cfg := Options{CookieSecure: CookieSecureAuto}
+	if len(opts) > 0 {
+		cfg = opts[0]
+	}
+	if cfg.CookieSecure == "" {
+		cfg.CookieSecure = CookieSecureAuto
+	}
+	return &API{store: st, cookieSecure: cfg.CookieSecure}
 }
 
 // Handler builds the router for the whole HTTP surface, wrapped in the

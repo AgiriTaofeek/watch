@@ -8,7 +8,6 @@ export type EventType =
   | "deployment"
 
 export interface EventEnvelope<T = unknown> {
-  project_id?: string // optional — server derives from ingestion key at ingest time
   environment: string
   release?: string
   service: "frontend"

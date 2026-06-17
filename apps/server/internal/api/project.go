@@ -12,7 +12,8 @@ import (
 func (a *API) handleCreateProject(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MiB
 	var req struct {
-		Name string `json:"name"`
+		Name           string   `json:"name"`
+		AllowedOrigins []string `json:"allowed_origins"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -26,7 +27,7 @@ func (a *API) handleCreateProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	project, err := a.store.CreateProject(r.Context(), req.Name)
+	project, err := a.store.CreateProject(r.Context(), req.Name, req.AllowedOrigins)
 	if err != nil {
 		a.serverError(w, r, err, "could not create project")
 		return

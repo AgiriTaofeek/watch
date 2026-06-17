@@ -6,6 +6,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -26,6 +27,10 @@ type Config struct {
 	// LogLevel sets the minimum slog level. One of: debug, info, warn, error.
 	// Defaults to "info". Case-insensitive.
 	LogLevel string
+
+	// CookieSecure controls whether dashboard auth cookies use the Secure
+	// attribute. One of: auto, true, false. Defaults to auto.
+	CookieSecure string
 }
 
 // Load reads env vars and returns a populated Config. Returns an error
@@ -35,10 +40,18 @@ func Load() (Config, error) {
 		DatabaseURL: getenvDefault("DATABASE_URL", ""),
 		ListenAddr:  getenvDefault("WATCH_LISTEN_ADDR", ":8080"),
 		LogLevel:    getenvDefault("WATCH_LOG_LEVEL", "info"),
+		CookieSecure: strings.ToLower(
+			getenvDefault("WATCH_COOKIE_SECURE", "auto"),
+		),
 	}
 
 	if cfg.DatabaseURL == "" {
 		return Config{}, errors.New("DATABASE_URL is required")
+	}
+	switch cfg.CookieSecure {
+	case "auto", "true", "false":
+	default:
+		return Config{}, fmt.Errorf("WATCH_COOKIE_SECURE must be one of auto, true, false")
 	}
 	return cfg, nil
 }

@@ -60,7 +60,7 @@ Watch generates a browser ingestion key or DSN for that project.
 Example:
 
 ```txt
-https://watch.company.com/ingest/client_abc123
+https://watch.company.com/ingest/pk_abc123
 ```
 
 This key is safe to put in frontend code. It identifies the project and environment, but it does not grant dashboard access.
@@ -75,7 +75,7 @@ Example:
 import { init } from "@watch/browser"
 
 init({
-  dsn: "https://watch.company.com/ingest/client_abc123",
+  dsn: "https://watch.company.com/ingest/pk_abc123",
   environment: "production",
   release: "customer-portal@2026.05.28"
 })
@@ -140,7 +140,7 @@ It must not collect:
 When an event happens, the SDK batches it and sends it to Watch.
 
 ```txt
-POST /ingest/client_abc123
+POST /ingest/pk_abc123
 ```
 
 The ingestion API is public-facing because browsers need to reach it, but it is restricted by:

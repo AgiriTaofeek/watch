@@ -31,29 +31,17 @@ func (a *API) handleAuthSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count, err := a.store.CountUsers(r.Context())
-	if err != nil {
-		a.serverError(w, r, err, "could not check user count")
-		return
-	}
-	if count > 0 {
-		writeError(w, http.StatusConflict, "setup already completed")
-		return
-	}
-
 	hash, err := auth.HashPassword(req.Password)
 	if err != nil {
 		a.serverError(w, r, err, "could not hash password")
 		return
 	}
 
-	orgID, err := a.store.DefaultOrganizationID(r.Context())
-	if err != nil {
-		a.serverError(w, r, err, "could not get organization")
+	user, err := a.store.CreateFirstOwner(r.Context(), req.Email, hash)
+	if errors.Is(err, store.ErrSetupComplete) {
+		writeError(w, http.StatusConflict, "setup already completed")
 		return
 	}
-
-	user, err := a.store.CreateUser(r.Context(), orgID, req.Email, hash, "owner")
 	if err != nil {
 		a.serverError(w, r, err, "could not create user")
 		return
@@ -119,7 +107,7 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		Value:    sessionID,
 		Expires:  expiresAt,
 		HttpOnly: true,
-		Secure:   r.TLS != nil, // Secure only over HTTPS; plain HTTP works for local dev
+		Secure:   a.secureCookie(r),
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 	})
@@ -142,7 +130,7 @@ func (a *API) handleLogout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
-		Secure:   r.TLS != nil,
+		Secure:   a.secureCookie(r),
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 		MaxAge:   -1,
@@ -154,4 +142,15 @@ func (a *API) handleLogout(w http.ResponseWriter, r *http.Request) {
 func (a *API) handleMe(w http.ResponseWriter, r *http.Request) {
 	user, _ := UserFromContext(r.Context())
 	writeJSON(w, http.StatusOK, user)
+}
+
+func (a *API) secureCookie(r *http.Request) bool {
+	switch a.cookieSecure {
+	case CookieSecureTrue:
+		return true
+	case CookieSecureFalse:
+		return false
+	default:
+		return r.TLS != nil
+	}
 }
