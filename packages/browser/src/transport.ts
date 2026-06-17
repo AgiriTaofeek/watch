@@ -14,6 +14,10 @@ function delay(ms: number): Promise<void> {
 export class Transport {
   private queue: EventEnvelope[] = []
   private readonly endpoint: string
+  // Snapshot of the global fetch taken at construction time so that the
+  // network instrumentation wrapper (which patches window.fetch later) does
+  // not intercept the SDK's own ingest calls and create feedback loops.
+  private readonly _fetch: typeof fetch = fetch
 
   constructor(endpoint: string) {
     this.endpoint = endpoint
@@ -55,7 +59,7 @@ export class Transport {
     attempt = 0,
   ): Promise<void> {
     try {
-      const response = await fetch(this.endpoint, {
+      const response = await this._fetch(this.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(event),

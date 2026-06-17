@@ -1,8 +1,11 @@
 import type { EventEnvelope, EventType } from "@watch/contracts"
+import { installAssetInstrumentation } from "./assets"
 import type { BreadcrumbEntry } from "./breadcrumbs"
 import { BreadcrumbBuffer } from "./breadcrumbs"
 import { installErrorHandlers } from "./errors"
 import type { FrontendErrorPayload } from "./errors"
+import { installNavigationInstrumentation } from "./navigation"
+import { installNetworkInstrumentation } from "./network"
 import { getSessionID } from "./session"
 import { Transport } from "./transport"
 import { collectVitals } from "./vitals"
@@ -102,6 +105,31 @@ export function initClient(options: InitOptions): void {
 
   // Web Vitals
   collectVitals((payload) => captureEvent("web_vital", payload))
+
+  // Navigation timing (page load) + SPA route changes
+  client.cleanup.push(
+    installNavigationInstrumentation(
+      (payload) => captureEvent("navigation", payload),
+      (entry) => addBreadcrumbToClient(entry),
+    ),
+  )
+
+  // Network failure capture (fetch + XHR). Must be installed AFTER Transport is
+  // constructed so Transport._fetch holds the un-patched original.
+  client.cleanup.push(
+    installNetworkInstrumentation(
+      (payload) => captureEvent("network_request", payload),
+      (entry) => addBreadcrumbToClient(entry),
+    ),
+  )
+
+  // Asset load failures (<script>, <link>, <img> that 404 or error).
+  client.cleanup.push(
+    installAssetInstrumentation(
+      (payload) => captureEvent("asset_load", payload),
+      (entry) => addBreadcrumbToClient(entry),
+    ),
+  )
 }
 
 export function captureEvent(type: EventType, payload: unknown): void {
