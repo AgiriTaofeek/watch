@@ -143,9 +143,9 @@ func TestLoginCookieSecureModes(t *testing.T) {
 	}
 
 	cases := []struct {
-		name      string
-		mode      CookieSecureMode
-		withTLS   bool
+		name       string
+		mode       CookieSecureMode
+		withTLS    bool
 		wantSecure bool
 	}{
 		{name: "auto without tls", mode: CookieSecureAuto, wantSecure: false},

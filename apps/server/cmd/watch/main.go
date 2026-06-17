@@ -61,7 +61,7 @@ func main() {
 	logger.Info("migrations applied", "count", applied)
 
 	srv := &http.Server{
-		Addr:    cfg.ListenAddr,
+		Addr: cfg.ListenAddr,
 		Handler: api.New(st, api.Options{
 			CookieSecure: api.CookieSecureMode(cfg.CookieSecure),
 		}).Handler(),
