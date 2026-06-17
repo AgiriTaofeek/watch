@@ -14,7 +14,11 @@ import (
 // with keys from other packages.
 type ctxKey int
 
-const requestIDKey ctxKey = iota
+const (
+	requestIDKey ctxKey = iota // 0
+	sessionKey                 // 1
+	userKey                    // 2
+)
 
 // responseRecorder wraps http.ResponseWriter to capture the status code and
 // byte count for the access log. A handler that never calls WriteHeader

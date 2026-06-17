@@ -26,17 +26,33 @@ func New(st *store.Store) *API {
 // middleware chain. Order (outer → inner): requestID tags the request and
 // context; requestLogger times and logs it; recoverer turns panics into a
 // logged 500 captured by the logger.
+//
+// Route groups:
+//   - Public:              GET /health, POST /ingest/{key}, POST /auth/setup, POST /auth/login
+//   - Session-only:        POST /auth/logout, GET /me
+//   - Session + CSRF:      /api/* subtree (all dashboard CRUD)
 func (a *API) Handler() http.Handler {
 	mux := http.NewServeMux()
+
+	// Public routes — no authentication required.
 	mux.HandleFunc("GET /health", a.handleHealth)
-
 	mux.HandleFunc("POST /ingest/{key}", a.handleIngest)
+	mux.HandleFunc("POST /auth/setup", a.handleAuthSetup)
+	mux.HandleFunc("POST /auth/login", a.handleLogin)
 
-	mux.HandleFunc("POST /api/projects", a.handleCreateProject)
-	mux.HandleFunc("GET /api/projects", a.handleListProjects)
-	mux.HandleFunc("POST /api/projects/{id}/environments", a.handleCreateEnvironment)
-	mux.HandleFunc("POST /api/environments/{id}/keys", a.handleCreateKey)
-	mux.HandleFunc("DELETE /api/keys/{id}", a.handleRevokeKey)
+	// Session-required routes (no CSRF — GET or logout).
+	mux.Handle("POST /auth/logout", a.sessionRequired(http.HandlerFunc(a.handleLogout)))
+	mux.Handle("GET /me", a.sessionRequired(http.HandlerFunc(a.handleMe)))
+
+	// Dashboard API — session + CSRF required on all methods.
+	// Registered on a sub-mux so the middleware wraps the whole /api/ subtree.
+	apiMux := http.NewServeMux()
+	apiMux.HandleFunc("POST /api/projects", a.handleCreateProject)
+	apiMux.HandleFunc("GET /api/projects", a.handleListProjects)
+	apiMux.HandleFunc("POST /api/projects/{id}/environments", a.handleCreateEnvironment)
+	apiMux.HandleFunc("POST /api/environments/{id}/keys", a.handleCreateKey)
+	apiMux.HandleFunc("DELETE /api/keys/{id}", a.handleRevokeKey)
+	mux.Handle("/api/", a.sessionRequired(a.csrfProtected(apiMux)))
 
 	return requestID(requestLogger(recoverer(mux)))
 }
