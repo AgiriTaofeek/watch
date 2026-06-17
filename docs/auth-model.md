@@ -51,7 +51,15 @@ Example config:
 
 ```txt
 WATCH_AUTH_MODE=local
+WATCH_COOKIE_SECURE=auto
 ```
+
+`WATCH_COOKIE_SECURE` controls the `Secure` attribute on dashboard session
+cookies:
+
+- `auto` — secure only when the Go server receives HTTPS directly.
+- `true` — always secure; use this in production behind TLS-terminating proxies.
+- `false` — never secure; use only for local plain-HTTP development.
 
 ### OIDC Auth
 

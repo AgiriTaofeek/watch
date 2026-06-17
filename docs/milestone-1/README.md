@@ -131,7 +131,7 @@ The user model intentionally has fields like `external_subject_id` and `auth_pro
 - `created_at` — when it was minted.
 - `revoked_at` — null while active; set when revoked.
 
-**Relationships:** belongs to an environment. The key is what the SDK puts in its DSN. See `client_abc123` in [docs/how-watch-works.md](how-watch-works.md#2-create-a-project).
+**Relationships:** belongs to an environment. The key is what the SDK puts in its DSN. See `pk_abc123` in [docs/how-watch-works.md](how-watch-works.md#2-create-a-project).
 
 ### `raw_events`
 
@@ -176,7 +176,6 @@ This is the SDK → server pipeline. Trusted only at the project+environment lev
 ```
 1. SDK sends a POST with JSON body:
       {
-        "project_id": "<id>",
         "environment": "production",
         "release": "customer-portal@2026.05.31",
         "service": "frontend",

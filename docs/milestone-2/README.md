@@ -18,7 +18,7 @@ Terms a backend-focused engineer may not have met.
 - **Unhandled rejection** — a `Promise` that rejects with no `.catch()` handler. The browser fires `window.unhandledrejection` for these.
 - **Breadcrumb** — a lightweight diagnostic trail entry recorded before an error. Not a replay; it describes *what happened* (route changed, network request failed) not *how the page looked*.
 - **Ring buffer** — a fixed-capacity data structure that overwrites the oldest entry when full. The breadcrumb buffer keeps the 50 most recent entries without unbounded memory growth.
-- **DSN (Data Source Name)** — the SDK configuration string that encodes the Watch server URL and the ingestion key. Format: `https://<key>@<host>`.
+- **DSN (Data Source Name)** — the SDK configuration string that encodes the Watch server URL and the ingestion key. Format: `https://<host>/ingest/<key>`.
 - **`navigator.sendBeacon`** — browser API for sending small payloads that can outlive the current page. `fetch(..., { keepalive: true })` is the modern equivalent used here.
 - **`sessionStorage`** — browser storage cleared when the tab closes. Used for the anonymous session ID so each browser session gets a fresh ID.
 - **`beforeSend` hook** — a user-supplied callback invoked before every event leaves the SDK. Return the event to send it, return `null` to drop it, or return a modified copy.
@@ -30,7 +30,7 @@ M2 builds the browser half of the SDK → server pipeline.
 ```
 Browser (your frontend app)
     │
-    │  watch.init({ dsn: "https://pk_abc123@watch.example.com" })
+    │  watch.init({ dsn: "https://watch.example.com/ingest/pk_abc123" })
     │
     ├── window.onerror, unhandledrejection  → frontend_error events
     ├── PerformanceObserver (via web-vitals) → web_vital events
@@ -62,9 +62,9 @@ The SDK is a single `init()` call that activates all collection. It is framework
 
 ### DSN format
 
-`https://pk_abc123@watch.example.com`
+`https://watch.example.com/ingest/pk_abc123`
 
-Parsed with `new URL(dsn)`: `url.username` is the ingestion key, `url.host` is the server. The ingest endpoint becomes `${protocol}//${host}/ingest/${key}`. This is a standard URL so it validates for free, works with copy-paste, and is human-readable.
+Parsed with `new URL(dsn)`: the path must be `/ingest/<key>`. The SDK also accepts the older `https://<key>@<host>` form for compatibility, but public docs should use the canonical endpoint URL.
 
 ### Singleton client
 

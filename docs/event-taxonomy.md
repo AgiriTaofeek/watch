@@ -18,7 +18,6 @@ All events share a stable envelope.
 
 ```json
 {
-  "project_id": "...",
   "environment": "production",
   "release": "2026.05.28-1",
   "service": "frontend",
@@ -32,6 +31,9 @@ All events share a stable envelope.
   "payload": {}
 }
 ```
+
+The server derives `project_id` from the ingestion key; SDK events do not send
+it as a top-level field.
 
 ## Samples And Rollups
 

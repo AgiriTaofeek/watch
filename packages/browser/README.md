@@ -22,7 +22,7 @@ yarn add @watch/browser
 import { init } from "@watch/browser"
 
 init({
-  dsn: "https://watch.company.com/ingest/client_abc123",
+  dsn: "https://watch.company.com/ingest/pk_abc123",
   environment: "production",
   release: "customer-portal@2026.05.28",
 })

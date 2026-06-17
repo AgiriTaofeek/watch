@@ -61,8 +61,10 @@ func main() {
 	logger.Info("migrations applied", "count", applied)
 
 	srv := &http.Server{
-		Addr:    cfg.ListenAddr,
-		Handler: api.New(st).Handler(),
+		Addr: cfg.ListenAddr,
+		Handler: api.New(st, api.Options{
+			CookieSecure: api.CookieSecureMode(cfg.CookieSecure),
+		}).Handler(),
 		// Timeouts guard against slow/abusive clients (Slowloris) and leaked
 		// connections. Without them a single stalled client can pin a goroutine
 		// and a connection indefinitely.

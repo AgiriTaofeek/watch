@@ -13,17 +13,18 @@ import (
 )
 
 // ErrNotFound is returned when a referenced parent row (project, environment)
-// doesn't exist. Handlers map it to HTTP 404
+// doesn't exist. Handlers map it to HTTP 404.
 var ErrNotFound = errors.New("not found")
 
 // Project, Environment, and IngestionKey mirror their rows. IDs and timestamps
 // are strings (we cast uuid/timestamptz to text in queries) to stay free of
 // extra dependencies.
 type Project struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Slug      string `json:"slug"`
-	CreatedAt string `json:"created_at"`
+	ID             string   `json:"id"`
+	Name           string   `json:"name"`
+	Slug           string   `json:"slug"`
+	AllowedOrigins []string `json:"allowed_origins"`
+	CreatedAt      string   `json:"created_at"`
 }
 
 type Environment struct {
@@ -51,9 +52,9 @@ type EnvironmentDetail struct {
 	Keys []IngestionKey `json:"keys"`
 }
 
-// CreateProject creates a project plus a default "production" environment and an initial ingestion key, atomically. Returns the project with that env+key
-
-func (s *Store) CreateProject(ctx context.Context, name string) (ProjectDetail, error) {
+// CreateProject creates a project plus a default "production" environment and
+// an initial ingestion key, atomically. Returns the project with that env+key.
+func (s *Store) CreateProject(ctx context.Context, name string, allowedOrigins []string) (ProjectDetail, error) {
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return ProjectDetail{}, fmt.Errorf("begin tx: %w", err)
@@ -61,18 +62,18 @@ func (s *Store) CreateProject(ctx context.Context, name string) (ProjectDetail, 
 	defer func() { _ = tx.Rollback(ctx) }() // no-op after a successful commit
 
 	orgID, err := defaultOrganizationID(ctx, tx)
-
 	if err != nil {
 		return ProjectDetail{}, err
 	}
 
 	var p Project
 	err = tx.QueryRow(ctx, `
-			INSERT INTO projects (organization_id, name, slug)
-	    VALUES ($1::uuid, $2, $3)
-	    RETURNING id::text, name, slug, created_at::text
+		INSERT INTO projects (organization_id, name, slug, allowed_origins)
+		VALUES ($1::uuid, $2, $3, $4)
+		RETURNING id::text, name, slug, allowed_origins, created_at::text
 	`,
-		orgID, name, slugify(name)).Scan(&p.ID, &p.Name, &p.Slug, &p.CreatedAt)
+		orgID, name, slugify(name), normalizeAllowedOrigins(allowedOrigins)).
+		Scan(&p.ID, &p.Name, &p.Slug, &p.AllowedOrigins, &p.CreatedAt)
 
 	if err != nil {
 		return ProjectDetail{}, fmt.Errorf("insert project: %w", err)
@@ -101,17 +102,16 @@ func (s *Store) CreateProject(ctx context.Context, name string) (ProjectDetail, 
 // queries grouped in Go, rather than N+1 per-project lookups.
 func (s *Store) ListProjects(ctx context.Context) ([]ProjectDetail, error) {
 	projRows, err := s.pool.Query(ctx, `
-			SELECT id::text, name, slug, created_at::text
-			FROM projects
-			ORDER BY created_at
+		SELECT id::text, name, slug, allowed_origins, created_at::text
+		FROM projects
+		ORDER BY created_at
 	`)
-
 	if err != nil {
 		return nil, fmt.Errorf("query projects: %w", err)
 	}
 	projects, err := pgx.CollectRows(projRows, func(r pgx.CollectableRow) (ProjectDetail, error) {
 		var p ProjectDetail
-		return p, r.Scan(&p.ID, &p.Name, &p.Slug, &p.CreatedAt)
+		return p, r.Scan(&p.ID, &p.Name, &p.Slug, &p.AllowedOrigins, &p.CreatedAt)
 	})
 
 	if err != nil {
@@ -122,11 +122,10 @@ func (s *Store) ListProjects(ctx context.Context) ([]ProjectDetail, error) {
 	envByProject := map[string][]EnvironmentDetail{}
 	envIndex := map[string]*EnvironmentDetail{} // env id -> pointer into the slices below
 	envRows, err := s.pool.Query(ctx, `
-	  	SELECT id::text, project_id::text, name, created_at::text
-			FROM environments
-			ORDER BY created_at
+		SELECT id::text, project_id::text, name, created_at::text
+		FROM environments
+		ORDER BY created_at
 	`)
-
 	if err != nil {
 		return nil, fmt.Errorf("query environments: %w", err)
 	}
@@ -151,8 +150,8 @@ func (s *Store) ListProjects(ctx context.Context) ([]ProjectDetail, error) {
 	}
 
 	keyRows, err := s.pool.Query(ctx, `
-			SELECT id::text, environment_id::text, public_key, created_at::text, revoked_at::text
-		  FROM ingestion_keys ORDER BY created_at
+		SELECT id::text, environment_id::text, public_key, created_at::text, revoked_at::text
+		FROM ingestion_keys ORDER BY created_at
 	`)
 	if err != nil {
 		return nil, fmt.Errorf("query keys: %w", err)
@@ -235,10 +234,10 @@ type querier interface {
 func defaultOrganizationID(ctx context.Context, q querier) (string, error) {
 	var id string
 	err := q.QueryRow(ctx, `
-	    SELECT id::text
-			FROM organizations
-			ORDER BY created_at
-			LIMIT 1
+		SELECT id::text
+		FROM organizations
+		ORDER BY created_at
+		LIMIT 1
 	`).Scan(&id)
 
 	if err == nil {
@@ -250,9 +249,9 @@ func defaultOrganizationID(ctx context.Context, q querier) (string, error) {
 	}
 	// None yet — create the single default org (v1 is single-organization).
 	err = q.QueryRow(ctx, `
-			INSERT INTO organizations (name)
-			VALUES ('Watch')
-			RETURNING id::text
+		INSERT INTO organizations (name)
+		VALUES ('Watch')
+		RETURNING id::text
 	`).Scan(&id)
 
 	if err != nil {
@@ -264,9 +263,9 @@ func defaultOrganizationID(ctx context.Context, q querier) (string, error) {
 func insertEnvironment(ctx context.Context, q querier, projectID, name string) (Environment, error) {
 	var e Environment
 	err := q.QueryRow(ctx, `
-			INSERT INTO environments (project_id, name)
-			VALUES ($1::uuid, $2)
-		  RETURNING id::text, name, created_at::text
+		INSERT INTO environments (project_id, name)
+		VALUES ($1::uuid, $2)
+		RETURNING id::text, name, created_at::text
 	`,
 		projectID, name,
 	).Scan(&e.ID, &e.Name, &e.CreatedAt)
@@ -280,9 +279,9 @@ func insertEnvironment(ctx context.Context, q querier, projectID, name string) (
 func insertIngestionKey(ctx context.Context, q querier, environmentID string) (IngestionKey, error) {
 	var k IngestionKey
 	err := q.QueryRow(ctx, `
-			INSERT INTO ingestion_keys (environment_id, public_key)
-			VALUES ($1::uuid, $2)
-		  RETURNING id::text, public_key, created_at::text, revoked_at::text
+		INSERT INTO ingestion_keys (environment_id, public_key)
+		VALUES ($1::uuid, $2)
+		RETURNING id::text, public_key, created_at::text, revoked_at::text
 	`,
 		environmentID, newPublicKey(),
 	).Scan(&k.ID, &k.PublicKey, &k.CreatedAt, &k.RevokedAt)
@@ -331,4 +330,21 @@ var nonSlug = regexp.MustCompile(`[^a-z0-9]+`)
 func slugify(name string) string {
 	s := nonSlug.ReplaceAllString(strings.ToLower(strings.TrimSpace(name)), "-")
 	return strings.Trim(s, "-")
+}
+
+func normalizeAllowedOrigins(origins []string) []string {
+	if len(origins) == 0 {
+		return []string{}
+	}
+	seen := map[string]bool{}
+	result := []string{}
+	for _, origin := range origins {
+		origin = strings.TrimSpace(origin)
+		if origin == "" || seen[origin] {
+			continue
+		}
+		seen[origin] = true
+		result = append(result, origin)
+	}
+	return result
 }

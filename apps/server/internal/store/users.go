@@ -8,6 +8,9 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// ErrSetupComplete is returned when first-owner setup has already happened.
+var ErrSetupComplete = errors.New("setup already completed")
+
 // User mirrors the users table row. PasswordHash is excluded from JSON
 // responses (json:"-") so it is never accidentally leaked to clients.
 type User struct {
@@ -20,7 +23,6 @@ type User struct {
 }
 
 // CountUsers returns the total number of user rows in the database.
-// Used by handleAuthSetup to reject requests when any user already exists.
 func (s *Store) CountUsers(ctx context.Context) (int, error) {
 	var n int
 	err := s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&n)
@@ -40,6 +42,49 @@ func (s *Store) CreateUser(ctx context.Context, orgID, email, passwordHash, role
 	`, orgID, email, passwordHash, role).Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.CreatedAt)
 	if err != nil {
 		return User{}, fmt.Errorf("create user: %w", err)
+	}
+	return u, nil
+}
+
+// CreateFirstOwner atomically creates the first dashboard owner. It serializes
+// setup attempts with a table lock so concurrent /auth/setup requests cannot
+// both observe an empty users table and create multiple owners.
+func (s *Store) CreateFirstOwner(ctx context.Context, email, passwordHash string) (User, error) {
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return User{}, fmt.Errorf("begin setup tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	if _, err := tx.Exec(ctx, `LOCK TABLE users IN EXCLUSIVE MODE`); err != nil {
+		return User{}, fmt.Errorf("lock users: %w", err)
+	}
+
+	var count int
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&count); err != nil {
+		return User{}, fmt.Errorf("count users: %w", err)
+	}
+	if count > 0 {
+		return User{}, ErrSetupComplete
+	}
+
+	orgID, err := defaultOrganizationID(ctx, tx)
+	if err != nil {
+		return User{}, err
+	}
+
+	var u User
+	err = tx.QueryRow(ctx, `
+		INSERT INTO users (organization_id, email, password_hash, role)
+		VALUES ($1::uuid, $2, $3, 'owner')
+		RETURNING id::text, email, display_name, role, created_at::text
+	`, orgID, email, passwordHash).Scan(&u.ID, &u.Email, &u.DisplayName, &u.Role, &u.CreatedAt)
+	if err != nil {
+		return User{}, fmt.Errorf("create first owner: %w", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return User{}, fmt.Errorf("commit first owner: %w", err)
 	}
 	return u, nil
 }

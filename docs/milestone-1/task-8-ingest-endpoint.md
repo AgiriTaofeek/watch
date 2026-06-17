@@ -27,11 +27,11 @@ The two tables this task writes to — `raw_events` and `dropped_event_counters`
 ## Concept primer
 
 - **`io.LimitReader`** — wraps an `io.Reader` so at most *n* bytes can be read from it. Reading stops at *n* even if the underlying stream has more. We use this to cap ingest payloads at 100 KB + 1 byte: if we read back 100 KB + 1 bytes, the body was too large.
-- **`json.Unmarshal`** vs `json.NewDecoder` — `Unmarshal` works on an already-read `[]byte` slice. `NewDecoder` wraps a reader and decodes on the fly. Because we need the raw bytes to store verbatim in `raw_events`, we read the full body first and then unmarshal from the slice.
+- **`json.NewDecoder` with `DisallowUnknownFields`** — the ingest endpoint reads a bounded body, then decodes a strict top-level envelope so unexpected fields are rejected instead of silently stored.
 - **`INSERT ... ON CONFLICT DO UPDATE`** — an upsert. If the target row already exists (same `(environment_id, reason, day)` key), `DO UPDATE` runs instead of returning a conflict error. We use it to atomically increment the counter. The `NULLS NOT DISTINCT` on the index makes two NULL `environment_id` values count as the same key, so unknown-key drops aggregate correctly.
 - **`::event_type` and `::drop_reason` casts** — these are Postgres custom enum types defined in the first migration. Passing a plain string `"frontend_error"` is fine; pgx will apply the cast and Postgres validates that the string is a member of the enum.
-- **Verbatim payload** — the `payload jsonb` column stores the full request body unchanged. Rollups (M5) recompute from raw; if we ever need to reprocess events, the original data is there. We deliberately do not strip or reshape the JSON at ingest time.
-- **Deferred origin allowlist** — the spec calls for validating the `Origin` header against a per-project allowlist. The `projects` table doesn't have an `allowed_origins` column yet (it arrives in a later migration). For M1 we log the origin and accept all origins; the `blocked_origin` counter reason is wired but unused until the allowlist column lands.
+- **Sanitized payload** — the `payload jsonb` column stores the accepted envelope after server-side redaction. Rollups (M5) recompute from this privacy-safe source.
+- **Origin allowlist** — projects may define allowed browser origins. An empty allowlist permits all origins for local development and curl/server-side clients; a configured allowlist blocks mismatched browser origins.
 
 ## File 1 — `apps/server/internal/store/events.go`
 
@@ -122,12 +122,13 @@ Only the fields needed for validation are decoded; the raw `body []byte` is what
    → not found          → dropAndRespond(nil, "unknown_key", 401)
    → revoked            → dropAndRespond(&envID, "revoked_key", 401)
 
-2. Log Origin header (allowlist check deferred)
+2. Check Origin header against the project's allowed origins
+   → blocked            → dropAndRespond(&envID, "blocked_origin", 403)
 
 3. io.ReadAll(io.LimitReader(r.Body, 100KB+1))
    → len(body) > 100KB  → dropAndRespond(&envID, "oversized_payload", 413)
 
-4. json.Unmarshal(body, &env)
+4. Decode strict top-level envelope
    → decode error        → dropAndRespond(&envID, "invalid_schema", 400)
 
 5. Validate: service=="frontend", type∈validEventTypes, timestamp parseable RFC3339
@@ -190,7 +191,6 @@ KEY="pk_<your_key_here>"
 curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8080/ingest/$KEY \
   -H 'Content-Type: application/json' \
   -d '{
-    "project_id":"test",
     "environment":"production",
     "service":"frontend",
     "timestamp":"2026-06-17T10:00:00Z",
@@ -228,7 +228,5 @@ curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8080/ingest/$KEY
 
 ## What this task does NOT do
 
-- **Origin allowlist enforcement** — deferred; `blocked_origin` counter reason is wired but unused until the `projects.allowed_origins` column lands.
-- **Server-side redaction** — stripping cookies, tokens, or sensitive fields from the payload ([docs/security-privacy.md](../security-privacy.md)). The SDK is responsible for redaction in M2; server-side stripping is a future hardening step.
 - **Rate limiting** — the `rate_limited` counter reason exists in the schema but the actual limit is not enforced yet.
 - **Schema validation per event type** — M1 validates the envelope (type, service, timestamp) but does not deep-validate the `payload` field against a per-type schema. That arrives with the full event taxonomy in a later task.

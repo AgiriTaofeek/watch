@@ -17,8 +17,8 @@ import {
 } from "./client"
 
 // Initialises the Watch SDK. Call once, as early as possible on the page.
-// dsn format: https://<ingestion-key>@<watch-server-host>
-//   e.g. https://pk_abc123@watch.example.com
+// dsn format: https://<watch-server-host>/ingest/<ingestion-key>
+//   e.g. https://watch.example.com/ingest/pk_abc123
 export function init(options: InitOptions): void {
   initClient(options)
 }

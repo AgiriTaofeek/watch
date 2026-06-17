@@ -18,7 +18,10 @@ vi.mock("../transport", () => ({
 
 beforeEach(() => {
   _resetClient()
-  initClient({ dsn: "https://pk_test@localhost:8080", environment: "test" })
+  initClient({
+    dsn: "https://localhost:8080/ingest/pk_test",
+    environment: "test",
+  })
 })
 
 afterEach(() => {
@@ -224,7 +227,7 @@ describe("privacy — beforeSend hook", () => {
   it("returning null from beforeSend drops the event", () => {
     _resetClient()
     initClient({
-      dsn: "https://pk_test@localhost:8080",
+      dsn: "https://localhost:8080/ingest/pk_test",
       environment: "test",
       beforeSend: () => null,
     })
@@ -239,7 +242,7 @@ describe("privacy — beforeSend hook", () => {
     _resetClient()
     const seen: EventEnvelope[] = []
     initClient({
-      dsn: "https://pk_test@localhost:8080",
+      dsn: "https://localhost:8080/ingest/pk_test",
       environment: "test",
       beforeSend: (event) => {
         const modified = { ...event, environment: "overridden" }
