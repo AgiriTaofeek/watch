@@ -7,10 +7,19 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
 )
+
+var uuidRe = regexp.MustCompile(
+	`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+)
+
+// validUUID reports whether s is a well-formed UUID. Used to pre-validate
+// query-param IDs before they reach a Postgres ::uuid cast.
+func validUUID(s string) bool { return uuidRe.MatchString(s) }
 
 // Store is the database behavior the HTTP layer needs. The concrete
 // *store.Store satisfies this interface; tests use a small fake so handler
@@ -31,6 +40,15 @@ type Store interface {
 	CreateEnvironment(ctx context.Context, projectID, name string) (store.Environment, error)
 	CreateIngestionKey(ctx context.Context, environmentID string) (store.IngestionKey, error)
 	RevokeKey(ctx context.Context, keyID string) error
+
+	// Issues
+	ListIssues(ctx context.Context, projectID, environmentID string, status *string, limit, offset int) ([]store.Issue, int64, error)
+	GetIssue(ctx context.Context, issueID string) (store.Issue, error)
+	UpdateIssueStatus(ctx context.Context, issueID, status string) error
+
+	// Rollups
+	QueryErrorRollups(ctx context.Context, projectID, envID string, from, to time.Time) ([]store.ErrorRollup, error)
+	QueryVitalRollups(ctx context.Context, projectID, envID, metric string, from, to time.Time) ([]store.VitalRollup, error)
 }
 
 // CookieSecureMode controls the Secure attribute on dashboard auth cookies.
@@ -95,6 +113,16 @@ func (a *API) Handler() http.Handler {
 	apiMux.HandleFunc("POST /api/projects/{id}/environments", a.handleCreateEnvironment)
 	apiMux.HandleFunc("POST /api/environments/{id}/keys", a.handleCreateKey)
 	apiMux.HandleFunc("DELETE /api/keys/{id}", a.handleRevokeKey)
+
+	// Issues
+	apiMux.HandleFunc("GET /api/projects/{id}/issues", a.handleListIssues)
+	apiMux.HandleFunc("GET /api/issues/{id}", a.handleGetIssue)
+	apiMux.HandleFunc("PATCH /api/issues/{id}/status", a.handleUpdateIssueStatus)
+
+	// Rollups
+	apiMux.HandleFunc("GET /api/projects/{id}/rollups/errors", a.handleGetErrorRollups)
+	apiMux.HandleFunc("GET /api/projects/{id}/rollups/vitals", a.handleGetVitalRollups)
+
 	mux.Handle("/api/", a.sessionRequired(a.csrfProtected(apiMux)))
 
 	return requestID(requestLogger(recoverer(mux)))

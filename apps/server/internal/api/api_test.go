@@ -112,6 +112,23 @@ func (f *fakeStore) CreateIngestionKey(context.Context, string) (store.Ingestion
 
 func (f *fakeStore) RevokeKey(context.Context, string) error { return nil }
 
+// Issue stubs — not exercised by existing tests.
+func (f *fakeStore) ListIssues(_ context.Context, _, _ string, _ *string, _, _ int) ([]store.Issue, int64, error) {
+	return nil, 0, nil
+}
+func (f *fakeStore) GetIssue(context.Context, string) (store.Issue, error) {
+	return store.Issue{}, store.ErrNotFound
+}
+func (f *fakeStore) UpdateIssueStatus(context.Context, string, string) error { return nil }
+
+// Rollup stubs — not exercised by existing tests.
+func (f *fakeStore) QueryErrorRollups(_ context.Context, _, _ string, _, _ time.Time) ([]store.ErrorRollup, error) {
+	return nil, nil
+}
+func (f *fakeStore) QueryVitalRollups(_ context.Context, _, _, _ string, _, _ time.Time) ([]store.VitalRollup, error) {
+	return nil, nil
+}
+
 func TestAuthSetupMapsSetupCompleteToConflict(t *testing.T) {
 	fake := &fakeStore{setupErr: store.ErrSetupComplete}
 	req := httptest.NewRequest(http.MethodPost, "/auth/setup", strings.NewReader(`{"email":"a@example.com","password":"password"}`))
