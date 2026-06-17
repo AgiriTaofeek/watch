@@ -30,6 +30,8 @@ func (a *API) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", a.handleHealth)
 
+	mux.HandleFunc("POST /ingest/{key}", a.handleIngest)
+
 	mux.HandleFunc("POST /api/projects", a.handleCreateProject)
 	mux.HandleFunc("GET /api/projects", a.handleListProjects)
 	mux.HandleFunc("POST /api/projects/{id}/environments", a.handleCreateEnvironment)
