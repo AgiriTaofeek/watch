@@ -35,7 +35,7 @@ type UpsertIssueParams struct {
 	Title         string
 	Culprit       string // route pattern; empty string when unknown
 	LastSeenAt    time.Time
-	UserIDHash    *string // non-nil increments user_count
+	UserIDHash    *string // distinct affected user, when the SDK provides one
 }
 
 // UpsertIssue inserts a new issue or, on fingerprint conflict, updates the
@@ -46,26 +46,55 @@ func (s *Store) UpsertIssue(ctx context.Context, p UpsertIssueParams) (string, e
 	if p.Culprit != "" {
 		culprit = &p.Culprit
 	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return "", fmt.Errorf("begin upsert issue tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
 	var id string
-	err := s.pool.QueryRow(ctx, `
-		INSERT INTO issues
-		    (project_id, environment_id, fingerprint, title, culprit, last_seen_at,
-		     first_seen_at, event_count, user_count)
-		VALUES
-		    ($1::uuid, $2::uuid, $3, $4, $5, $6,
-		     $6, 1,
-		     CASE WHEN $7::text IS NOT NULL THEN 1 ELSE 0 END)
-		ON CONFLICT (project_id, environment_id, fingerprint) DO UPDATE SET
-		    last_seen_at = EXCLUDED.last_seen_at,
-		    event_count  = issues.event_count + 1,
-		    user_count   = issues.user_count + CASE WHEN $7::text IS NOT NULL THEN 1 ELSE 0 END,
-		    -- Re-open a resolved issue when a new occurrence arrives.
-		    status       = CASE WHEN issues.status = 'resolved' THEN 'open' ELSE issues.status END,
-		    updated_at   = now()
-		RETURNING id::text
-	`, p.ProjectID, p.EnvironmentID, p.Fingerprint, p.Title, culprit, p.LastSeenAt, p.UserIDHash).Scan(&id)
+	err = tx.QueryRow(ctx, `
+			INSERT INTO issues
+			    (project_id, environment_id, fingerprint, title, culprit, last_seen_at,
+			     first_seen_at, event_count, user_count)
+			VALUES
+			    ($1::uuid, $2::uuid, $3, $4, $5, $6,
+			     $6, 1, 0)
+			ON CONFLICT (project_id, environment_id, fingerprint) DO UPDATE SET
+			    last_seen_at = EXCLUDED.last_seen_at,
+			    event_count  = issues.event_count + 1,
+			    -- Re-open a resolved issue when a new occurrence arrives.
+			    status       = CASE WHEN issues.status = 'resolved' THEN 'open' ELSE issues.status END,
+			    updated_at   = now()
+			RETURNING id::text
+		`, p.ProjectID, p.EnvironmentID, p.Fingerprint, p.Title, culprit, p.LastSeenAt).Scan(&id)
 	if err != nil {
 		return "", fmt.Errorf("upsert issue: %w", err)
+	}
+
+	if p.UserIDHash != nil && *p.UserIDHash != "" {
+		tag, err := tx.Exec(ctx, `
+			INSERT INTO issue_users (issue_id, user_id_hash)
+			VALUES ($1::uuid, $2)
+			ON CONFLICT DO NOTHING
+		`, id, *p.UserIDHash)
+		if err != nil {
+			return "", fmt.Errorf("insert issue user: %w", err)
+		}
+		if tag.RowsAffected() > 0 {
+			if _, err := tx.Exec(ctx, `
+				UPDATE issues
+				SET user_count = user_count + 1, updated_at = now()
+				WHERE id = $1::uuid
+			`, id); err != nil {
+				return "", fmt.Errorf("increment issue user count: %w", err)
+			}
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return "", fmt.Errorf("commit upsert issue tx: %w", err)
 	}
 	return id, nil
 }

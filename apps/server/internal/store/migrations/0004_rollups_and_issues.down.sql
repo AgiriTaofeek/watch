@@ -9,6 +9,7 @@ ALTER TABLE raw_events DROP COLUMN IF EXISTS issue_id;
 
 DROP INDEX IF EXISTS idx_issues_open;
 DROP INDEX IF EXISTS idx_issues_project_env_time;
+DROP TABLE IF EXISTS issue_users;
 DROP TABLE IF EXISTS issues;
 
 DROP TYPE IF EXISTS issue_status;
