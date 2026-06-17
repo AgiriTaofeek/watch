@@ -42,7 +42,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@watch/contracts": "workspace:*"
+    "@watch/contracts": "workspace:*",
+    "web-vitals": "^5.3.0"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.9",
