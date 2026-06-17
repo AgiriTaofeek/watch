@@ -20,6 +20,15 @@ CREATE TABLE issues (
   UNIQUE (project_id, environment_id, fingerprint)
 );
 
+-- Distinct affected users per issue. Keeping this as a separate relation makes
+-- issues.user_count a true unique-user count instead of "events with a user id".
+CREATE TABLE issue_users (
+  issue_id      uuid        NOT NULL REFERENCES issues (id) ON DELETE CASCADE,
+  user_id_hash  text        NOT NULL,
+  first_seen_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (issue_id, user_id_hash)
+);
+
 -- Hot query: "open issues for this project, newest first".
 CREATE INDEX idx_issues_project_env_time ON issues (project_id, environment_id, last_seen_at DESC);
 -- Dashboard filter: open issues only (partial index keeps it small).
