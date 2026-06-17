@@ -17,6 +17,7 @@ import (
 	"github.com/AgiriTaofeek/watch/apps/server/internal/config"
 	"github.com/AgiriTaofeek/watch/apps/server/internal/logging"
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
+	"github.com/AgiriTaofeek/watch/apps/server/internal/worker"
 )
 
 func main() {
@@ -59,6 +60,10 @@ func main() {
 	}
 
 	logger.Info("migrations applied", "count", applied)
+
+	retention := time.Duration(cfg.EventRetentionDays) * 24 * time.Hour
+	w := worker.New(st, logger, retention)
+	w.Start(ctx)
 
 	srv := &http.Server{
 		Addr: cfg.ListenAddr,

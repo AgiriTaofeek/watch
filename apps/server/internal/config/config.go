@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -31,11 +32,23 @@ type Config struct {
 	// CookieSecure controls whether dashboard auth cookies use the Secure
 	// attribute. One of: auto, true, false. Defaults to auto.
 	CookieSecure string
+
+	// EventRetentionDays is the number of days to keep raw events before the
+	// worker deletes them. Must be ≥ 1. Defaults to 90.
+	EventRetentionDays int
 }
 
 // Load reads env vars and returns a populated Config. Returns an error
 // if any required variable is missing or empty.
 func Load() (Config, error) {
+	retentionDays, err := parsePositiveInt(
+		getenvDefault("WATCH_EVENT_RETENTION_DAYS", "90"),
+		"WATCH_EVENT_RETENTION_DAYS",
+	)
+	if err != nil {
+		return Config{}, err
+	}
+
 	cfg := Config{
 		DatabaseURL: getenvDefault("DATABASE_URL", ""),
 		ListenAddr:  getenvDefault("WATCH_LISTEN_ADDR", ":8080"),
@@ -43,6 +56,7 @@ func Load() (Config, error) {
 		CookieSecure: strings.ToLower(
 			getenvDefault("WATCH_COOKIE_SECURE", "auto"),
 		),
+		EventRetentionDays: retentionDays,
 	}
 
 	if cfg.DatabaseURL == "" {
@@ -78,4 +92,13 @@ func getenvDefault(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// parsePositiveInt parses s as a base-10 integer and requires it to be ≥ 1.
+func parsePositiveInt(s, envKey string) (int, error) {
+	n, err := strconv.Atoi(s)
+	if err != nil || n < 1 {
+		return 0, fmt.Errorf("%s must be a positive integer, got %q", envKey, s)
+	}
+	return n, nil
 }
