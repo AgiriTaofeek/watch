@@ -1,0 +1,51 @@
+{
+  "name": "@watch/react",
+  "version": "0.0.0",
+  "description": "React integration for the Watch browser SDK",
+  "author": "AgiriTaofeek",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AgiriTaofeek/watch.git",
+    "directory": "packages/react"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./router": {
+      "types": "./dist/router.d.ts",
+      "import": "./dist/router.js",
+      "require": "./dist/router.cjs"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "@watch/browser": "workspace:*"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^15",
+    "@types/react": "^18",
+    "jsdom": "^29",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-router": "^7",
+    "tsup": "^8",
+    "vitest": "^2"
+  }
+}

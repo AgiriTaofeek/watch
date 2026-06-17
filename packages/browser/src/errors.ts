@@ -4,7 +4,8 @@ export interface FrontendErrorPayload {
   name: string
   message: string
   stack?: string
-  mechanism: "onerror" | "unhandledrejection"
+  mechanism: "onerror" | "unhandledrejection" | "error_boundary"
+  component_stack?: string // React / framework component stack from an error boundary
 }
 
 // Installs window-level error listeners and calls `onError` for each captured
