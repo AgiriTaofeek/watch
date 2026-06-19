@@ -585,3 +585,48 @@ tbody tr:hover td{background:var(--accent-subtle)}
 .sep{height:1px;background:var(--border)}
 .lbl{font-size:0.625rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3)}
 .env-section-title{font-size:0.8125rem;font-weight:600;letter-spacing:-0.01em;color:var(--text-1)}
+
+/* ─── TOKEN ALIASES ─── */
+/* Missing shims so page-level <style> blocks can use shorthand names */
+:root {
+  --bg-surface-2: var(--bg-sunken);
+  --radius:       var(--r-md);
+  --shadow-card:  var(--shadow-sm);
+  --mono:         var(--font-mono);
+  --info:         var(--p-sky-400);
+}
+
+/* ─── CHART CARD HEADER ─── */
+/* Alias pair used by network, performance, system-health, route-health */
+.chart-card-hd{
+  padding:13px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.chart-card-title{
+  font-size:0.8125rem;font-weight:600;letter-spacing:-0.01em;color:var(--text-1);
+}
+
+/* ─── METRIC SUMMARY CARD PATTERN ─── */
+/* Used in route-health + network summary strips.
+   Padding lives on child elements so the parent .card stays padding-free
+   and the .card-hd / .card-bd pattern used elsewhere is not affected. */
+.metric-label{
+  padding:14px 16px 0;
+  font-size:0.625rem;font-weight:600;
+  letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);
+}
+.metric-value{
+  padding:5px 16px 0;
+  font-size:1.75rem;font-weight:800;
+  letter-spacing:-0.04em;color:var(--text-1);
+  line-height:1;font-variant-numeric:tabular-nums;
+}
+.metric-delta{
+  padding:4px 16px 14px;
+  display:flex;align-items:center;gap:5px;
+  font-size:0.75rem;color:var(--text-3);
+}
+.delta-neg{color:var(--danger-text)}
+.delta-pos{color:var(--success-text)}
+.delta-neu{color:var(--text-3)}
