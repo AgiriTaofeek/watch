@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Issues</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">Issues</span>
+      </nav>
+      <div class="topbar-right">
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+        <!-- Page header -->
+        <div class="pg-hd">
+          <div style="display:flex;align-items:center;gap:10px">
+            <h1 class="pg-title">Issues</h1>
+            <span class="badge badge-open" style="font-size:0.75rem;padding:3px 9px;font-weight:600">47 open</span>
+          </div>
+          <div class="pg-actions">
+            <button class="btn btn-ghost btn-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+              Refresh
+            </button>
+            <button class="btn btn-secondary btn-sm">Export CSV</button>
+          </div>
+        </div>
+
+        <!-- Alert: new spike -->
+        <div class="alert alert-warning" style="margin-bottom:16px">
+          <svg class="alert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="alert-bd">
+            <div class="alert-title">Error spike detected</div>
+            <div class="alert-msg">TypeError errors on /products increased 3× in the last 30 minutes. <a href="#" style="text-decoration:underline;color:inherit">View on overview →</a></div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <input class="input" type="text" placeholder="Filter issues…" style="width:210px;height:30px;font-size:0.8125rem">
+            <select class="select" style="width:auto;height:30px;font-size:0.8125rem;padding:0 26px 0 9px" id="statusFilter" onchange="filterTable()">
+              <option value="">All statuses</option>
+              <option value="open">Open</option>
+              <option value="resolved">Resolved</option>
+              <option value="ignored">Ignored</option>
+            </select>
+            <select class="select" style="width:auto;height:30px;font-size:0.8125rem;padding:0 26px 0 9px">
+              <option>Last 24h</option><option>Last 7d</option><option>All time</option>
+            </select>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="fireToast('success')">Resolve all</button>
+              <button class="icon-btn icon-btn-sm" title="Column settings">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:86px">Status</th>
+                <th>Title / Frame</th>
+                <th style="width:150px">Route</th>
+                <th style="width:72px" class="td-r">Count</th>
+                <th style="width:80px" class="td-r">Users</th>
+                <th style="width:110px" class="td-r">Last seen</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="issue-rows">
+              <tr data-status="open">
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  <a href="issue-detail.html" style="text-decoration:none;color:inherit">
+                    <div style="font-size:0.8125rem;font-weight:500;line-height:1.35;color:var(--text-1)">TypeError: Cannot read properties of undefined (reading 'map')</div>
+                    <div class="td-mono" style="margin-top:2px">ProductList.tsx:47</div>
+                  </a>
+                </td>
+                <td class="td-mono">/products</td>
+                <td class="td-r td-count">1,204</td>
+                <td class="td-r td-dim">412</td>
+                <td class="td-r td-dim">2 min ago</td>
+                <td class="td-c">
+                  <button class="icon-btn icon-btn-sm" onclick="fireToast('success')" title="Resolve">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr data-status="open">
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;font-weight:500;line-height:1.35">ChunkLoadError: Loading chunk 42 failed</div>
+                  <div class="td-mono" style="margin-top:2px">webpack/runtime:1</div>
+                </td>
+                <td class="td-mono">/checkout</td>
+                <td class="td-r td-count">387</td>
+                <td class="td-r td-dim">203</td>
+                <td class="td-r td-dim">14 min ago</td>
+                <td class="td-c">
+                  <button class="icon-btn icon-btn-sm" onclick="fireToast('success')" title="Resolve">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr data-status="open">
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;font-weight:500;line-height:1.35">RangeError: Maximum call stack size exceeded</div>
+                  <div class="td-mono" style="margin-top:2px">useInfiniteScroll.ts:23</div>
+                </td>
+                <td class="td-mono">/feed</td>
+                <td class="td-r td-count">143</td>
+                <td class="td-r td-dim">97</td>
+                <td class="td-r td-dim">38 min ago</td>
+                <td class="td-c">
+                  <button class="icon-btn icon-btn-sm" onclick="fireToast('success')" title="Resolve">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr data-status="open">
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;font-weight:500;line-height:1.35">SyntaxError: Unexpected token '&lt;' in JSON</div>
+                  <div class="td-mono" style="margin-top:2px">api/client.ts:92</div>
+                </td>
+                <td class="td-mono">/api/orders</td>
+                <td class="td-r td-count">88</td>
+                <td class="td-r td-dim">52</td>
+                <td class="td-r td-dim">1 hr ago</td>
+                <td class="td-c">
+                  <button class="icon-btn icon-btn-sm" onclick="fireToast('success')" title="Resolve">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr data-status="ignored">
+                <td><span class="badge badge-ignored">Ignored</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;color:var(--text-2);line-height:1.35">NetworkError: Failed to fetch /api/analytics</div>
+                  <div class="td-mono" style="margin-top:2px">analytics.ts:112</div>
+                </td>
+                <td class="td-mono">/dashboard</td>
+                <td class="td-r td-count" style="color:var(--text-2)">92</td>
+                <td class="td-r td-dim">—</td>
+                <td class="td-r td-dim">1 hr ago</td>
+                <td class="td-c">
+                  <button class="icon-btn icon-btn-sm" title="More">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr data-status="resolved">
+                <td><span class="badge badge-resolved">Resolved</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;color:var(--text-2);line-height:1.35">ReferenceError: sessionStorage is not defined</div>
+                  <div class="td-mono" style="margin-top:2px">auth.ts:88</div>
+                </td>
+                <td class="td-mono">/login</td>
+                <td class="td-r td-count" style="color:var(--text-2)">41</td>
+                <td class="td-r td-dim">28</td>
+                <td class="td-r td-dim">3 hr ago</td>
+                <td class="td-c">
+                  <button class="icon-btn icon-btn-sm" title="More">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <!-- skeleton -->
+              <tr>
+                <td><div class="skel" style="width:58px;height:18px;border-radius:99px"></div></td>
+                <td><div class="skel" style="width:78%;height:13px;margin-bottom:5px"></div><div class="skel" style="width:38%;height:10px"></div></td>
+                <td><div class="skel" style="width:72px;height:12px"></div></td>
+                <td class="td-r"><div class="skel" style="width:32px;height:12px;margin-left:auto"></div></td>
+                <td class="td-r"><div class="skel" style="width:24px;height:12px;margin-left:auto"></div></td>
+                <td class="td-r"><div class="skel" style="width:54px;height:12px;margin-left:auto"></div></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tbl-foot">
+            <span class="tbl-foot-txt">Showing 1–25 of 47 issues</span>
+            <div style="display:flex;gap:5px">
+              <button class="btn btn-secondary btn-xs" disabled>&larr; Prev</button>
+              <button class="btn btn-secondary btn-xs">Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+Shell.init('issues');
+
+function filterTable() {
+  const val = document.getElementById('statusFilter').value;
+  document.querySelectorAll('#issue-rows tr[data-status]').forEach(row => {
+    row.style.display = (!val || row.dataset.status === val) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

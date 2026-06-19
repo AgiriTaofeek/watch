@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Network</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* failure rate chart */
+  .net-chart-svg { width: 100%; height: 120px; display: block; }
+
+  /* URL pattern pill */
+  .url-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-1);
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+  .method-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+  .method-get  { background: rgba(99,179,237,0.12); color: var(--info); }
+  .method-post { background: rgba(167,139,250,0.12); color: var(--accent); }
+  .method-put  { background: rgba(251,191,36,0.12); color: var(--warning); }
+  .method-del  { background: rgba(239,68,68,0.12); color: var(--danger); }
+
+  /* status badge */
+  .status-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .s4xx { background: rgba(251,191,36,0.12); color: var(--warning); }
+  .s5xx { background: rgba(239,68,68,0.12); color: var(--danger); }
+  .s0   { background: rgba(239,68,68,0.08); color: var(--danger); border: 1px solid rgba(239,68,68,0.15); }
+
+  /* sub-tabs */
+  .sub-tabs { display:flex; gap:4px; margin-bottom:18px; }
+  .sub-tab {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: none;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--text-3);
+    transition: all 0.12s;
+  }
+  .sub-tab:hover { background: var(--bg-surface-2); color: var(--text-1); }
+  .sub-tab.active { background: var(--bg-surface-2); border-color: var(--border-strong); color: var(--text-1); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">Network</span>
+      </nav>
+      <div class="topbar-right">
+        <select class="select" style="height:30px;font-size:0.8125rem;padding:0 26px 0 9px;width:auto">
+          <option>Last 24h</option><option>Last 7d</option>
+        </select>
+        <button class="icon-btn icon-btn-sm" title="Refresh" onclick="fireToast('info')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+        </button>
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+        <div class="pg-hd">
+          <div style="display:flex;align-items:center;gap:10px">
+            <h1 class="pg-title">Network</h1>
+          </div>
+        </div>
+
+        <!-- Summary metrics -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+          <div class="card">
+            <div class="metric-label">Failed requests</div>
+            <div class="metric-value" style="color:var(--danger)">287</div>
+            <div class="metric-delta delta-neg">+42 vs yesterday</div>
+          </div>
+          <div class="card">
+            <div class="metric-label">Failure rate</div>
+            <div class="metric-value" style="color:var(--warning)">3.2%</div>
+            <div class="metric-delta delta-neg">+0.8pp</div>
+          </div>
+          <div class="card">
+            <div class="metric-label">Affected sessions</div>
+            <div class="metric-value">156</div>
+            <div class="metric-delta delta-neg">+28 vs yesterday</div>
+          </div>
+          <div class="card">
+            <div class="metric-label">Unique URLs failing</div>
+            <div class="metric-value">4</div>
+            <div class="metric-delta delta-neu">No change</div>
+          </div>
+        </div>
+
+        <!-- Failure rate chart -->
+        <div class="chart-card" style="margin-bottom:20px">
+          <div class="chart-card-hd">
+            <span class="chart-card-title">Network failure rate</span>
+            <span style="font-size:0.75rem;color:var(--text-3)">requests/hour with failures</span>
+          </div>
+          <svg class="net-chart-svg" viewBox="0 0 800 120" preserveAspectRatio="none" id="net-svg"></svg>
+        </div>
+
+        <!-- Sub-tabs: Failed requests / Asset failures / Chunk errors -->
+        <div class="sub-tabs">
+          <button class="sub-tab active" onclick="switchSubTab(this,'failed')">
+            Failed requests
+            <span class="badge badge-open" style="font-size:0.7rem;padding:2px 6px;margin-left:4px">287</span>
+          </button>
+          <button class="sub-tab" onclick="switchSubTab(this,'assets')">
+            Asset failures
+            <span class="badge badge-warning" style="font-size:0.7rem;padding:2px 6px;margin-left:4px;background:rgba(251,191,36,0.12);color:var(--warning);border-color:rgba(251,191,36,0.25)">14</span>
+          </button>
+          <button class="sub-tab" onclick="switchSubTab(this,'chunks')">
+            Chunk load errors
+            <span class="badge badge-open" style="font-size:0.7rem;padding:2px 6px;margin-left:4px">387</span>
+          </button>
+        </div>
+
+        <!-- Failed requests table -->
+        <div id="panel-failed">
+          <div class="tbl-wrap">
+            <div class="tbl-toolbar">
+              <input class="input" type="text" placeholder="Filter URLs…" style="width:220px;height:30px;font-size:0.8125rem">
+              <select class="select" style="width:auto;height:30px;font-size:0.8125rem;padding:0 26px 0 9px">
+                <option>All methods</option><option>GET</option><option>POST</option>
+              </select>
+              <select class="select" style="width:auto;height:30px;font-size:0.8125rem;padding:0 26px 0 9px">
+                <option>All statuses</option><option>4xx</option><option>5xx</option><option>Network error</option>
+              </select>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:56px">Method</th>
+                  <th>URL pattern</th>
+                  <th style="width:72px" class="td-c">Status</th>
+                  <th style="width:72px" class="td-r">Count</th>
+                  <th style="width:80px" class="td-r">Sessions</th>
+                  <th style="width:90px" class="td-r">Fail rate</th>
+                  <th style="width:100px" class="td-r">Last seen</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="method-badge method-get">GET</span></td>
+                  <td><span class="url-pill">/api/recommendations</span></td>
+                  <td class="td-c"><span class="status-badge s0">NetworkError</span></td>
+                  <td class="td-r td-count">143</td>
+                  <td class="td-r td-dim">89</td>
+                  <td class="td-r" style="color:var(--danger)">1.58%</td>
+                  <td class="td-r td-dim">2 min ago</td>
+                </tr>
+                <tr>
+                  <td><span class="method-badge method-post">POST</span></td>
+                  <td><span class="url-pill">/api/orders</span></td>
+                  <td class="td-c"><span class="status-badge s5xx">503</span></td>
+                  <td class="td-r td-count">87</td>
+                  <td class="td-r td-dim">52</td>
+                  <td class="td-r" style="color:var(--warning)">0.96%</td>
+                  <td class="td-r td-dim">14 min ago</td>
+                </tr>
+                <tr>
+                  <td><span class="method-badge method-post">POST</span></td>
+                  <td><span class="url-pill">/api/payment/intent</span></td>
+                  <td class="td-c"><span class="status-badge s5xx">500</span></td>
+                  <td class="td-r td-count">41</td>
+                  <td class="td-r td-dim">28</td>
+                  <td class="td-r" style="color:var(--danger)">4.20%</td>
+                  <td class="td-r td-dim">1 hr ago</td>
+                </tr>
+                <tr>
+                  <td><span class="method-badge method-get">GET</span></td>
+                  <td><span class="url-pill">/api/users/me</span></td>
+                  <td class="td-c"><span class="status-badge s4xx">429</span></td>
+                  <td class="td-r td-count">16</td>
+                  <td class="td-r td-dim">12</td>
+                  <td class="td-r" style="color:var(--warning)">0.18%</td>
+                  <td class="td-r td-dim">3 hr ago</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="tbl-foot">
+              <span class="tbl-foot-txt">4 failing URL patterns</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Asset failures panel (hidden) -->
+        <div id="panel-assets" style="display:none">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Asset URL</th>
+                  <th style="width:80px" class="td-c">Type</th>
+                  <th style="width:72px" class="td-r">Count</th>
+                  <th style="width:80px" class="td-r">Sessions</th>
+                  <th style="width:100px" class="td-r">Last seen</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="td-mono" style="font-size:0.78rem">/static/fonts/inter-v14-latin-700.woff2</td>
+                  <td class="td-c"><span class="method-badge" style="background:var(--bg-surface-2);color:var(--text-3)">font</span></td>
+                  <td class="td-r td-count">8</td>
+                  <td class="td-r td-dim">8</td>
+                  <td class="td-r td-dim">45 min ago</td>
+                </tr>
+                <tr>
+                  <td class="td-mono" style="font-size:0.78rem">/static/img/hero-banner.webp</td>
+                  <td class="td-c"><span class="method-badge" style="background:var(--bg-surface-2);color:var(--text-3)">img</span></td>
+                  <td class="td-r td-count">6</td>
+                  <td class="td-r td-dim">6</td>
+                  <td class="td-r td-dim">2 hr ago</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="tbl-foot"><span class="tbl-foot-txt">2 failing assets</span></div>
+          </div>
+        </div>
+
+        <!-- Chunk errors panel (hidden) -->
+        <div id="panel-chunks" style="display:none">
+          <div class="alert alert-warning" style="margin-bottom:16px">
+            <svg class="alert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div class="alert-bd">
+              <div class="alert-title">Version mismatch detected</div>
+              <div class="alert-msg">Users on older cached pages are failing to load chunk 42 after the Jun 14 deploy. This typically clears within 24h as caches expire.</div>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Chunk</th>
+                  <th style="width:80px" class="td-c">Type</th>
+                  <th style="width:72px" class="td-r">Count</th>
+                  <th style="width:80px" class="td-r">Sessions</th>
+                  <th style="width:120px">Deploy that broke it</th>
+                  <th style="width:100px" class="td-r">Last seen</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="td-mono" style="font-size:0.78rem">chunk-42.abc123.js</td>
+                  <td class="td-c"><span class="method-badge method-post" style="background:rgba(239,68,68,0.1);color:var(--danger)">chunk</span></td>
+                  <td class="td-r td-count" style="color:var(--danger)">387</td>
+                  <td class="td-r td-dim">203</td>
+                  <td class="td-mono" style="font-size:0.75rem">@2026.05.28</td>
+                  <td class="td-r td-dim">14 min ago</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="tbl-foot"><span class="tbl-foot-txt">1 chunk failing</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+Shell.init('network');
+
+/* failure rate sparkline */
+(function buildChart() {
+  const svg  = document.getElementById('net-svg');
+  const W = 800, H = 120, PAD = 12;
+  const data = [2,3,4,3,5,4,3,2,4,6,8,7,5,4,3,5,4,3,4,5,7,9,8,6];
+  const max  = Math.max(...data);
+  const xs   = data.map((_, i) => PAD + (i / (data.length - 1)) * (W - PAD * 2));
+  const ys   = data.map(v => PAD + (1 - v / max) * (H - PAD * 2));
+  const pts  = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+  const area = `${xs[0]},${H - PAD} ` + pts + ` ${xs[xs.length-1]},${H - PAD}`;
+
+  const id = 'ng';
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="var(--danger)" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="var(--danger)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${area}" fill="url(#${id})"/>
+    <polyline points="${pts}" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  `;
+})();
+
+function switchSubTab(btn, panel) {
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['failed','assets','chunks'].forEach(id => {
+    document.getElementById('panel-' + id).style.display = id === panel ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

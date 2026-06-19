@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — System Health</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* status cards grid */
+  .sys-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .sys-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--card-shine), var(--shadow-card);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s;
+  }
+  .sys-card:hover { border-color: var(--border-strong); }
+  .sys-card-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sys-card-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .sys-card-title svg { opacity: 0.6; }
+
+  .status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .status-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    opacity: 0.2;
+  }
+  .status-dot.healthy { background: var(--success); }
+  .status-dot.healthy::after { background: var(--success); }
+  .status-dot.warning { background: var(--warning); }
+  .status-dot.warning::after { background: var(--warning); }
+  .status-dot.error   { background: var(--danger);  }
+  .status-dot.error::after   { background: var(--danger); }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 99px;
+  }
+  .status-pill.healthy { background: rgba(34,197,94,0.1);   color: var(--success); border: 1px solid rgba(34,197,94,0.2); }
+  .status-pill.warning { background: rgba(251,191,36,0.1);  color: var(--warning); border: 1px solid rgba(251,191,36,0.2); }
+  .status-pill.error   { background: rgba(239,68,68,0.1);   color: var(--danger);  border: 1px solid rgba(239,68,68,0.2); }
+
+  .sys-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .sys-stat-item { display: flex; flex-direction: column; gap: 2px; }
+  .sys-stat-val {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text-1);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .sys-stat-key { font-size: 0.7rem; color: var(--text-3); }
+
+  /* ingestion chart */
+  .ingest-svg { width: 100%; height: 140px; display: block; }
+
+  /* dropped events table */
+  .drop-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px 16px;
+    align-items: center;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8125rem;
+  }
+  .drop-row:last-child { border-bottom: none; }
+  .drop-reason { color: var(--text-2); }
+  .drop-count  { font-variant-numeric: tabular-nums; color: var(--text-1); font-weight: 600; }
+  .drop-rate   { color: var(--text-3); font-size: 0.75rem; width: 64px; text-align: right; }
+
+  /* progress bars */
+  .prog-row { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; padding: 7px 14px; border-bottom: 1px solid var(--border); }
+  .prog-row:last-child { border-bottom: none; }
+  .prog-lbl { font-size: 0.78rem; color: var(--text-3); }
+  .prog-track { height: 6px; background: var(--bg-surface-2); border-radius: 3px; overflow: hidden; }
+  .prog-fill  { height: 100%; border-radius: 3px; }
+  .prog-val   { font-size: 0.78rem; color: var(--text-2); font-variant-numeric: tabular-nums; text-align: right; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">System Health</span>
+      </nav>
+      <div class="topbar-right">
+        <span style="font-size:0.75rem;color:var(--text-3)">Last updated: 19:15:02</span>
+        <button class="icon-btn icon-btn-sm" title="Refresh" onclick="fireToast('info')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+        </button>
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+        <div class="pg-hd">
+          <h1 class="pg-title">System Health</h1>
+        </div>
+
+        <!-- Status cards -->
+        <div class="sys-grid">
+
+          <!-- Ingestion API -->
+          <div class="sys-card">
+            <div class="sys-card-hd">
+              <div class="sys-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Ingestion API
+              </div>
+              <span class="status-pill healthy">
+                <div class="status-dot healthy"></div>
+                Healthy
+              </span>
+            </div>
+            <div class="sys-stats">
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">142</div>
+                <div class="sys-stat-key">events/min</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">8ms</div>
+                <div class="sys-stat-key">avg latency</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">99.98%</div>
+                <div class="sys-stat-key">uptime 30d</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Worker -->
+          <div class="sys-card">
+            <div class="sys-card-hd">
+              <div class="sys-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+                Aggregation Worker
+              </div>
+              <span class="status-pill healthy">
+                <div class="status-dot healthy"></div>
+                Healthy
+              </span>
+            </div>
+            <div class="sys-stats">
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">0</div>
+                <div class="sys-stat-key">queue depth</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">12,840</div>
+                <div class="sys-stat-key">rollups today</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">5min</div>
+                <div class="sys-stat-key">cycle interval</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Database -->
+          <div class="sys-card" style="border-color:rgba(251,191,36,0.3)">
+            <div class="sys-card-hd">
+              <div class="sys-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                Database
+              </div>
+              <span class="status-pill warning">
+                <div class="status-dot warning"></div>
+                Elevated
+              </span>
+            </div>
+            <div class="alert alert-warning" style="font-size:0.78rem;padding:8px 10px">
+              <svg class="alert-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div class="alert-bd">
+                <div class="alert-msg">2 slow queries detected. Write latency above baseline.</div>
+              </div>
+            </div>
+            <div class="sys-stats">
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">14/20</div>
+                <div class="sys-stat-key">connections</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val" style="color:var(--warning)">42ms</div>
+                <div class="sys-stat-key">write p75</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">2</div>
+                <div class="sys-stat-key">slow queries</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard API -->
+          <div class="sys-card">
+            <div class="sys-card-hd">
+              <div class="sys-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                Dashboard API
+              </div>
+              <span class="status-pill healthy">
+                <div class="status-dot healthy"></div>
+                Healthy
+              </span>
+            </div>
+            <div class="sys-stats">
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">1</div>
+                <div class="sys-stat-key">active sessions</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">12ms</div>
+                <div class="sys-stat-key">avg response</div>
+              </div>
+              <div class="sys-stat-item">
+                <div class="sys-stat-val">0</div>
+                <div class="sys-stat-key">auth errors</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Ingestion rate chart -->
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-card-hd">
+            <span class="chart-card-title">Ingestion rate</span>
+            <span style="font-size:0.75rem;color:var(--text-3)">events/min · last 2 hours</span>
+          </div>
+          <svg class="ingest-svg" viewBox="0 0 800 140" preserveAspectRatio="none" id="ingest-svg"></svg>
+        </div>
+
+        <!-- Resource usage -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="chart-card">
+            <div class="chart-card-hd"><span class="chart-card-title">Connection pool</span></div>
+            <div class="prog-row">
+              <div class="prog-lbl">DB connections</div>
+              <div class="prog-track"><div class="prog-fill" style="width:70%;background:var(--warning)"></div></div>
+              <div class="prog-val">14/20</div>
+            </div>
+            <div class="prog-row">
+              <div class="prog-lbl">Ingestion workers</div>
+              <div class="prog-track"><div class="prog-fill" style="width:30%;background:var(--success)"></div></div>
+              <div class="prog-val">3/10</div>
+            </div>
+            <div class="prog-row">
+              <div class="prog-lbl">Queue depth</div>
+              <div class="prog-track"><div class="prog-fill" style="width:2%;background:var(--success)"></div></div>
+              <div class="prog-val">0/500</div>
+            </div>
+          </div>
+
+          <!-- Dropped events -->
+          <div class="chart-card">
+            <div class="chart-card-hd">
+              <span class="chart-card-title">Dropped events</span>
+              <span style="font-size:0.75rem;color:var(--success)">0 in last 24h</span>
+            </div>
+            <div class="drop-row">
+              <div class="drop-reason">Rate limit exceeded</div>
+              <div class="drop-count">0</div>
+              <div class="drop-rate">—</div>
+            </div>
+            <div class="drop-row">
+              <div class="drop-reason">Schema validation error</div>
+              <div class="drop-count">0</div>
+              <div class="drop-rate">—</div>
+            </div>
+            <div class="drop-row">
+              <div class="drop-reason">Invalid ingestion key</div>
+              <div class="drop-count">0</div>
+              <div class="drop-rate">—</div>
+            </div>
+            <div class="drop-row">
+              <div class="drop-reason">Payload too large</div>
+              <div class="drop-count">0</div>
+              <div class="drop-rate">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Server info -->
+        <div class="chart-card">
+          <div class="chart-card-hd"><span class="chart-card-title">Server info</span></div>
+          <div class="tag-grid" style="display:grid;grid-template-columns:180px 1fr;font-size:0.8125rem">
+            <div class="tag-key" style="padding:8px 14px;border-bottom:1px solid var(--border)">Watch version</div>
+            <div class="tag-val" style="padding:8px 14px;border-bottom:1px solid var(--border)">v0.5.1-dev</div>
+            <div class="tag-key" style="padding:8px 14px;border-bottom:1px solid var(--border)">Go version</div>
+            <div class="tag-val" style="padding:8px 14px;border-bottom:1px solid var(--border)">go1.23.4</div>
+            <div class="tag-key" style="padding:8px 14px;border-bottom:1px solid var(--border)">Postgres</div>
+            <div class="tag-val" style="padding:8px 14px;border-bottom:1px solid var(--border)">16.3</div>
+            <div class="tag-key" style="padding:8px 14px;border-bottom:1px solid var(--border)">Uptime</div>
+            <div class="tag-val" style="padding:8px 14px;border-bottom:1px solid var(--border)">4d 12h 38m</div>
+            <div class="tag-key" style="padding:8px 14px">Retention</div>
+            <div class="tag-val" style="padding:8px 14px">30 days raw events · 90 days rollups</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+Shell.init('system');
+
+(function buildIngestChart() {
+  const svg  = document.getElementById('ingest-svg');
+  const W = 800, H = 140, PAD = 12;
+  const data = [98,102,118,124,130,128,142,139,145,148,142,138,144,147,142,138,142,145,143,142,138,142,144,142];
+  const max  = Math.max(...data) + 10;
+  const min  = Math.min(...data) - 10;
+  const xs   = data.map((_, i) => PAD + (i / (data.length - 1)) * (W - PAD * 2));
+  const ys   = data.map(v => PAD + (1 - (v - min) / (max - min)) * (H - PAD * 2));
+  const pts  = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+  const area = `${xs[0]},${H - PAD} ` + pts + ` ${xs[xs.length-1]},${H - PAD}`;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="ig" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="var(--success)" stop-opacity="0.2"/>
+        <stop offset="100%" stop-color="var(--success)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${area}" fill="url(#ig)"/>
+    <polyline points="${pts}" fill="none" stroke="var(--success)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  `;
+})();
+</script>
+</body>
+</html>

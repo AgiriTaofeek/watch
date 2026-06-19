@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Web Vitals</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Metric tab cards ── */
+.vtabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.vtab{
+  display:flex;flex-direction:column;gap:5px;
+  padding:12px 16px;border-radius:var(--r-lg);
+  background:var(--bg-surface);border:1px solid var(--border);
+  cursor:pointer;transition:border-color 120ms,background 120ms;
+  text-align:left;box-shadow:var(--card-shine);min-width:110px;
+}
+.vtab:hover{border-color:var(--border-strong)}
+.vtab.active{border-color:var(--accent);background:var(--accent-muted)}
+.vtab-name{font-size:0.6875rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3)}
+.vtab.active .vtab-name{color:var(--accent-text)}
+.vtab-val{font-size:1.375rem;font-weight:800;letter-spacing:-0.03em;color:var(--text-1);line-height:1;font-variant-numeric:tabular-nums}
+/* bucket table */
+.bucket-tbl tr td:first-child{color:var(--text-3);font-family:var(--font-mono);font-size:0.75rem}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">Web Vitals</span>
+      </nav>
+      <div class="topbar-right">
+        <select class="select" style="width:auto;height:28px;font-size:0.75rem;padding:0 26px 0 9px">
+          <option>Last 24h</option><option>Last 7d</option><option>Last 30d</option>
+        </select>
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+        <div class="pg-hd">
+          <div>
+            <h1 class="pg-title">Web Vitals</h1>
+            <p class="pg-sub">Customer Portal &middot; staging &middot; 12,840 samples this period</p>
+          </div>
+        </div>
+
+        <!-- ── METRIC TABS ── -->
+        <div class="vtabs" id="vtabs">
+          <button class="vtab active" data-metric="LCP" onclick="selectMetric(this)">
+            <span class="vtab-name">LCP</span>
+            <span class="vtab-val">1.8s</span>
+            <span class="badge badge-good" style="align-self:flex-start;font-size:0.5625rem">Good</span>
+          </button>
+          <button class="vtab" data-metric="CLS" onclick="selectMetric(this)">
+            <span class="vtab-name">CLS</span>
+            <span class="vtab-val">0.082</span>
+            <span class="badge badge-good" style="align-self:flex-start;font-size:0.5625rem">Good</span>
+          </button>
+          <button class="vtab" data-metric="INP" onclick="selectMetric(this)">
+            <span class="vtab-name">INP</span>
+            <span class="vtab-val">245ms</span>
+            <span class="badge badge-needs" style="align-self:flex-start;font-size:0.5625rem">Needs improvement</span>
+          </button>
+          <button class="vtab" data-metric="FCP" onclick="selectMetric(this)">
+            <span class="vtab-name">FCP</span>
+            <span class="vtab-val">0.9s</span>
+            <span class="badge badge-good" style="align-self:flex-start;font-size:0.5625rem">Good</span>
+          </button>
+          <button class="vtab" data-metric="TTFB" onclick="selectMetric(this)">
+            <span class="vtab-name">TTFB</span>
+            <span class="vtab-val">180ms</span>
+            <span class="badge badge-good" style="align-self:flex-start;font-size:0.5625rem">Good</span>
+          </button>
+        </div>
+
+        <!-- ── MAIN CHART ── -->
+        <div class="chart-card" style="margin-bottom:18px">
+          <div class="chart-hd">
+            <div>
+              <div class="chart-title" id="chart-title">LCP — Largest Contentful Paint</div>
+              <div class="chart-sub">p75 &middot; 7-day trend</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px">
+              <span class="badge badge-good" id="chart-health">Good</span>
+              <button class="icon-btn" title="Export">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="chart-bd">
+            <div class="chart-wrap">
+              <svg class="chart-svg" viewBox="0 0 620 186" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--chart-2)" stop-opacity="0.22"/>
+                    <stop offset="100%" stop-color="var(--chart-2)" stop-opacity="0"/>
+                  </linearGradient>
+                  <filter id="vglow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <!-- grid lines -->
+                <line x1="0" y1="37" x2="620" y2="37" stroke="var(--border)" stroke-dasharray="4 4"/>
+                <line x1="0" y1="74" x2="620" y2="74" stroke="var(--border)" stroke-dasharray="4 4"/>
+                <line x1="0" y1="111" x2="620" y2="111" stroke="var(--border)" stroke-dasharray="4 4"/>
+                <line x1="0" y1="148" x2="620" y2="148" stroke="var(--border)" stroke-dasharray="4 4"/>
+                <!-- LCP threshold: 2.5s (poor) line -->
+                <line x1="0" y1="74" x2="620" y2="74" stroke="var(--danger)" stroke-width="1" stroke-dasharray="6 3" stroke-opacity="0.35"/>
+                <!-- area -->
+                <path d="M0,120 C88,108 175,96 263,80 C350,64 437,58 525,48 C570,43 597,40 620,38 L620,186 L0,186 Z" fill="url(#vg)"/>
+                <!-- glow -->
+                <path d="M0,120 C88,108 175,96 263,80 C350,64 437,58 525,48 C570,43 597,40 620,38" fill="none" stroke="var(--chart-2)" stroke-width="3.5" stroke-opacity="0.3" filter="url(#vglow)" stroke-linecap="round"/>
+                <!-- p75 -->
+                <path d="M0,120 C88,108 175,96 263,80 C350,64 437,58 525,48 C570,43 597,40 620,38" fill="none" stroke="var(--chart-2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- mean dashed -->
+                <path d="M0,130 C88,122 175,112 263,98 C350,84 437,78 525,68 C570,63 597,60 620,58" fill="none" stroke="var(--chart-2)" stroke-width="1.5" stroke-dasharray="5 3" stroke-opacity="0.5" stroke-linecap="round"/>
+                <!-- health dots -->
+                <circle cx="0"   cy="120" r="4" fill="var(--warning)" stroke="var(--bg-surface)" stroke-width="2"/>
+                <circle cx="88"  cy="108" r="4" fill="var(--warning)" stroke="var(--bg-surface)" stroke-width="2"/>
+                <circle cx="263" cy="80"  r="4" fill="var(--success)" stroke="var(--bg-surface)" stroke-width="2"/>
+                <circle cx="437" cy="58"  r="4" fill="var(--success)" stroke="var(--bg-surface)" stroke-width="2"/>
+                <circle cx="620" cy="38"  r="4" fill="var(--success)" stroke="var(--bg-surface)" stroke-width="2"/>
+                <!-- y labels -->
+                <text x="4" y="33"  font-size="8" fill="var(--text-3)" font-family="monospace">4.0s</text>
+                <text x="4" y="70"  font-size="8" fill="var(--text-3)" font-family="monospace">2.5s</text>
+                <text x="4" y="107" font-size="8" fill="var(--text-3)" font-family="monospace">2.0s</text>
+                <text x="4" y="144" font-size="8" fill="var(--text-3)" font-family="monospace">1.0s</text>
+                <!-- poor threshold label -->
+                <text x="540" y="70" font-size="7.5" fill="var(--danger)" font-family="monospace" opacity="0.6">poor &gt;2.5s</text>
+              </svg>
+            </div>
+            <div class="chart-xlbls">
+              <span class="chart-xlbl">Jun 12</span><span class="chart-xlbl">Jun 13</span><span class="chart-xlbl">Jun 14</span><span class="chart-xlbl">Jun 15</span><span class="chart-xlbl">Jun 16</span><span class="chart-xlbl">Jun 17</span><span class="chart-xlbl">Jun 18</span>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="l-line" style="background:var(--chart-2)"></div>p75</div>
+              <div class="legend-item"><div class="l-line" style="background:var(--chart-2);opacity:.5"></div>Mean</div>
+              <div class="legend-item"><div class="l-dot" style="background:var(--success)"></div>Good (&le;2.5s)</div>
+              <div class="legend-item"><div class="l-dot" style="background:var(--warning)"></div>Needs improvement (2.5–4s)</div>
+              <div class="legend-item"><div class="l-dot" style="background:var(--danger)"></div>Poor (&gt;4s)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── STATS ROW ── -->
+        <div class="g4" style="margin-bottom:18px">
+          <div class="metric">
+            <div class="metric-lbl">p75</div>
+            <div class="metric-val num">1.8s</div>
+            <div class="metric-sub">Good threshold: &le;2.5s</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Mean</div>
+            <div class="metric-val num">1.4s</div>
+            <div class="metric-sub" style="color:var(--success-text)">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+              &minus;0.3s vs last week
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Samples</div>
+            <div class="metric-val num">12,840</div>
+            <div class="metric-sub">This period</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Health</div>
+            <div class="metric-val num" style="color:var(--success);font-size:1.375rem">Good</div>
+            <div class="metric-sub"><span class="badge badge-good" style="font-size:0.5625rem;padding:1px 6px">88% sessions</span></div>
+          </div>
+        </div>
+
+        <!-- ── HOURLY BUCKET TABLE ── -->
+        <div class="tbl-wrap">
+          <div class="card-hd">
+            <div class="card-title">Hourly Buckets — LCP</div>
+            <div class="card-sub">Last 8 hours · staging</div>
+          </div>
+          <table class="bucket-tbl">
+            <thead>
+              <tr>
+                <th style="width:90px">Hour</th>
+                <th style="width:80px" class="td-r">p75</th>
+                <th style="width:80px" class="td-r">Mean</th>
+                <th style="width:80px" class="td-r">Samples</th>
+                <th style="width:100px" class="td-r">Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>19:00</td><td class="td-r num">1.8s</td><td class="td-r num">1.4s</td><td class="td-r num">1,842</td>
+                <td class="td-r"><span class="badge badge-good">Good</span></td>
+              </tr>
+              <tr>
+                <td>18:00</td><td class="td-r num">1.9s</td><td class="td-r num">1.5s</td><td class="td-r num">1,920</td>
+                <td class="td-r"><span class="badge badge-good">Good</span></td>
+              </tr>
+              <tr>
+                <td>17:00</td><td class="td-r num">2.1s</td><td class="td-r num">1.7s</td><td class="td-r num">2,034</td>
+                <td class="td-r"><span class="badge badge-good">Good</span></td>
+              </tr>
+              <tr>
+                <td>16:00</td><td class="td-r num">2.4s</td><td class="td-r num">1.9s</td><td class="td-r num">1,988</td>
+                <td class="td-r"><span class="badge badge-needs">Needs improvement</span></td>
+              </tr>
+              <tr>
+                <td>15:00</td><td class="td-r num">2.6s</td><td class="td-r num">2.1s</td><td class="td-r num">1,756</td>
+                <td class="td-r"><span class="badge badge-needs">Needs improvement</span></td>
+              </tr>
+              <tr>
+                <td>14:00</td><td class="td-r num">2.2s</td><td class="td-r num">1.8s</td><td class="td-r num">1,644</td>
+                <td class="td-r"><span class="badge badge-good">Good</span></td>
+              </tr>
+              <tr>
+                <td>13:00</td><td class="td-r num">1.9s</td><td class="td-r num">1.5s</td><td class="td-r num">1,520</td>
+                <td class="td-r"><span class="badge badge-good">Good</span></td>
+              </tr>
+              <tr>
+                <td>12:00</td><td class="td-r num">1.8s</td><td class="td-r num">1.4s</td><td class="td-r num">1,136</td>
+                <td class="td-r"><span class="badge badge-good">Good</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+Shell.init('vitals');
+
+const METRIC_META = {
+  LCP:  { label:'LCP — Largest Contentful Paint',  health:'good',  badge:'badge-good'  },
+  CLS:  { label:'CLS — Cumulative Layout Shift',    health:'good',  badge:'badge-good'  },
+  INP:  { label:'INP — Interaction to Next Paint',  health:'needs', badge:'badge-needs' },
+  FCP:  { label:'FCP — First Contentful Paint',     health:'good',  badge:'badge-good'  },
+  TTFB: { label:'TTFB — Time to First Byte',        health:'good',  badge:'badge-good'  },
+};
+
+const HEALTH_LABEL = { good:'Good', needs:'Needs improvement', poor:'Poor' };
+const HEALTH_BADGE  = { good:'badge-good', needs:'badge-needs', poor:'badge-poor' };
+
+function selectMetric(el) {
+  document.querySelectorAll('#vtabs .vtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const m = METRIC_META[el.dataset.metric];
+  document.getElementById('chart-title').textContent = m.label;
+  const hEl = document.getElementById('chart-health');
+  hEl.className = 'badge ' + HEALTH_BADGE[m.health];
+  hEl.textContent = HEALTH_LABEL[m.health];
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Setup</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .auth-root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-base);
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+  }
+  .auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .auth-brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.03em;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 4px 16px rgba(124,58,237,0.25);
+  }
+  .auth-brand-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+  }
+  .setup-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: rgba(167,139,250,0.12);
+    border: 1px solid rgba(167,139,250,0.25);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .auth-heading {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .auth-sub {
+    font-size: 0.8125rem;
+    color: var(--text-3);
+    margin-bottom: 28px;
+    line-height: 1.55;
+  }
+  .auth-form { display: flex; flex-direction: column; gap: 14px; }
+  .auth-form .lbl { margin-bottom: 5px; display: block; }
+  .auth-form .field { display: flex; flex-direction: column; }
+  .pw-wrap { position: relative; }
+  .pw-wrap .input { padding-right: 36px; width: 100%; box-sizing: border-box; }
+  .pw-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+  }
+  .pw-toggle:hover { color: var(--text-1); }
+  .sep-line {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 0;
+  }
+  .setup-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+    counter-reset: step;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-3);
+    flex: 1;
+  }
+  .step.active { color: var(--text-1); }
+  .step.done { color: var(--success); }
+  .step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .step.active .step-num { border-color: var(--accent); color: var(--accent); background: rgba(167,139,250,0.1); }
+  .step.done .step-num { border-color: var(--success); background: rgba(34,197,94,0.1); }
+  .step-conn { flex: 1; height: 1px; background: var(--border); margin: 0 4px; max-width: 32px; }
+  .hint-text {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+  .strength-bar {
+    height: 3px;
+    background: var(--bg-surface-2);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.2s, background 0.2s;
+  }
+  .auth-theme {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+  }
+  .auth-foot {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-3);
+    line-height: 1.6;
+  }
+  .auth-foot a { color: var(--accent); text-decoration: none; }
+  .auth-foot a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="auth-root">
+  <div class="auth-card">
+
+    <div class="auth-brand">
+      <div class="auth-brand-mark">W</div>
+      <span class="auth-brand-name">Watch</span>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="setup-steps">
+      <div class="step active">
+        <div class="step-num">1</div>
+        Create account
+      </div>
+      <div class="step-conn"></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        Create project
+      </div>
+      <div class="step-conn"></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        Add environment
+      </div>
+      <div class="step-conn"></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        Copy DSN
+      </div>
+    </div>
+
+    <div class="setup-badge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      First-run setup
+    </div>
+    <h1 class="auth-heading">Create owner account</h1>
+    <p class="auth-sub">
+      This account will be the owner of this Watch instance.
+      You can invite team members after setup is complete.
+    </p>
+
+    <form class="auth-form" onsubmit="return false">
+      <div class="field">
+        <label class="lbl" for="su-email">Email address</label>
+        <input class="input" type="email" id="su-email" placeholder="you@example.com" value="taofeeqomotolani@gmail.com" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="su-pw">Password</label>
+        <div class="pw-wrap">
+          <input class="input" type="password" id="su-pw" placeholder="••••••••" oninput="updateStrength(this.value)">
+          <button class="pw-toggle" type="button" onclick="togglePw('su-pw')" title="Show/hide">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <div class="hint-text" id="strength-label">Use 12+ characters with a mix of letters, numbers, and symbols.</div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="su-confirm">Confirm password</label>
+        <div class="pw-wrap">
+          <input class="input" type="password" id="su-confirm" placeholder="••••••••">
+          <button class="pw-toggle" type="button" onclick="togglePw('su-confirm')" title="Show/hide">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="sep-line"></div>
+
+      <button class="btn btn-primary" onclick="goNext()" style="margin-top:2px">
+        Create account &amp; continue
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <p class="auth-foot">
+      Already have an account? <a href="login.html">Sign in →</a>
+    </p>
+  </div>
+</div>
+
+<div class="auth-theme">
+  <button class="toggle-pill" onclick="toggleMode()">
+    <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg id="ico-sun"  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+    <span id="mode-label">Light mode</span>
+  </button>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+  (function() {
+    const mode = localStorage.getItem('watch-mode') || 'dark';
+    document.documentElement.classList.add(mode);
+    Shell.updateToggle(mode);
+  })();
+
+  function togglePw(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
+  function updateStrength(val) {
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+    let score   = 0;
+    if (val.length >= 8)  { score++; }
+    if (val.length >= 12) { score++; }
+    if (/[0-9]/.test(val)) { score++; }
+    if (/[^a-zA-Z0-9]/.test(val)) { score++; }
+    const levels = [
+      { w:'0%',   bg:'transparent',       txt:'Use 12+ characters with a mix of letters, numbers, and symbols.' },
+      { w:'25%',  bg:'var(--danger)',      txt:'Weak — add length and symbols.' },
+      { w:'50%',  bg:'var(--warning)',     txt:'Fair — getting better, keep going.' },
+      { w:'75%',  bg:'rgba(250,204,21,1)', txt:'Good — one more type of character would help.' },
+      { w:'100%', bg:'var(--success)',     txt:'Strong password.' },
+    ];
+    const lvl = levels[score] || levels[0];
+    fill.style.width      = lvl.w;
+    fill.style.background = lvl.bg;
+    label.textContent     = lvl.txt;
+  }
+
+  function goNext() {
+    fireToast('success');
+    setTimeout(() => { window.location.href = 'overview.html'; }, 800);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Design System Preview</title>
+<style>
+/* ─────────────────────────────────────────────
+   LAYER 1: PRIMITIVE PALETTE
+   Never use these directly in components.
+───────────────────────────────────────────── */
+:root {
+  --p-neutral-0:   #ffffff;
+  --p-neutral-50:  #f8fafc;
+  --p-neutral-100: #f1f5f9;
+  --p-neutral-200: #e2e8f0;
+  --p-neutral-300: #cbd5e1;
+  --p-neutral-400: #94a3b8;
+  --p-neutral-500: #64748b;
+  --p-neutral-600: #475569;
+  --p-neutral-700: #334155;
+  --p-neutral-800: #1e293b;
+  --p-neutral-850: #172033;
+  --p-neutral-900: #0f172a;
+  --p-neutral-950: #020617;
+
+  --p-accent-50:  #eff6ff;
+  --p-accent-100: #dbeafe;
+  --p-accent-200: #bfdbfe;
+  --p-accent-400: #60a5fa;
+  --p-accent-500: #3b82f6;
+  --p-accent-600: #2563eb;
+  --p-accent-700: #1d4ed8;
+  --p-accent-900: #1e3a8a;
+
+  --p-success-50:  #f0fdf4;
+  --p-success-100: #dcfce7;
+  --p-success-200: #bbf7d0;
+  --p-success-500: #22c55e;
+  --p-success-600: #16a34a;
+  --p-success-700: #15803d;
+  --p-success-900: #14532d;
+
+  --p-warning-50:  #fffbeb;
+  --p-warning-100: #fef3c7;
+  --p-warning-200: #fde68a;
+  --p-warning-400: #fbbf24;
+  --p-warning-500: #f59e0b;
+  --p-warning-600: #d97706;
+  --p-warning-700: #b45309;
+  --p-warning-900: #78350f;
+
+  --p-danger-50:  #fff1f2;
+  --p-danger-100: #ffe4e6;
+  --p-danger-200: #fecdd3;
+  --p-danger-400: #fb7185;
+  --p-danger-500: #ef4444;
+  --p-danger-600: #dc2626;
+  --p-danger-700: #b91c1c;
+  --p-danger-900: #7f1d1d;
+
+  --p-chart-blue:    #3b82f6;
+  --p-chart-violet:  #8b5cf6;
+  --p-chart-emerald: #10b981;
+  --p-chart-amber:   #f59e0b;
+  --p-chart-rose:    #f43f5e;
+  --p-chart-cyan:    #06b6d4;
+}
+
+/* ─────────────────────────────────────────────
+   LAYER 2: SEMANTIC TOKENS — LIGHT MODE
+   Edit these to change the design.
+───────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --color-bg-base:         var(--p-neutral-50);
+  --color-bg-surface:      var(--p-neutral-0);
+  --color-bg-sunken:       var(--p-neutral-100);
+  --color-bg-elevated:     var(--p-neutral-0);
+  --color-bg-overlay:      rgba(15,23,42,0.4);
+
+  /* Borders */
+  --color-border-default:  var(--p-neutral-200);
+  --color-border-strong:   var(--p-neutral-300);
+  --color-border-focus:    var(--p-accent-500);
+
+  /* Text */
+  --color-text-primary:    var(--p-neutral-900);
+  --color-text-secondary:  var(--p-neutral-600);
+  --color-text-tertiary:   var(--p-neutral-400);
+  --color-text-disabled:   var(--p-neutral-300);
+  --color-text-inverse:    var(--p-neutral-0);
+  --color-text-link:       var(--p-accent-600);
+  --color-text-code:       var(--p-neutral-800);
+
+  /* Accent / interactive */
+  --color-accent:          var(--p-accent-500);
+  --color-accent-hover:    var(--p-accent-600);
+  --color-accent-active:   var(--p-accent-700);
+  --color-accent-subtle:   var(--p-accent-50);
+  --color-accent-muted:    var(--p-accent-100);
+  --color-accent-text:     var(--p-accent-700);
+
+  /* Success */
+  --color-success:         var(--p-success-600);
+  --color-success-subtle:  var(--p-success-50);
+  --color-success-muted:   var(--p-success-100);
+  --color-success-text:    var(--p-success-700);
+
+  /* Warning */
+  --color-warning:         var(--p-warning-500);
+  --color-warning-subtle:  var(--p-warning-50);
+  --color-warning-muted:   var(--p-warning-100);
+  --color-warning-text:    var(--p-warning-700);
+
+  /* Danger */
+  --color-danger:          var(--p-danger-600);
+  --color-danger-subtle:   var(--p-danger-50);
+  --color-danger-muted:    var(--p-danger-100);
+  --color-danger-text:     var(--p-danger-700);
+
+  /* Neutral/muted status */
+  --color-neutral:         var(--p-neutral-500);
+  --color-neutral-subtle:  var(--p-neutral-100);
+  --color-neutral-muted:   var(--p-neutral-200);
+  --color-neutral-text:    var(--p-neutral-600);
+
+  /* Skeleton */
+  --color-skeleton-base:   var(--p-neutral-200);
+  --color-skeleton-shine:  var(--p-neutral-100);
+
+  /* Chart */
+  --color-chart-1:    var(--p-chart-blue);
+  --color-chart-2:    var(--p-chart-violet);
+  --color-chart-3:    var(--p-chart-emerald);
+  --color-chart-4:    var(--p-chart-amber);
+  --color-chart-5:    var(--p-chart-rose);
+  --color-chart-6:    var(--p-chart-cyan);
+  --color-chart-grid: var(--p-neutral-200);
+  --color-chart-axis: var(--p-neutral-400);
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+
+  /* Radius */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* ─────────────────────────────────────────────
+   LAYER 2: SEMANTIC TOKENS — DARK MODE
+───────────────────────────────────────────── */
+.dark {
+  --color-bg-base:         var(--p-neutral-950);
+  --color-bg-surface:      var(--p-neutral-900);
+  --color-bg-sunken:       var(--p-neutral-850);
+  --color-bg-elevated:     var(--p-neutral-800);
+  --color-bg-overlay:      rgba(0,0,0,0.6);
+
+  --color-border-default:  var(--p-neutral-800);
+  --color-border-strong:   var(--p-neutral-700);
+  --color-border-focus:    var(--p-accent-400);
+
+  --color-text-primary:    var(--p-neutral-50);
+  --color-text-secondary:  var(--p-neutral-400);
+  --color-text-tertiary:   var(--p-neutral-600);
+  --color-text-disabled:   var(--p-neutral-700);
+  --color-text-inverse:    var(--p-neutral-900);
+  --color-text-link:       var(--p-accent-400);
+  --color-text-code:       var(--p-neutral-200);
+
+  --color-accent:          var(--p-accent-500);
+  --color-accent-hover:    var(--p-accent-400);
+  --color-accent-subtle:   var(--p-accent-900);
+  --color-accent-muted:    #1e3a6e;
+  --color-accent-text:     var(--p-accent-400);
+
+  --color-success:         var(--p-success-500);
+  --color-success-subtle:  var(--p-success-900);
+  --color-success-muted:   #14532d80;
+  --color-success-text:    var(--p-success-200);
+
+  --color-warning:         var(--p-warning-400);
+  --color-warning-subtle:  var(--p-warning-900);
+  --color-warning-muted:   #78350f80;
+  --color-warning-text:    var(--p-warning-200);
+
+  --color-danger:          var(--p-danger-400);
+  --color-danger-subtle:   var(--p-danger-900);
+  --color-danger-muted:    #7f1d1d80;
+  --color-danger-text:     var(--p-danger-200);
+
+  --color-neutral:         var(--p-neutral-400);
+  --color-neutral-subtle:  var(--p-neutral-800);
+  --color-neutral-muted:   var(--p-neutral-700);
+  --color-neutral-text:    var(--p-neutral-400);
+
+  --color-skeleton-base:   var(--p-neutral-800);
+  --color-skeleton-shine:  var(--p-neutral-700);
+
+  --color-chart-grid: var(--p-neutral-800);
+  --color-chart-axis: var(--p-neutral-600);
+
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+}
+
+/* ─────────────────────────────────────────────
+   BASE RESET + LAYOUT
+───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background: var(--color-bg-base);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Shell */
+.shell { display: flex; width: 100%; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--color-bg-surface);
+  border-right: 1px solid var(--color-border-default);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.sidebar-logo {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+.sidebar-logo-mark {
+  width: 24px; height: 24px;
+  background: var(--color-accent);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 12px; font-weight: 700;
+}
+.sidebar-logo-name { font-weight: 600; font-size: 0.9375rem; color: var(--color-text-primary); }
+
+.sidebar-nav { padding: 8px; flex: 1; overflow-y: auto; }
+.nav-section-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 8px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: background 120ms, color 120ms;
+  position: relative;
+}
+.nav-item:hover { background: var(--color-neutral-subtle); color: var(--color-text-primary); }
+.nav-item.active {
+  background: var(--color-accent-muted);
+  color: var(--color-accent-text);
+  font-weight: 600;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--color-accent);
+  border-radius: 0 2px 2px 0;
+}
+.nav-item-icon { width: 16px; height: 16px; opacity: 0.8; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--color-danger-muted);
+  color: var(--color-danger-text);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  min-width: 20px;
+  text-align: center;
+}
+
+.sidebar-divider { height: 1px; background: var(--color-border-default); margin: 8px 12px; }
+
+.sidebar-context { padding: 8px; }
+.context-label { font-size: 0.6875rem; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 8px 4px; }
+.context-selector {
+  display: flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 120ms;
+}
+.context-selector:hover { background: var(--color-neutral-subtle); }
+.context-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); flex-shrink: 0; }
+.context-name { font-size: 0.8125rem; font-weight: 500; color: var(--color-text-primary); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.context-chevron { color: var(--color-text-tertiary); font-size: 10px; }
+
+.sidebar-bottom {
+  padding: 8px;
+  border-top: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+.account-item {
+  display: flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 120ms;
+}
+.account-item:hover { background: var(--color-neutral-subtle); }
+.avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--color-accent-muted);
+  color: var(--color-accent-text);
+  font-size: 0.6875rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.account-name { font-size: 0.8125rem; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+
+/* Top bar + content */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.topbar {
+  height: 48px; flex-shrink: 0;
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-default);
+  display: flex; align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+}
+.topbar-title { font-size: 0.9375rem; font-weight: 600; color: var(--color-text-primary); flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+.content-inner { max-width: 1100px; }
+
+/* ─────────────────────────────────────────────
+   DESIGN SYSTEM SECTIONS
+───────────────────────────────────────────── */
+.ds-section { margin-bottom: 56px; }
+.ds-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-default);
+  margin-bottom: 20px;
+}
+.ds-section-desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+  margin-top: -12px;
+  line-height: 1.6;
+}
+.ds-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+.ds-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+/* ─── Color Swatches ─── */
+.swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+.swatch {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-xs);
+}
+.swatch-color { height: 56px; }
+.swatch-info { padding: 8px 10px; }
+.swatch-name { font-size: 0.6875rem; font-weight: 600; color: var(--color-text-primary); }
+.swatch-desc { font-size: 0.625rem; color: var(--color-text-tertiary); margin-top: 1px; }
+
+/* ─── Typography ─── */
+.type-specimen { display: flex; flex-direction: column; gap: 16px; }
+.type-row { display: flex; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--color-border-default); }
+.type-meta { width: 140px; flex-shrink: 0; }
+.type-meta-name { font-size: 0.6875rem; font-weight: 600; color: var(--color-text-secondary); font-family: var(--font-mono); }
+.type-meta-size { font-size: 0.625rem; color: var(--color-text-tertiary); margin-top: 2px; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; border: none; cursor: pointer;
+  font-family: var(--font-sans); font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: background 120ms, border-color 120ms, color 120ms, box-shadow 120ms;
+  white-space: nowrap;
+  text-decoration: none;
+  outline: none;
+  position: relative;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+/* Sizes */
+.btn-xs  { height: 28px; padding: 0 8px;  font-size: 0.75rem;   }
+.btn-sm  { height: 32px; padding: 0 12px; font-size: 0.875rem;  }
+.btn-md  { height: 36px; padding: 0 16px; font-size: 0.875rem;  }
+.btn-lg  { height: 44px; padding: 0 24px; font-size: 1rem;      }
+
+/* Variants */
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+.btn-primary:hover  { background: var(--color-accent-hover); }
+.btn-primary:active { background: var(--color-accent-active); }
+
+.btn-secondary {
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-default);
+  box-shadow: var(--shadow-xs);
+}
+.btn-secondary:hover { background: var(--color-bg-sunken); border-color: var(--color-border-strong); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.btn-ghost:hover { background: var(--color-neutral-subtle); color: var(--color-text-primary); }
+
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+}
+.btn-danger:hover { background: var(--p-danger-700); }
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--color-danger-text);
+}
+.btn-danger-ghost:hover { background: var(--color-danger-subtle); }
+
+.btn:disabled, .btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ─── INPUTS ─── */
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.375;
+}
+.field-label .required { color: var(--color-danger); margin-left: 2px; }
+.input, .select, .textarea {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 120ms, box-shadow 120ms;
+  box-shadow: var(--shadow-xs);
+}
+.input::placeholder, .textarea::placeholder { color: var(--color-text-tertiary); }
+.input:hover, .select:hover { border-color: var(--color-border-strong); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+.input.error { border-color: var(--color-danger); background: var(--color-danger-subtle); }
+.input.error:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 20%, transparent); }
+.textarea { height: auto; min-height: 80px; padding: 8px 12px; resize: vertical; line-height: 1.5; }
+.field-hint { font-size: 0.75rem; color: var(--color-text-secondary); line-height: 1.4; }
+.field-error { font-size: 0.75rem; color: var(--color-danger-text); display: flex; align-items: center; gap: 4px; }
+.select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+
+/* checkbox */
+.checkbox-row { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.checkbox {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  appearance: none; cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms, border-color 120ms;
+  position: relative;
+}
+.checkbox:checked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px; top: 1px;
+  width: 5px; height: 9px;
+  border: 2px solid white;
+  border-top: none; border-left: none;
+  transform: rotate(45deg);
+}
+.checkbox:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+.checkbox-label { font-size: 0.875rem; color: var(--color-text-primary); }
+
+/* ─── BADGES ─── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.6875rem; font-weight: 500;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.badge-open           { background: var(--color-danger-muted);   color: var(--color-danger-text);  }
+.badge-resolved       { background: var(--color-success-muted);  color: var(--color-success-text); }
+.badge-ignored        { background: var(--color-neutral-muted);  color: var(--color-neutral-text); }
+.badge-good           { background: var(--color-success-muted);  color: var(--color-success-text); }
+.badge-needs          { background: var(--color-warning-muted);  color: var(--color-warning-text); }
+.badge-poor           { background: var(--color-danger-muted);   color: var(--color-danger-text);  }
+.badge-active         { background: var(--color-success-muted);  color: var(--color-success-text); }
+.badge-revoked        { background: var(--color-neutral-muted);  color: var(--color-neutral-text); }
+.badge-default        { background: var(--color-neutral-muted);  color: var(--color-neutral-text); }
+.badge-outline        { background: transparent; color: var(--color-text-secondary); border: 1px solid var(--color-border-default); }
+.badge-accent         { background: var(--color-accent-muted);   color: var(--color-accent-text);  }
+.badge-dot::before    { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 1px; }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.card-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border-default);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
+.card-body { padding: 16px; }
+
+.metric-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 20px;
+  min-width: 160px;
+}
+.metric-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+}
+.metric-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.metric-trend-up   { color: var(--color-danger-text); }
+.metric-trend-down { color: var(--color-success-text); }
+
+/* ─── ALERTS ─── */
+.alert {
+  display: flex; gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border-left: 3px solid;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.alert-icon { flex-shrink: 0; margin-top: 1px; }
+.alert-body { flex: 1; }
+.alert-title { font-weight: 600; margin-bottom: 2px; }
+.alert-desc { font-size: 0.8125rem; opacity: 0.85; }
+.alert-error   { background: var(--color-danger-subtle);  border-color: var(--color-danger);   color: var(--color-danger-text);  }
+.alert-warning { background: var(--color-warning-subtle); border-color: var(--color-warning);  color: var(--color-warning-text); }
+.alert-success { background: var(--color-success-subtle); border-color: var(--color-success);  color: var(--color-success-text); }
+.alert-info    { background: var(--color-accent-subtle);  border-color: var(--color-accent);   color: var(--color-accent-text);  }
+
+/* ─── TABLE ─── */
+.table-wrap {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--color-bg-sunken); }
+th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-border-default);
+}
+td {
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-default);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--color-accent-subtle); }
+.table-cell-mono { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--color-text-secondary); }
+.table-cell-muted { color: var(--color-text-secondary); font-size: 0.8125rem; }
+.table-cell-right { text-align: right; }
+.table-actions { display: flex; justify-content: center; gap: 4px; }
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 32px; text-align: center;
+}
+.empty-icon { color: var(--color-text-tertiary); margin-bottom: 14px; }
+.empty-title { font-size: 0.9375rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
+.empty-desc { font-size: 0.8125rem; color: var(--color-text-tertiary); line-height: 1.6; max-width: 320px; margin-bottom: 20px; }
+
+/* ─── SKELETON ─── */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none !important; background: var(--color-skeleton-base) !important; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--color-skeleton-base) 25%,
+    var(--color-skeleton-shine) 50%,
+    var(--color-skeleton-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+.skeleton-text  { height: 14px; border-radius: var(--radius-sm); }
+.skeleton-title { height: 20px; border-radius: var(--radius-sm); }
+.skeleton-block { border-radius: var(--radius-md); }
+
+/* ─── CODE / DSN ─── */
+.code-block {
+  background: var(--color-bg-sunken);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text-code);
+  word-break: break-all;
+  line-height: 1.6;
+}
+.dsn-row {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--color-bg-sunken);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: 8px 10px 8px 14px;
+}
+.dsn-value {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text-code);
+  word-break: break-all;
+}
+
+/* ─── CHART SHELL ─── */
+.chart-shell {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.chart-header { padding: 14px 16px 0; display: flex; align-items: center; justify-content: space-between; }
+.chart-title { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
+.chart-subtitle { font-size: 0.75rem; color: var(--color-text-secondary); margin-top: 1px; }
+.chart-area { padding: 12px 16px 16px; }
+.chart-canvas {
+  width: 100%; height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* SVG chart */
+.chart-svg { width: 100%; height: 100%; }
+
+/* Axis labels */
+.chart-x-labels {
+  display: flex; justify-content: space-between;
+  padding: 0 0;
+  margin-top: 4px;
+}
+.chart-x-label {
+  font-size: 0.625rem;
+  color: var(--color-chart-axis);
+  text-align: center;
+}
+.chart-metrics { display: flex; gap: 20px; padding: 8px 0 0; }
+.chart-metric { display: flex; flex-direction: column; }
+.chart-metric-val { font-size: 1.25rem; font-weight: 700; color: var(--color-text-primary); }
+.chart-metric-label { font-size: 0.625rem; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+.chart-legend { display: flex; gap: 16px; padding: 8px 0 0; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--color-text-secondary); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend-line { width: 16px; height: 2px; border-radius: 2px; flex-shrink: 0; }
+
+/* ─── TOAST ─── */
+.toast-stack {
+  position: fixed; bottom: 20px; right: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 1000;
+}
+.toast {
+  display: flex; align-items: flex-start; gap: 10px;
+  min-width: 280px; max-width: 360px;
+  padding: 12px 14px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.875rem;
+  animation: toastIn 200ms ease-out;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.toast-icon { flex-shrink: 0; margin-top: 1px; }
+.toast-body { flex: 1; }
+.toast-title { font-weight: 600; color: var(--color-text-primary); }
+.toast-desc { font-size: 0.8125rem; color: var(--color-text-secondary); margin-top: 1px; }
+.toast-close { color: var(--color-text-tertiary); cursor: pointer; padding: 2px; border: none; background: none; border-radius: var(--radius-sm); }
+.toast-close:hover { color: var(--color-text-primary); background: var(--color-neutral-subtle); }
+.toast-success .toast-icon { color: var(--color-success); }
+.toast-error   .toast-icon { color: var(--color-danger); }
+.toast-warning .toast-icon { color: var(--color-warning); }
+.toast-info    .toast-icon { color: var(--color-accent); }
+
+/* ─── DIALOG ─── */
+.dialog-demo {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+  width: 100%;
+}
+.dialog-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--color-border-default); }
+.dialog-title { font-size: 1rem; font-weight: 600; color: var(--color-text-primary); }
+.dialog-desc { font-size: 0.8125rem; color: var(--color-text-secondary); margin-top: 4px; }
+.dialog-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.dialog-footer { padding: 16px 24px; border-top: 1px solid var(--color-border-default); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ─── TABS ─── */
+.tabs { border-bottom: 1px solid var(--color-border-default); display: flex; gap: 0; }
+.tab {
+  height: 40px; padding: 0 16px;
+  font-size: 0.875rem; font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms, border-color 120ms;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab:hover { color: var(--color-text-primary); }
+.tab.active { color: var(--color-accent-text); border-bottom-color: var(--color-accent); font-weight: 600; }
+.tab:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: -2px; }
+
+/* ─── SEPARATOR ─── */
+.sep { height: 1px; background: var(--color-border-default); margin: 12px 0; }
+
+/* ─── THEME TOGGLE ─── */
+.theme-toggle {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  background: var(--color-bg-sunken);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  cursor: pointer; font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  transition: background 120ms;
+}
+.theme-toggle:hover { background: var(--color-neutral-subtle); color: var(--color-text-primary); }
+
+/* ─── GRID HELPERS ─── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stack  { display: flex; flex-direction: column; gap: 12px; }
+.cluster{ display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.w-full { width: 100%; }
+
+/* code inline */
+.code { font-family: var(--font-mono); font-size: 0.8125rem; background: var(--color-bg-sunken); padding: 1px 5px; border-radius: var(--radius-sm); color: var(--color-text-code); }
+
+/* spacing scale swatches */
+.space-row { display: flex; align-items: center; gap: 10px; height: 24px; }
+.space-bar { height: 8px; background: var(--color-accent-muted); border-radius: 2px; flex-shrink: 0; }
+.space-label { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-secondary); width: 80px; }
+.space-value { font-size: 0.75rem; color: var(--color-text-tertiary); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">W</div>
+      <span class="sidebar-logo-name">Watch</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Navigation</div>
+      <a class="nav-item active" href="#">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Issues
+        <span class="nav-badge">12</span>
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Web Vitals
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Settings
+      </a>
+
+      <div class="sidebar-divider"></div>
+      <div class="nav-section-label">Project</div>
+
+      <div class="context-selector">
+        <div class="context-dot"></div>
+        <span class="context-name">Customer Portal</span>
+        <span class="context-chevron">▾</span>
+      </div>
+
+      <div class="context-selector" style="margin-top:4px">
+        <div class="context-dot" style="background:var(--color-warning)"></div>
+        <span class="context-name">staging</span>
+        <span class="context-chevron">▾</span>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="account-item">
+        <div class="avatar">AT</div>
+        <span class="account-name">Agiri Taofeek</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-text-tertiary)"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Design System Preview</span>
+      <div class="topbar-actions">
+        <span style="font-size:0.75rem;color:var(--color-text-tertiary)">Toggle mode:</span>
+        <button class="theme-toggle" onclick="toggleTheme()">
+          <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="theme-label">Dark mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+     <div class="content-inner">
+
+      <!-- ── 1. COLORS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Color Tokens</div>
+        <p class="ds-section-desc">All colors are CSS custom properties. Change a token in the <code class="code">:root</code> block at the top of this file and every component updates instantly.</p>
+
+        <div class="ds-label">Backgrounds</div>
+        <div class="swatch-grid" style="margin-bottom:16px">
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-bg-base);border-bottom:1px solid var(--color-border-default)"></div><div class="swatch-info"><div class="swatch-name">bg-base</div><div class="swatch-desc">Page background</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-bg-surface);border-bottom:1px solid var(--color-border-default)"></div><div class="swatch-info"><div class="swatch-name">bg-surface</div><div class="swatch-desc">Card, panel</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-bg-sunken);border-bottom:1px solid var(--color-border-default)"></div><div class="swatch-info"><div class="swatch-name">bg-sunken</div><div class="swatch-desc">Input, code</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-bg-elevated);border-bottom:1px solid var(--color-border-default)"></div><div class="swatch-info"><div class="swatch-name">bg-elevated</div><div class="swatch-desc">Dropdown, tooltip</div></div></div>
+        </div>
+
+        <div class="ds-label">Status Colors</div>
+        <div class="swatch-grid" style="margin-bottom:16px">
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-accent)"></div><div class="swatch-info"><div class="swatch-name">accent</div><div class="swatch-desc">Interactive, primary</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-success)"></div><div class="swatch-info"><div class="swatch-name">success</div><div class="swatch-desc">Resolved, good</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-warning)"></div><div class="swatch-info"><div class="swatch-name">warning</div><div class="swatch-desc">Needs improvement</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-danger)"></div><div class="swatch-info"><div class="swatch-name">danger</div><div class="swatch-desc">Open, error, poor</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-neutral)"></div><div class="swatch-info"><div class="swatch-name">neutral</div><div class="swatch-desc">Ignored, muted</div></div></div>
+        </div>
+
+        <div class="ds-label">Status Surfaces (muted backgrounds)</div>
+        <div class="swatch-grid" style="margin-bottom:16px">
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-accent-muted)"></div><div class="swatch-info"><div class="swatch-name">accent-muted</div><div class="swatch-desc">Active nav, selected</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-success-muted)"></div><div class="swatch-info"><div class="swatch-name">success-muted</div><div class="swatch-desc">Resolved badge bg</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-warning-muted)"></div><div class="swatch-info"><div class="swatch-name">warning-muted</div><div class="swatch-desc">Needs-improvement bg</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-danger-muted)"></div><div class="swatch-info"><div class="swatch-name">danger-muted</div><div class="swatch-desc">Open badge bg</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-neutral-muted)"></div><div class="swatch-info"><div class="swatch-name">neutral-muted</div><div class="swatch-desc">Ignored badge bg</div></div></div>
+        </div>
+
+        <div class="ds-label">Chart Series</div>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-chart-1)"></div><div class="swatch-info"><div class="swatch-name">chart-1</div><div class="swatch-desc">Error rollup, primary</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-chart-2)"></div><div class="swatch-info"><div class="swatch-name">chart-2</div><div class="swatch-desc">Secondary series</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-chart-3)"></div><div class="swatch-info"><div class="swatch-name">chart-3</div><div class="swatch-desc">Vital mean line</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-chart-4)"></div><div class="swatch-info"><div class="swatch-name">chart-4</div><div class="swatch-desc">Fourth series</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-chart-5)"></div><div class="swatch-info"><div class="swatch-name">chart-5</div><div class="swatch-desc">Fifth series</div></div></div>
+          <div class="swatch"><div class="swatch-color" style="background:var(--color-chart-6)"></div><div class="swatch-info"><div class="swatch-name">chart-6</div><div class="swatch-desc">Sixth series</div></div></div>
+        </div>
+      </div>
+
+      <!-- ── 2. TYPOGRAPHY ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Typography</div>
+        <p class="ds-section-desc">System font stack — zero web font loading. All type roles are named for their context, not their size.</p>
+
+        <div class="type-specimen">
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">page-title</div><div class="type-meta-size">2xl / bold / 1.25 leading</div></div>
+            <div style="font-size:1.5rem;font-weight:700;line-height:1.25;color:var(--color-text-primary)">Customer Portal</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">section</div><div class="type-meta-size">lg / semibold / tight</div></div>
+            <div style="font-size:1.125rem;font-weight:600;line-height:1.25;color:var(--color-text-primary)">Error Rollup (24h)</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">subsection</div><div class="type-meta-size">base / semibold / snug</div></div>
+            <div style="font-size:1rem;font-weight:600;line-height:1.375;color:var(--color-text-primary)">Ingestion Keys</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">body</div><div class="type-meta-size">sm / normal / 1.5</div></div>
+            <div style="font-size:0.875rem;line-height:1.5;color:var(--color-text-primary)">Watch is a privacy-first, self-hosted production health monitor for frontend web apps. It collects errors, Web Vitals, and network events without capturing personal data.</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">table</div><div class="type-meta-size">sm / normal / snug</div></div>
+            <div style="font-size:0.875rem;line-height:1.375;color:var(--color-text-primary)">TypeError: Cannot read properties of undefined (reading 'map')</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">table-header</div><div class="type-meta-size">xs / medium / uppercase</div></div>
+            <div style="font-size:0.6875rem;font-weight:500;line-height:1.375;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.05em">Status · Title · Route · Count · Last Seen</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">metric</div><div class="type-meta-size">3xl / bold / tight</div></div>
+            <div style="font-size:1.875rem;font-weight:700;line-height:1.1;color:var(--color-text-primary)">3,412</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">metric-label</div><div class="type-meta-size">xs / medium / uppercase</div></div>
+            <div style="font-size:0.6875rem;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.05em">Error Events (24h)</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">label</div><div class="type-meta-size">sm / medium / snug</div></div>
+            <div style="font-size:0.875rem;font-weight:500;line-height:1.375;color:var(--color-text-primary)">Allowed Origins</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">helper</div><div class="type-meta-size">xs / normal / 1.4</div></div>
+            <div style="font-size:0.75rem;line-height:1.4;color:var(--color-text-secondary)">One origin per line. Use * to allow all origins (not recommended for production).</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta"><div class="type-meta-name">code</div><div class="type-meta-size">sm / mono / 1.6</div></div>
+            <div style="font-family:var(--font-mono);font-size:0.875rem;line-height:1.6;color:var(--color-text-code);background:var(--color-bg-sunken);padding:6px 10px;border-radius:var(--radius-md);border:1px solid var(--color-border-default)">watch://a1b2c3@watch.example.com/ingest/1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 3. SPACING ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Spacing Scale</div>
+        <p class="ds-section-desc">4px base unit. Compact table rows: 36px height, 8px vertical padding. Default form rows: 40–48px height.</p>
+        <div class="stack">
+          <div class="space-row"><div class="space-label">2px (0.5)</div><div class="space-bar" style="width:2px"></div><div class="space-value">Icon nudge, hairline gap</div></div>
+          <div class="space-row"><div class="space-label">4px (1)</div><div class="space-bar" style="width:4px"></div><div class="space-value">Badge padding, tight chip</div></div>
+          <div class="space-row"><div class="space-label">6px (1.5)</div><div class="space-bar" style="width:6px"></div><div class="space-value">Icon button compact padding</div></div>
+          <div class="space-row"><div class="space-label">8px (2)</div><div class="space-bar" style="width:8px"></div><div class="space-value">Table cell padding-y, form field gap</div></div>
+          <div class="space-row"><div class="space-label">12px (3)</div><div class="space-bar" style="width:12px"></div><div class="space-value">Table cell padding-x, button padding</div></div>
+          <div class="space-row"><div class="space-label">16px (4)</div><div class="space-bar" style="width:16px"></div><div class="space-value">Card padding compact, section gap</div></div>
+          <div class="space-row"><div class="space-label">20px (5)</div><div class="space-bar" style="width:20px"></div><div class="space-value">Card padding default, toolbar</div></div>
+          <div class="space-row"><div class="space-label">24px (6)</div><div class="space-bar" style="width:24px"></div><div class="space-value">Section vertical gap, content padding</div></div>
+          <div class="space-row"><div class="space-label">32px (8)</div><div class="space-bar" style="width:32px"></div><div class="space-value">Major section break</div></div>
+          <div class="space-row"><div class="space-label">48px (12)</div><div class="space-bar" style="width:48px"></div><div class="space-value">Empty state padding</div></div>
+        </div>
+      </div>
+
+      <!-- ── 4. BUTTONS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Buttons</div>
+        <p class="ds-section-desc">One primary CTA per section. Ghost for toolbars and icon actions. Danger only for irreversible mutations (key revocation).</p>
+
+        <div class="ds-label">Variants</div>
+        <div class="cluster" style="margin-bottom:20px">
+          <button class="btn btn-primary btn-md">Primary</button>
+          <button class="btn btn-secondary btn-md">Secondary</button>
+          <button class="btn btn-ghost btn-md">Ghost</button>
+          <button class="btn btn-danger btn-md">Danger</button>
+          <button class="btn btn-danger-ghost btn-md">Danger ghost</button>
+          <button class="btn btn-primary btn-md" disabled>Disabled</button>
+        </div>
+
+        <div class="ds-label">Sizes (primary)</div>
+        <div class="cluster" style="margin-bottom:20px">
+          <button class="btn btn-primary btn-xs">Extra small</button>
+          <button class="btn btn-primary btn-sm">Small</button>
+          <button class="btn btn-primary btn-md">Medium</button>
+          <button class="btn btn-primary btn-lg">Large</button>
+        </div>
+
+        <div class="ds-label">With icons</div>
+        <div class="cluster">
+          <button class="btn btn-primary btn-md">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Project
+          </button>
+          <button class="btn btn-secondary btn-md">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+          <button class="btn btn-ghost btn-md">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+            Refresh
+          </button>
+          <button class="btn btn-danger btn-md">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Revoke Key
+          </button>
+        </div>
+      </div>
+
+      <!-- ── 5. FORM ELEMENTS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Form Elements</div>
+        <div class="grid-2">
+          <div class="stack">
+            <div class="field">
+              <label class="field-label">Project name <span class="required">*</span></label>
+              <input class="input" type="text" placeholder="e.g. Customer Portal">
+              <div class="field-hint">Used as the display name in the dashboard.</div>
+            </div>
+            <div class="field">
+              <label class="field-label">Allowed origins</label>
+              <textarea class="textarea" placeholder="https://example.com&#10;https://staging.example.com"></textarea>
+              <div class="field-hint">One origin per line.</div>
+            </div>
+            <div class="field">
+              <label class="field-label">Environment</label>
+              <select class="select">
+                <option>production</option>
+                <option>staging</option>
+                <option>development</option>
+              </select>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="field">
+              <label class="field-label">Email address <span class="required">*</span></label>
+              <input class="input error" type="email" value="not-valid-email">
+              <div class="field-error">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Enter a valid email address
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label">Password</label>
+              <input class="input" type="password" placeholder="Min. 12 characters">
+              <div class="field-hint">Use a strong, unique password.</div>
+            </div>
+            <div class="field">
+              <label class="field-label">Disabled input</label>
+              <input class="input" type="text" value="Cannot be changed" disabled style="opacity:0.5;cursor:not-allowed">
+            </div>
+            <div class="stack">
+              <label class="checkbox-row">
+                <input type="checkbox" class="checkbox" checked>
+                <span class="checkbox-label">Receive error alerts by email</span>
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" class="checkbox">
+                <span class="checkbox-label">Enable sampling (1 in 10 events)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 6. BADGES ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Badges &amp; Status Chips</div>
+        <p class="ds-section-desc">Color plus text label — never color alone. Every badge has readable text that communicates the same meaning as the color.</p>
+
+        <div class="ds-label">Issue Status</div>
+        <div class="cluster" style="margin-bottom:16px">
+          <span class="badge badge-open badge-dot">Open</span>
+          <span class="badge badge-resolved badge-dot">Resolved</span>
+          <span class="badge badge-ignored badge-dot">Ignored</span>
+        </div>
+
+        <div class="ds-label">Web Vital Health</div>
+        <div class="cluster" style="margin-bottom:16px">
+          <span class="badge badge-good badge-dot">Good</span>
+          <span class="badge badge-needs badge-dot">Needs Improvement</span>
+          <span class="badge badge-poor badge-dot">Poor</span>
+        </div>
+
+        <div class="ds-label">Key Status</div>
+        <div class="cluster" style="margin-bottom:16px">
+          <span class="badge badge-active badge-dot">Active</span>
+          <span class="badge badge-revoked badge-dot">Revoked</span>
+        </div>
+
+        <div class="ds-label">Utility</div>
+        <div class="cluster">
+          <span class="badge badge-default">production</span>
+          <span class="badge badge-accent">New</span>
+          <span class="badge badge-outline">staging</span>
+          <span class="badge badge-outline" style="border-radius:var(--radius-full);padding:2px 10px">v2.4.1</span>
+          <span class="badge badge-danger" style="background:var(--color-danger-muted);color:var(--color-danger-text)">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            High severity
+          </span>
+        </div>
+      </div>
+
+      <!-- ── 7. METRIC CARDS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Metric Cards</div>
+        <div class="grid-4">
+          <div class="metric-card">
+            <div class="metric-label">Error Events</div>
+            <div class="metric-value">3,412</div>
+            <div class="metric-sub">
+              <span class="metric-trend-up">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </span>
+              +14% vs yesterday
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Open Issues</div>
+            <div class="metric-value" style="color:var(--color-danger)">47</div>
+            <div class="metric-sub">
+              <span class="metric-trend-up">↑</span>
+              3 new this hour
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">LCP p75</div>
+            <div class="metric-value" style="color:var(--color-success)">1.8s</div>
+            <div class="metric-sub">
+              <span class="badge badge-good" style="font-size:0.6rem;padding:1px 5px">Good</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Affected Sessions</div>
+            <div class="metric-value">892</div>
+            <div class="metric-sub">
+              <span class="metric-trend-down">↓</span>
+              <span style="color:var(--color-success-text)">−8% vs yesterday</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 8. CHARTS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Chart Shells</div>
+        <p class="ds-section-desc">Fixed height. Width follows container. Loading, empty, and error states all fill the same space as the chart to prevent layout shift.</p>
+
+        <div class="grid-2">
+          <!-- Error rollup chart -->
+          <div class="chart-shell">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Error Rollup</div>
+                <div class="chart-subtitle">Last 24 hours · hourly buckets</div>
+              </div>
+              <button class="btn btn-ghost btn-xs">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+                Refresh
+              </button>
+            </div>
+            <div class="chart-area">
+              <div class="chart-canvas">
+                <svg class="chart-svg" viewBox="0 0 400 160" preserveAspectRatio="none">
+                  <!-- Grid lines -->
+                  <line x1="0" y1="40"  x2="400" y2="40"  stroke="var(--color-chart-grid)" stroke-width="1" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="80"  x2="400" y2="80"  stroke="var(--color-chart-grid)" stroke-width="1" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="120" x2="400" y2="120" stroke="var(--color-chart-grid)" stroke-width="1" stroke-dasharray="4 4"/>
+                  <!-- Area fill -->
+                  <path d="M0,140 L20,130 L40,110 L60,125 L80,100 L100,115 L120,90 L140,70 L160,85 L180,60 L200,80 L220,55 L240,40 L260,60 L280,45 L300,30 L320,50 L340,35 L360,55 L380,40 L400,30 L400,160 L0,160 Z" fill="var(--color-chart-1)" opacity="0.12"/>
+                  <!-- Line -->
+                  <path d="M0,140 L20,130 L40,110 L60,125 L80,100 L100,115 L120,90 L140,70 L160,85 L180,60 L200,80 L220,55 L240,40 L260,60 L280,45 L300,30 L320,50 L340,35 L360,55 L380,40 L400,30" fill="none" stroke="var(--color-chart-1)" stroke-width="2" stroke-linejoin="round"/>
+                  <!-- Y axis labels -->
+                  <text x="4" y="44"  font-size="9" fill="var(--color-chart-axis)">300</text>
+                  <text x="4" y="84"  font-size="9" fill="var(--color-chart-axis)">200</text>
+                  <text x="4" y="124" font-size="9" fill="var(--color-chart-axis)">100</text>
+                </svg>
+              </div>
+              <div class="chart-x-labels">
+                <span class="chart-x-label">00:00</span>
+                <span class="chart-x-label">06:00</span>
+                <span class="chart-x-label">12:00</span>
+                <span class="chart-x-label">18:00</span>
+                <span class="chart-x-label">Now</span>
+              </div>
+              <div class="chart-metrics" style="margin-top:12px">
+                <div class="chart-metric"><div class="chart-metric-val">312</div><div class="chart-metric-label">Peak / hour</div></div>
+                <div class="chart-metric"><div class="chart-metric-val">3,412</div><div class="chart-metric-label">Total</div></div>
+                <div class="chart-metric"><div class="chart-metric-val">142</div><div class="chart-metric-label">Avg / hour</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Web Vital chart -->
+          <div class="chart-shell">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">LCP — Largest Contentful Paint</div>
+                <div class="chart-subtitle">p75 trend · last 7 days</div>
+              </div>
+              <select class="select" style="width:auto;height:28px;font-size:0.75rem;padding:0 24px 0 8px">
+                <option>LCP</option><option>CLS</option><option>INP</option><option>FCP</option><option>TTFB</option>
+              </select>
+            </div>
+            <div class="chart-area">
+              <div class="chart-canvas">
+                <svg class="chart-svg" viewBox="0 0 400 160" preserveAspectRatio="none">
+                  <line x1="0" y1="40"  x2="400" y2="40"  stroke="var(--color-chart-grid)" stroke-width="1" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="80"  x2="400" y2="80"  stroke="var(--color-chart-grid)" stroke-width="1" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="120" x2="400" y2="120" stroke="var(--color-chart-grid)" stroke-width="1" stroke-dasharray="4 4"/>
+                  <!-- p75 line -->
+                  <path d="M0,100 L57,90 L114,80 L171,70 L228,60 L285,55 L342,50 L400,45" fill="none" stroke="var(--color-chart-1)" stroke-width="2.5" stroke-linejoin="round"/>
+                  <!-- mean line -->
+                  <path d="M0,115 L57,108 L114,100 L171,92 L228,85 L285,80 L342,72 L400,65" fill="none" stroke="var(--color-chart-3)" stroke-width="1.5" stroke-dasharray="5 3" stroke-linejoin="round"/>
+                  <!-- health dots -->
+                  <circle cx="57"  cy="90"  r="4" fill="var(--color-warning)" stroke="var(--color-bg-surface)" stroke-width="2"/>
+                  <circle cx="114" cy="80"  r="4" fill="var(--color-warning)" stroke="var(--color-bg-surface)" stroke-width="2"/>
+                  <circle cx="228" cy="60"  r="4" fill="var(--color-success)" stroke="var(--color-bg-surface)" stroke-width="2"/>
+                  <circle cx="285" cy="55"  r="4" fill="var(--color-success)" stroke="var(--color-bg-surface)" stroke-width="2"/>
+                  <circle cx="400" cy="45"  r="4" fill="var(--color-success)" stroke="var(--color-bg-surface)" stroke-width="2"/>
+                  <text x="4" y="44"  font-size="9" fill="var(--color-chart-axis)">4.0s</text>
+                  <text x="4" y="84"  font-size="9" fill="var(--color-chart-axis)">2.5s</text>
+                  <text x="4" y="124" font-size="9" fill="var(--color-chart-axis)">1.0s</text>
+                </svg>
+              </div>
+              <div class="chart-x-labels">
+                <span class="chart-x-label">Jun 12</span>
+                <span class="chart-x-label">Jun 13</span>
+                <span class="chart-x-label">Jun 14</span>
+                <span class="chart-x-label">Jun 15</span>
+                <span class="chart-x-label">Jun 16</span>
+                <span class="chart-x-label">Jun 17</span>
+                <span class="chart-x-label">Jun 18</span>
+              </div>
+              <div class="chart-legend" style="margin-top:12px">
+                <div class="legend-item"><div class="legend-line" style="background:var(--color-chart-1)"></div>p75</div>
+                <div class="legend-item"><div class="legend-line" style="background:var(--color-chart-3);opacity:.8"></div>Mean</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--color-success)"></div>Good</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--color-warning)"></div>Needs improvement</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--color-danger)"></div>Poor</div>
+              </div>
+              <div class="chart-metrics" style="margin-top:8px">
+                <div class="chart-metric"><div class="chart-metric-val">1.8s</div><div class="chart-metric-label">p75</div></div>
+                <div class="chart-metric"><div class="chart-metric-val">1.4s</div><div class="chart-metric-label">Mean</div></div>
+                <div class="chart-metric"><div class="chart-metric-val">12,840</div><div class="chart-metric-label">Samples</div></div>
+                <div class="chart-metric"><div class="chart-metric-val" style="color:var(--color-success)">Good</div><div class="chart-metric-label">Health</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div class="chart-shell">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title"><div class="skeleton skeleton-text" style="width:140px"></div></div>
+                <div class="chart-subtitle" style="margin-top:6px"><div class="skeleton skeleton-text" style="width:80px;height:11px"></div></div>
+              </div>
+            </div>
+            <div class="chart-area">
+              <div class="skeleton skeleton-block" style="height:160px;width:100%"></div>
+              <div style="display:flex;gap:16px;margin-top:12px">
+                <div><div class="skeleton skeleton-title" style="width:50px;height:28px"></div><div class="skeleton skeleton-text" style="width:70px;margin-top:4px;height:10px"></div></div>
+                <div><div class="skeleton skeleton-title" style="width:50px;height:28px"></div><div class="skeleton skeleton-text" style="width:50px;margin-top:4px;height:10px"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="chart-shell">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Error Rollup</div>
+                <div class="chart-subtitle">Last 24 hours</div>
+              </div>
+            </div>
+            <div class="empty-state" style="padding:32px">
+              <svg class="empty-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+              <div class="empty-title">No errors in this window</div>
+              <div class="empty-desc">No error events were recorded in the selected time range. That's a good sign.</div>
+              <button class="btn btn-ghost btn-sm">Try a wider range</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 9. TABLE ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Issue Table</div>
+        <p class="ds-section-desc">36px compact rows. Sticky header. No row striping — hover and selected states own that role. Status badge + text label always together.</p>
+
+        <!-- Toolbar -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <input class="input" type="text" placeholder="Filter issues…" style="width:220px;height:32px;font-size:0.8125rem">
+          <select class="select" style="width:auto;height:32px;font-size:0.8125rem;padding:0 28px 0 10px">
+            <option>All statuses</option><option>Open</option><option>Resolved</option><option>Ignored</option>
+          </select>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <span class="badge badge-open" style="font-size:0.6875rem">47 open</span>
+            <button class="btn btn-ghost btn-sm">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:88px">Status</th>
+                <th>Title</th>
+                <th style="width:160px">Route</th>
+                <th style="width:72px;text-align:right">Count</th>
+                <th style="width:120px;text-align:right">Last seen</th>
+                <th style="width:48px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-open badge-dot">Open</span></td>
+                <td>
+                  <div style="font-weight:500;color:var(--color-text-primary);line-height:1.3">TypeError: Cannot read properties of undefined (reading 'map')</div>
+                  <div style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:2px;font-family:var(--font-mono)">ProductList.tsx:47</div>
+                </td>
+                <td class="table-cell-mono">/products</td>
+                <td class="table-cell-right" style="font-weight:600">1,204</td>
+                <td class="table-cell-right table-cell-muted">2 min ago</td>
+                <td><div class="table-actions">
+                  <button class="btn btn-ghost btn-xs" style="padding:0 6px" title="Resolve">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-open badge-dot">Open</span></td>
+                <td>
+                  <div style="font-weight:500;color:var(--color-text-primary);line-height:1.3">ChunkLoadError: Loading chunk 42 failed</div>
+                  <div style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:2px;font-family:var(--font-mono)">webpack/runtime:1</div>
+                </td>
+                <td class="table-cell-mono">/checkout</td>
+                <td class="table-cell-right" style="font-weight:600">387</td>
+                <td class="table-cell-right table-cell-muted">14 min ago</td>
+                <td><div class="table-actions">
+                  <button class="btn btn-ghost btn-xs" style="padding:0 6px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-ignored badge-dot">Ignored</span></td>
+                <td>
+                  <div style="color:var(--color-text-secondary);line-height:1.3">NetworkError: Failed to fetch /api/analytics</div>
+                  <div style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:2px;font-family:var(--font-mono)">analytics.ts:112</div>
+                </td>
+                <td class="table-cell-mono">/dashboard</td>
+                <td class="table-cell-right">92</td>
+                <td class="table-cell-right table-cell-muted">1 hr ago</td>
+                <td><div class="table-actions">
+                  <button class="btn btn-ghost btn-xs" style="padding:0 6px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-resolved badge-dot">Resolved</span></td>
+                <td>
+                  <div style="color:var(--color-text-secondary);line-height:1.3">RangeError: Maximum call stack size exceeded</div>
+                  <div style="font-size:0.75rem;color:var(--color-text-tertiary);margin-top:2px;font-family:var(--font-mono)">useInfiniteScroll.ts:23</div>
+                </td>
+                <td class="table-cell-mono">/feed</td>
+                <td class="table-cell-right">41</td>
+                <td class="table-cell-right table-cell-muted">3 hr ago</td>
+                <td><div class="table-actions">
+                  <button class="btn btn-ghost btn-xs" style="padding:0 6px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                  </button>
+                </div></td>
+              </tr>
+              <!-- skeleton row -->
+              <tr>
+                <td><div class="skeleton skeleton-text" style="width:60px"></div></td>
+                <td><div class="skeleton skeleton-text" style="width:85%"></div></td>
+                <td><div class="skeleton skeleton-text" style="width:80px"></div></td>
+                <td class="table-cell-right"><div class="skeleton skeleton-text" style="width:32px;margin-left:auto"></div></td>
+                <td class="table-cell-right"><div class="skeleton skeleton-text" style="width:60px;margin-left:auto"></div></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- Pagination -->
+          <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--color-border-default)">
+            <span style="font-size:0.75rem;color:var(--color-text-secondary)">Showing 1–25 of 47 issues</span>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-secondary btn-xs" disabled>← Prev</button>
+              <button class="btn btn-secondary btn-xs">Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 10. ALERTS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Alert Banners</div>
+        <div class="stack">
+          <div class="alert alert-error">
+            <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div class="alert-body"><div class="alert-title">Login failed</div><div class="alert-desc">Invalid email or password. Check your credentials and try again.</div></div>
+          </div>
+          <div class="alert alert-warning">
+            <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div class="alert-body"><div class="alert-title">Ingestion key expires in 3 days</div><div class="alert-desc">Rotate your key before it expires to avoid SDK ingestion failures.</div></div>
+          </div>
+          <div class="alert alert-success">
+            <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="alert-body"><div class="alert-title">Project created</div><div class="alert-desc">Customer Portal has been created. Add an environment to get your ingestion key.</div></div>
+          </div>
+          <div class="alert alert-info">
+            <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <div class="alert-body"><div class="alert-title">Setup not complete</div><div class="alert-desc">Create the first owner account to activate the dashboard.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 11. EMPTY STATES ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Empty States</div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="empty-state">
+              <svg class="empty-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <div class="empty-title">No issues found</div>
+              <div class="empty-desc">No errors have been grouped yet. Install the SDK and send your first event.</div>
+              <button class="btn btn-ghost btn-sm">View DSN setup</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="empty-state">
+              <svg class="empty-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <div class="empty-title">No projects yet</div>
+              <div class="empty-desc">Create your first project to start monitoring a frontend application.</div>
+              <button class="btn btn-primary btn-sm" style="margin-top:4px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New Project
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="empty-state">
+              <svg class="empty-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <div class="empty-title">No vitals data</div>
+              <div class="empty-desc">Web Vital events will appear once the browser SDK collects LCP, CLS, and INP measurements.</div>
+              <button class="btn btn-ghost btn-sm">Learn about Web Vitals</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 12. DSN + CODE ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">DSN &amp; Code Display</div>
+        <p class="ds-section-desc">Monospace, copyable, full-width on mobile. The DSN is the primary onboarding deliverable.</p>
+
+        <div class="card" style="max-width:560px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">SDK Ingestion Key</div>
+              <div style="font-size:0.75rem;color:var(--color-text-secondary);margin-top:2px">production · Customer Portal</div>
+            </div>
+            <span class="badge badge-active badge-dot">Active</span>
+          </div>
+          <div class="card-body stack">
+            <div>
+              <div class="ds-label" style="margin-bottom:6px">Your DSN</div>
+              <div class="dsn-row">
+                <div class="dsn-value">watch://a1b2c3d4e5f6@watch.example.com/ingest/1</div>
+                <button class="btn btn-ghost btn-sm" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+              </div>
+            </div>
+            <div>
+              <div class="ds-label" style="margin-bottom:6px">SDK setup</div>
+              <div class="code-block">import { init } from '@watch/browser';
+
+init({
+  dsn: 'watch://a1b2c3d4e5f6@watch.example.com/ingest/1',
+});</div>
+            </div>
+            <div style="display:flex;gap:8px;padding-top:4px">
+              <button class="btn btn-secondary btn-sm">Rotate key</button>
+              <button class="btn btn-danger-ghost btn-sm">Revoke key</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 13. TABS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Tabs</div>
+        <div class="tabs">
+          <button class="tab active">Overview</button>
+          <button class="tab">Issues <span class="badge badge-open" style="margin-left:4px;font-size:0.6rem;padding:1px 5px">47</span></button>
+          <button class="tab">Web Vitals</button>
+          <button class="tab">Settings</button>
+        </div>
+        <div class="card" style="border-top-left-radius:0;border-top:none;border-top-right-radius:0;box-shadow:none;padding:16px">
+          <span style="font-size:0.8125rem;color:var(--color-text-secondary)">Tab content renders here.</span>
+        </div>
+      </div>
+
+      <!-- ── 14. DIALOG ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Dialog &amp; Confirmation</div>
+        <div class="dialog-demo">
+          <div class="dialog-header">
+            <div class="dialog-title">Revoke ingestion key?</div>
+            <div class="dialog-desc">This will immediately stop all SDK events using this key. This action cannot be undone. Mint a new key to resume ingestion.</div>
+          </div>
+          <div class="dialog-body">
+            <div class="alert alert-error" style="margin-bottom:0">
+              <svg class="alert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div class="alert-body"><div class="alert-title" style="font-size:0.8125rem">Key: <span style="font-family:var(--font-mono)">a1b2c3d4…</span></div><div class="alert-desc">production · Customer Portal</div></div>
+            </div>
+          </div>
+          <div class="dialog-footer">
+            <button class="btn btn-secondary btn-md">Cancel</button>
+            <button class="btn btn-danger btn-md">Revoke key</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 15. TOASTS ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Toasts / Notifications</div>
+        <p class="ds-section-desc">Sonner-managed. Bottom-right on desktop, bottom-center on mobile. Always text, never icon-only.</p>
+        <div class="cluster">
+          <button class="btn btn-secondary btn-md" onclick="showToast('success')">Success toast</button>
+          <button class="btn btn-secondary btn-md" onclick="showToast('error')">Error toast</button>
+          <button class="btn btn-secondary btn-md" onclick="showToast('warning')">Warning toast</button>
+          <button class="btn btn-secondary btn-md" onclick="showToast('info')">Info toast</button>
+        </div>
+        <!-- Static previews -->
+        <div class="stack" style="max-width:360px;margin-top:16px">
+          <div class="toast toast-success">
+            <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="toast-body"><div class="toast-title">Issue resolved</div><div class="toast-desc">TypeError: Cannot read properties — marked as resolved.</div></div>
+            <button class="toast-close">✕</button>
+          </div>
+          <div class="toast toast-error">
+            <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div class="toast-body"><div class="toast-title">Failed to revoke key</div><div class="toast-desc">Server returned an error. Try again in a moment.</div></div>
+            <button class="toast-close">✕</button>
+          </div>
+          <div class="toast toast-info">
+            <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <div class="toast-body"><div class="toast-title">DSN copied to clipboard</div></div>
+            <button class="toast-close">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 16. FOCUS + A11Y ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Focus States &amp; Accessibility</div>
+        <p class="ds-section-desc">Tab through these elements to verify focus rings. Every ring uses <span class="code">--color-border-focus</span> at 2px solid, 2px offset. Never hidden, never zero-opacity.</p>
+        <div class="cluster">
+          <button class="btn btn-primary btn-md">Tab to me</button>
+          <button class="btn btn-secondary btn-md">And me</button>
+          <input class="input" type="text" placeholder="And this input" style="width:180px">
+          <select class="select" style="width:160px;height:36px">
+            <option>And this select</option>
+          </select>
+          <a href="#" class="btn btn-ghost btn-md" style="color:var(--color-text-link)">And this link</a>
+        </div>
+      </div>
+
+      <!-- ── 17. SKELETON STATES ── -->
+      <div class="ds-section">
+        <div class="ds-section-title">Skeleton / Loading States</div>
+        <p class="ds-section-desc">Every skeleton exactly matches the space of the loaded content. No layout shift. Animation respects <code class="code">prefers-reduced-motion</code>.</p>
+
+        <div class="grid-2">
+          <!-- Metric card skeleton -->
+          <div class="metric-card">
+            <div class="skeleton skeleton-text" style="width:90px;margin-bottom:8px"></div>
+            <div class="skeleton skeleton-title" style="width:80px;height:32px;margin-bottom:6px"></div>
+            <div class="skeleton skeleton-text" style="width:120px;height:12px"></div>
+          </div>
+          <!-- Content skeleton -->
+          <div class="card">
+            <div class="card-body stack">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="skeleton" style="width:32px;height:32px;border-radius:50%;flex-shrink:0"></div>
+                <div style="flex:1">
+                  <div class="skeleton skeleton-text" style="width:60%;margin-bottom:6px"></div>
+                  <div class="skeleton skeleton-text" style="width:40%;height:11px"></div>
+                </div>
+              </div>
+              <div class="skeleton skeleton-text" style="width:100%"></div>
+              <div class="skeleton skeleton-text" style="width:80%"></div>
+              <div class="skeleton skeleton-text" style="width:90%"></div>
+              <div style="display:flex;gap:8px;margin-top:4px">
+                <div class="skeleton" style="width:80px;height:32px;border-radius:var(--radius-md)"></div>
+                <div class="skeleton" style="width:64px;height:32px;border-radius:var(--radius-md)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+     </div><!-- /content-inner -->
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- Live toast container -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+// ── Dark mode toggle ──────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.classList.toggle('dark');
+  html.classList.toggle('light', !isDark);
+  document.getElementById('theme-label').textContent = isDark ? 'Light mode' : 'Dark mode';
+  document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : 'block';
+  document.getElementById('theme-icon-sun').style.display  = isDark ? 'block' : 'none';
+}
+
+// ── Toast demo ────────────────────────────────────────
+const toastCfg = {
+  success: {
+    cls: 'toast-success',
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    title: 'Issue resolved',
+    desc: 'Status updated to resolved successfully.'
+  },
+  error: {
+    cls: 'toast-error',
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    title: 'Request failed',
+    desc: 'Could not save changes. Please try again.'
+  },
+  warning: {
+    cls: 'toast-warning',
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+    title: 'Key expires soon',
+    desc: 'Rotate before Thursday to avoid downtime.'
+  },
+  info: {
+    cls: 'toast-info',
+    icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
+    title: 'DSN copied',
+    desc: 'Paste it into your @watch/browser init call.'
+  }
+};
+
+function showToast(type) {
+  const cfg = toastCfg[type];
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = `toast ${cfg.cls}`;
+  el.innerHTML = `
+    <span class="toast-icon">${cfg.icon}</span>
+    <div class="toast-body">
+      <div class="toast-title">${cfg.title}</div>
+      ${cfg.desc ? `<div class="toast-desc">${cfg.desc}</div>` : ''}
+    </div>
+    <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>
+  `;
+  stack.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── Nav item click ────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+
+// ── Tab click ─────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    tab.closest('.ds-section').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
