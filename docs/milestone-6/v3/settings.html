@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Settings</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Settings 2-column layout ── */
+.stg-layout{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:start}
+.stg-nav{
+  background:var(--bg-surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--card-shine);
+}
+.stg-nav-item{
+  display:flex;align-items:center;gap:8px;
+  height:38px;padding:0 14px;
+  font-size:0.8125rem;font-weight:500;color:var(--text-2);
+  cursor:pointer;border:none;background:none;width:100%;text-align:left;
+  border-bottom:1px solid var(--border);
+  transition:background 100ms,color 100ms;font-family:var(--font-sans);
+}
+.stg-nav-item:last-child{border-bottom:none}
+.stg-nav-item:hover{background:var(--neutral-subtle);color:var(--text-1)}
+.stg-nav-item.active{background:var(--accent-muted);color:var(--accent-text);font-weight:600}
+.stg-nav-icon{width:14px;height:14px;flex-shrink:0;opacity:0.65}
+.stg-nav-item.active .stg-nav-icon{opacity:1}
+
+/* ── Environments & Keys ── */
+.env-card{
+  background:var(--bg-surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:var(--card-shine);margin-bottom:12px;
+}
+.env-hd{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.env-name{font-size:0.875rem;font-weight:600;letter-spacing:-0.01em;color:var(--text-1)}
+.env-keys{padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.key-row{
+  background:var(--bg-sunken);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:10px 12px;
+}
+.key-row-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.key-id{font-family:var(--font-mono);font-size:0.75rem;color:var(--text-2);flex:1}
+.key-meta{font-size:0.6875rem;color:var(--text-3)}
+.key-dsn{
+  font-family:var(--font-mono);font-size:0.75rem;color:var(--text-code);
+  background:var(--bg-base);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:6px 10px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  margin-bottom:8px;
+}
+.key-actions{display:flex;gap:6px}
+
+/* ── Danger zone ── */
+.danger-zone{
+  border:1px solid rgba(251,113,133,0.2);border-radius:var(--r-lg);
+  padding:16px;margin-top:20px;
+}
+.danger-zone-title{font-size:0.8125rem;font-weight:600;color:var(--danger-text);margin-bottom:4px}
+.danger-zone-desc{font-size:0.75rem;color:var(--text-3);margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">Settings</span>
+      </nav>
+      <div class="topbar-right">
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+        <div class="pg-hd">
+          <div>
+            <h1 class="pg-title">Settings</h1>
+            <p class="pg-sub">Customer Portal</p>
+          </div>
+        </div>
+
+        <div class="stg-layout">
+
+          <!-- ── Left nav ── -->
+          <nav class="stg-nav">
+            <button class="stg-nav-item" data-panel="general" onclick="showPanel(this)">
+              <svg class="stg-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              General
+            </button>
+            <button class="stg-nav-item active" data-panel="keys" onclick="showPanel(this)">
+              <svg class="stg-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              Environments &amp; Keys
+            </button>
+            <button class="stg-nav-item" data-panel="account" onclick="showPanel(this)">
+              <svg class="stg-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Account
+            </button>
+          </nav>
+
+          <!-- ── Right panels ── -->
+          <div>
+
+            <!-- ENVIRONMENTS & KEYS (default) -->
+            <div id="panel-keys">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <div>
+                  <div style="font-size:0.9375rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-1)">Environments &amp; Keys</div>
+                  <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">Ingestion keys authenticate SDK events from your environments</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="fireToast('info')">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add environment
+                </button>
+              </div>
+
+              <!-- production -->
+              <div class="env-card">
+                <div class="env-hd">
+                  <div class="ctx-pip" style="background:var(--success)"></div>
+                  <span class="env-name">production</span>
+                  <span class="badge badge-active">Active</span>
+                  <div style="margin-left:auto;display:flex;gap:6px">
+                    <button class="icon-btn icon-btn-sm" title="Edit environment">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="env-keys">
+                  <div class="key-row">
+                    <div class="key-row-top">
+                      <span class="key-id">pk_live_a1b2c3d4e5f6g7h8</span>
+                      <span class="key-meta">Created Jun 1</span>
+                      <span class="badge badge-active" style="font-size:0.5625rem">Active</span>
+                    </div>
+                    <div class="key-dsn">watch://a1b2c3d4@watch.example.com/ingest/1</div>
+                    <div class="key-actions">
+                      <button class="btn btn-secondary btn-xs" onclick="copyText(this,'watch://a1b2c3d4@watch.example.com/ingest/1')">Copy DSN</button>
+                      <button class="btn btn-ghost btn-xs" onclick="fireToast('warning')">Rotate</button>
+                      <button class="btn btn-danger-ghost btn-xs" onclick="fireToast('error')">Revoke</button>
+                    </div>
+                  </div>
+                  <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="fireToast('info')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New key
+                  </button>
+                </div>
+              </div>
+
+              <!-- staging -->
+              <div class="env-card">
+                <div class="env-hd">
+                  <div class="ctx-pip" style="background:var(--warning)"></div>
+                  <span class="env-name">staging</span>
+                  <span class="badge badge-active">Active</span>
+                  <div style="margin-left:auto;display:flex;gap:6px">
+                    <button class="icon-btn icon-btn-sm" title="Edit environment">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="env-keys">
+                  <div class="key-row">
+                    <div class="key-row-top">
+                      <span class="key-id">pk_test_e5f6g7h8i9j0k1l2</span>
+                      <span class="key-meta">Created May 15</span>
+                      <span class="badge badge-active" style="font-size:0.5625rem">Active</span>
+                    </div>
+                    <div class="key-dsn">watch://e5f6g7h8@watch.example.com/ingest/1</div>
+                    <div class="key-actions">
+                      <button class="btn btn-secondary btn-xs" onclick="copyText(this,'watch://e5f6g7h8@watch.example.com/ingest/1')">Copy DSN</button>
+                      <button class="btn btn-ghost btn-xs" onclick="fireToast('warning')">Rotate</button>
+                      <button class="btn btn-danger-ghost btn-xs" onclick="fireToast('error')">Revoke</button>
+                    </div>
+                  </div>
+                  <div class="key-row">
+                    <div class="key-row-top">
+                      <span class="key-id">pk_test_m3n4o5p6q7r8s9t0</span>
+                      <span class="key-meta">Created May 28</span>
+                      <span class="badge badge-active" style="font-size:0.5625rem">Active</span>
+                    </div>
+                    <div class="key-dsn">watch://m3n4o5p6@watch.example.com/ingest/1</div>
+                    <div class="key-actions">
+                      <button class="btn btn-secondary btn-xs" onclick="copyText(this,'watch://m3n4o5p6@watch.example.com/ingest/1')">Copy DSN</button>
+                      <button class="btn btn-ghost btn-xs" onclick="fireToast('warning')">Rotate</button>
+                      <button class="btn btn-danger-ghost btn-xs" onclick="fireToast('error')">Revoke</button>
+                    </div>
+                  </div>
+                  <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="fireToast('info')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New key
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- GENERAL (hidden) -->
+            <div id="panel-general" hidden>
+              <div style="font-size:0.9375rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-1);margin-bottom:16px">Project Settings</div>
+              <div class="card">
+                <div class="card-bd col" style="gap:14px">
+                  <div class="field">
+                    <label class="f-label">Project name <span class="f-req">*</span></label>
+                    <input class="input" type="text" value="Customer Portal">
+                    <span class="f-hint">Used as the display name across the dashboard.</span>
+                  </div>
+                  <div class="field">
+                    <label class="f-label">Allowed origins</label>
+                    <textarea class="textarea" style="min-height:96px">https://example.com
+https://staging.example.com</textarea>
+                    <span class="f-hint">One origin per line. The SDK will reject events from unlisted origins in production.</span>
+                  </div>
+                  <label class="check-row">
+                    <input type="checkbox" class="check" checked>
+                    <span class="check-label">Send alert emails on new error spikes</span>
+                  </label>
+                  <div style="display:flex;gap:7px;padding-top:4px">
+                    <button class="btn btn-primary btn-sm" onclick="fireToast('success')">Save changes</button>
+                    <button class="btn btn-ghost btn-sm">Cancel</button>
+                  </div>
+                </div>
+              </div>
+              <div class="danger-zone">
+                <div class="danger-zone-title">Danger zone</div>
+                <div class="danger-zone-desc">Permanently delete this project, all environments, ingestion keys, events, and associated data. This action cannot be undone.</div>
+                <button class="btn btn-danger btn-sm" onclick="fireToast('error')">Delete project</button>
+              </div>
+            </div>
+
+            <!-- ACCOUNT (hidden) -->
+            <div id="panel-account" hidden>
+              <div style="font-size:0.9375rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-1);margin-bottom:16px">Account</div>
+              <div class="card" style="margin-bottom:12px">
+                <div class="card-hd">
+                  <div class="card-title">Owner account</div>
+                </div>
+                <div class="card-bd col" style="gap:14px">
+                  <div class="field">
+                    <label class="f-label">Email</label>
+                    <input class="input" type="email" value="taofeeqomotolani@gmail.com" disabled style="opacity:0.6;cursor:default">
+                    <span class="f-hint">Email cannot be changed after account creation.</span>
+                  </div>
+                  <div class="field">
+                    <label class="f-label">New password</label>
+                    <input class="input" type="password" placeholder="Min. 12 characters">
+                  </div>
+                  <div class="field">
+                    <label class="f-label">Confirm password</label>
+                    <input class="input" type="password" placeholder="Repeat new password">
+                  </div>
+                  <div>
+                    <button class="btn btn-primary btn-sm" onclick="fireToast('success')">Update password</button>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-bd" style="display:flex;align-items:center;justify-content:space-between">
+                  <div>
+                    <div style="font-size:0.875rem;font-weight:500;color:var(--text-1)">Sign out</div>
+                    <div style="font-size:0.75rem;color:var(--text-3);margin-top:2px">You will be redirected to the login page</div>
+                  </div>
+                  <button class="btn btn-danger-ghost btn-sm">Log out</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /right panels -->
+        </div><!-- /stg-layout -->
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+Shell.init('settings');
+
+function showPanel(btn) {
+  document.querySelectorAll('.stg-nav-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const id = btn.dataset.panel;
+  ['general','keys','account'].forEach(p => {
+    document.getElementById('panel-' + p).hidden = p !== id;
+  });
+}
+</script>
+</body>
+</html>

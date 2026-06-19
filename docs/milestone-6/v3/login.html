@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Sign in</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .auth-root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-base);
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 380px;
+  }
+  .auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .auth-brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.03em;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 4px 16px rgba(124,58,237,0.25);
+  }
+  .auth-brand-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+  }
+  .auth-heading {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .auth-sub {
+    font-size: 0.8125rem;
+    color: var(--text-3);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .auth-form { display: flex; flex-direction: column; gap: 14px; }
+  .auth-form .lbl { margin-bottom: 5px; display: block; }
+  .auth-form .field { display: flex; flex-direction: column; }
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0;
+    color: var(--text-3);
+    font-size: 0.75rem;
+  }
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .auth-foot {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-3);
+    line-height: 1.6;
+  }
+  .auth-foot a { color: var(--accent); text-decoration: none; }
+  .auth-foot a:hover { text-decoration: underline; }
+  .auth-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: var(--danger);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  /* password field with show/hide toggle */
+  .pw-wrap { position: relative; }
+  .pw-wrap .input { padding-right: 36px; width: 100%; box-sizing: border-box; }
+  .pw-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+  }
+  .pw-toggle:hover { color: var(--text-1); }
+
+  /* theme toggle in corner */
+  .auth-theme {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+  }
+
+  /* error state demo toggle */
+  .demo-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 10px 12px;
+    background: var(--bg-surface-2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .demo-strip span { font-size: 0.75rem; color: var(--text-3); align-self: center; }
+</style>
+</head>
+<body>
+<div class="auth-root">
+  <div class="auth-card">
+
+    <div class="demo-strip">
+      <span>Preview state:</span>
+      <button class="btn btn-secondary btn-xs" onclick="showState('default')">Default</button>
+      <button class="btn btn-secondary btn-xs" onclick="showState('error')">Error</button>
+      <button class="btn btn-secondary btn-xs" onclick="showState('loading')">Loading</button>
+    </div>
+
+    <div class="auth-brand">
+      <div class="auth-brand-mark">W</div>
+      <span class="auth-brand-name">Watch</span>
+    </div>
+
+    <h1 class="auth-heading">Sign in to Watch</h1>
+    <p class="auth-sub">Self-hosted production health monitoring for your frontend.</p>
+
+    <!-- Error state (hidden by default) -->
+    <div class="auth-error" id="auth-error" style="display:none;margin-bottom:16px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      Invalid email or password. Check your credentials and try again.
+    </div>
+
+    <form class="auth-form" onsubmit="return false">
+      <div class="field">
+        <label class="lbl" for="email">Email</label>
+        <input class="input" type="email" id="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <label class="lbl" for="password" style="margin-bottom:0">Password</label>
+          <a href="#" style="font-size:0.75rem;color:var(--accent);text-decoration:none">Forgot password?</a>
+        </div>
+        <div class="pw-wrap">
+          <input class="input" type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+          <button class="pw-toggle" type="button" onclick="togglePw()" title="Show/hide password">
+            <svg id="pw-eye" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="sign-in-btn" onclick="fireToast('success')" style="margin-top:4px">
+        <span id="btn-label">Sign in</span>
+        <svg id="btn-spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;animation:spin 0.8s linear infinite"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" opacity=".25"/><path d="M21 12a9 9 0 0 0-9-9"/></svg>
+      </button>
+    </form>
+
+    <p class="auth-foot">
+      No account yet? This is a self-hosted instance.<br>
+      Ask your owner to <a href="setup.html">run the setup wizard</a>.
+    </p>
+  </div>
+</div>
+
+<div class="auth-theme">
+  <button class="toggle-pill" onclick="toggleMode()">
+    <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg id="ico-sun"  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+    <span id="mode-label">Light mode</span>
+  </button>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+  (function() {
+    const mode = localStorage.getItem('watch-mode') || 'dark';
+    document.documentElement.classList.add(mode);
+    Shell.updateToggle(mode);
+  })();
+
+  function showState(state) {
+    const errEl   = document.getElementById('auth-error');
+    const btnLbl  = document.getElementById('btn-label');
+    const spinner = document.getElementById('btn-spinner');
+    const btn     = document.getElementById('sign-in-btn');
+
+    errEl.style.display   = 'none';
+    btnLbl.textContent    = 'Sign in';
+    spinner.style.display = 'none';
+    btn.disabled          = false;
+
+    if (state === 'error') {
+      errEl.style.display = 'flex';
+    } else if (state === 'loading') {
+      btnLbl.textContent    = 'Signing in…';
+      spinner.style.display = 'inline';
+      btn.disabled          = true;
+    }
+  }
+
+  function togglePw() {
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+</script>
+</body>
+</html>

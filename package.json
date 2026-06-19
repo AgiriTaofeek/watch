@@ -20,7 +20,8 @@
     "prepare": "husky",
     "db:pg": "docker compose -f deploy/docker-compose.yml up -d",
     "db:up": "docker compose -f deploy/docker-compose.yml --profile db-ui up -d",
-    "db:down": "docker compose -f deploy/docker-compose.yml --profile db-ui down",
+    "db:admin": "docker compose -f deploy/docker-compose.yml --profile db-admin up -d",
+    "db:down": "docker compose -f deploy/docker-compose.yml --profile db-ui --profile db-admin down",
     "server:dev": "pnpm --filter @watch/server dev"
   },
   "devDependencies": {

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Route Health</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* health score cell */
+  .score-cell { display: flex; align-items: center; gap: 8px; }
+  .score-bar-wrap {
+    flex: 1;
+    height: 5px;
+    background: var(--bg-surface-2);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 48px;
+    max-width: 72px;
+  }
+  .score-bar { height: 100%; border-radius: 3px; }
+  .score-num {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* route detail drawer */
+  .route-drawer {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-top: 4px;
+    padding: 14px;
+    display: none;
+  }
+  .route-drawer.open { display: block; }
+  .route-drawer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .rd-stat { display: flex; flex-direction: column; gap: 3px; }
+  .rd-val {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--text-1);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .rd-lbl { font-size: 0.72rem; color: var(--text-3); }
+
+  /* trend sparkline */
+  .trend-svg { width: 64px; height: 20px; display: inline-block; vertical-align: middle; }
+
+  tr.selected { background: rgba(167,139,250,0.06); }
+  tr.selected td:first-child { border-left: 2px solid var(--accent); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">Route Health</span>
+      </nav>
+      <div class="topbar-right">
+        <select class="select" style="height:30px;font-size:0.8125rem;padding:0 26px 0 9px;width:auto">
+          <option>Last 24h</option><option>Last 7d</option>
+        </select>
+        <button class="icon-btn icon-btn-sm" title="Refresh" onclick="fireToast('info')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+        </button>
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+        <div class="pg-hd">
+          <h1 class="pg-title">Route Health</h1>
+          <div class="pg-actions">
+            <span style="font-size:0.8125rem;color:var(--text-3)">Click a row to expand</span>
+          </div>
+        </div>
+
+        <!-- Summary strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+          <div class="card">
+            <div class="metric-label">Overall health score</div>
+            <div class="metric-value" style="color:var(--warning)">76<span style="font-size:0.875rem;font-weight:500;color:var(--text-3)">/100</span></div>
+            <div class="metric-delta delta-neg">-4 from yesterday</div>
+          </div>
+          <div class="card">
+            <div class="metric-label">Routes tracked</div>
+            <div class="metric-value">6</div>
+            <div class="metric-delta delta-neu">No change</div>
+          </div>
+          <div class="card">
+            <div class="metric-label">Routes in poor health</div>
+            <div class="metric-value" style="color:var(--danger)">1</div>
+            <div class="metric-delta delta-neg">/orders/:id degraded</div>
+          </div>
+          <div class="card">
+            <div class="metric-label">Avg error rate</div>
+            <div class="metric-value" style="color:var(--warning)">2.2%</div>
+            <div class="metric-delta delta-neg">+0.4pp vs yesterday</div>
+          </div>
+        </div>
+
+        <!-- Route health table -->
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <input class="input" type="text" placeholder="Filter routes…" style="width:200px;height:30px;font-size:0.8125rem">
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <select class="select" style="width:auto;height:30px;font-size:0.8125rem;padding:0 26px 0 9px">
+                <option>Sort: Score</option>
+                <option>Sort: Error rate</option>
+                <option>Sort: Sessions</option>
+              </select>
+            </div>
+          </div>
+          <table id="route-table">
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th class="td-r" style="width:72px">Sessions</th>
+                <th class="td-r" style="width:88px">Errors</th>
+                <th class="td-r" style="width:88px">Error rate</th>
+                <th class="td-r" style="width:80px">LCP p75</th>
+                <th class="td-r" style="width:80px">INP p75</th>
+                <th class="td-r" style="width:72px">Net fails</th>
+                <th style="width:140px">Health score</th>
+                <th style="width:72px" class="td-c">7d trend</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <!-- /products -->
+              <tr class="route-row" data-route="/products" onclick="toggleRow(this,'drawer-products')">
+                <td class="td-mono" style="font-size:0.8125rem">/products</td>
+                <td class="td-r td-count">4,210</td>
+                <td class="td-r" style="color:var(--danger)">1,204</td>
+                <td class="td-r" style="color:var(--danger)">2.8%</td>
+                <td class="td-r" style="color:var(--success)">1.8s</td>
+                <td class="td-r">220ms</td>
+                <td class="td-r">87</td>
+                <td>
+                  <div class="score-cell">
+                    <div class="score-bar-wrap"><div class="score-bar" style="width:72%;background:var(--warning)"></div></div>
+                    <div class="score-num" style="color:var(--warning)">72</div>
+                  </div>
+                </td>
+                <td class="td-c"><svg class="trend-svg" id="spark-products" viewBox="0 0 64 20" preserveAspectRatio="none"></svg></td>
+              </tr>
+              <tr id="drawer-products"><td colspan="9" style="padding:0">
+                <div class="route-drawer" id="detail-products">
+                  <div class="route-drawer-grid">
+                    <div class="rd-stat"><div class="rd-val" style="color:var(--danger)">1,204</div><div class="rd-lbl">Error events</div></div>
+                    <div class="rd-stat"><div class="rd-val" style="color:var(--warning)">2.8%</div><div class="rd-lbl">Error rate</div></div>
+                    <div class="rd-stat"><div class="rd-val" style="color:var(--success)">1.8s</div><div class="rd-lbl">LCP p75</div></div>
+                    <div class="rd-stat"><div class="rd-val">220ms</div><div class="rd-lbl">INP p75</div></div>
+                    <div class="rd-stat"><div class="rd-val">0.9s</div><div class="rd-lbl">FCP p75</div></div>
+                    <div class="rd-stat"><div class="rd-val">0.04</div><div class="rd-lbl">CLS</div></div>
+                    <div class="rd-stat"><div class="rd-val">87</div><div class="rd-lbl">Network failures</div></div>
+                    <div class="rd-stat"><div class="rd-val">412</div><div class="rd-lbl">Affected sessions</div></div>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <a href="issues.html" class="btn btn-secondary btn-sm">View 4 open issues</a>
+                    <a href="vitals.html" class="btn btn-secondary btn-sm">Web Vitals</a>
+                  </div>
+                </div>
+              </td></tr>
+
+              <!-- /checkout -->
+              <tr class="route-row" data-route="/checkout" onclick="toggleRow(this,'drawer-checkout')">
+                <td class="td-mono" style="font-size:0.8125rem">/checkout</td>
+                <td class="td-r td-count">1,840</td>
+                <td class="td-r" style="color:var(--danger)">387</td>
+                <td class="td-r" style="color:var(--danger)">4.2%</td>
+                <td class="td-r" style="color:var(--warning)">2.4s</td>
+                <td class="td-r" style="color:var(--warning)">280ms</td>
+                <td class="td-r">41</td>
+                <td>
+                  <div class="score-cell">
+                    <div class="score-bar-wrap"><div class="score-bar" style="width:58%;background:var(--danger)"></div></div>
+                    <div class="score-num" style="color:var(--danger)">58</div>
+                  </div>
+                </td>
+                <td class="td-c"><svg class="trend-svg" id="spark-checkout" viewBox="0 0 64 20" preserveAspectRatio="none"></svg></td>
+              </tr>
+              <tr id="drawer-checkout"><td colspan="9" style="padding:0">
+                <div class="route-drawer" id="detail-checkout">
+                  <div class="route-drawer-grid">
+                    <div class="rd-stat"><div class="rd-val" style="color:var(--danger)">387</div><div class="rd-lbl">Error events</div></div>
+                    <div class="rd-stat"><div class="rd-val" style="color:var(--danger)">4.2%</div><div class="rd-lbl">Error rate</div></div>
+                    <div class="rd-stat"><div class="rd-val" style="color:var(--warning)">2.4s</div><div class="rd-lbl">LCP p75</div></div>
+                    <div class="rd-stat"><div class="rd-val" style="color:var(--warning)">280ms</div><div class="rd-lbl">INP p75</div></div>
+                    <div class="rd-stat"><div class="rd-val">1.2s</div><div class="rd-lbl">FCP p75</div></div>
+                    <div class="rd-stat"><div class="rd-val">0.07</div><div class="rd-lbl">CLS</div></div>
+                    <div class="rd-stat"><div class="rd-val">41</div><div class="rd-lbl">Network failures</div></div>
+                    <div class="rd-stat"><div class="rd-val">203</div><div class="rd-lbl">Affected sessions</div></div>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <a href="issues.html" class="btn btn-primary btn-sm">View 2 open issues</a>
+                    <a href="performance.html" class="btn btn-secondary btn-sm">Performance details</a>
+                  </div>
+                </div>
+              </td></tr>
+
+              <!-- /dashboard -->
+              <tr class="route-row" onclick="toggleRow(this,'drawer-dash')">
+                <td class="td-mono" style="font-size:0.8125rem">/dashboard</td>
+                <td class="td-r td-count">3,120</td>
+                <td class="td-r">92</td>
+                <td class="td-r">0.7%</td>
+                <td class="td-r" style="color:var(--success)">1.6s</td>
+                <td class="td-r">165ms</td>
+                <td class="td-r">8</td>
+                <td>
+                  <div class="score-cell">
+                    <div class="score-bar-wrap"><div class="score-bar" style="width:91%;background:var(--success)"></div></div>
+                    <div class="score-num" style="color:var(--success)">91</div>
+                  </div>
+                </td>
+                <td class="td-c"><svg class="trend-svg" id="spark-dash" viewBox="0 0 64 20" preserveAspectRatio="none"></svg></td>
+              </tr>
+              <tr id="drawer-dash"><td colspan="9" style="padding:0">
+                <div class="route-drawer" id="detail-dash"></div>
+              </td></tr>
+
+              <!-- /feed -->
+              <tr class="route-row" onclick="toggleRow(this,'drawer-feed')">
+                <td class="td-mono" style="font-size:0.8125rem">/feed</td>
+                <td class="td-r td-count">2,890</td>
+                <td class="td-r">143</td>
+                <td class="td-r">1.1%</td>
+                <td class="td-r" style="color:var(--success)">2.0s</td>
+                <td class="td-r">180ms</td>
+                <td class="td-r">12</td>
+                <td>
+                  <div class="score-cell">
+                    <div class="score-bar-wrap"><div class="score-bar" style="width:84%;background:var(--success)"></div></div>
+                    <div class="score-num" style="color:var(--success)">84</div>
+                  </div>
+                </td>
+                <td class="td-c"><svg class="trend-svg" id="spark-feed" viewBox="0 0 64 20" preserveAspectRatio="none"></svg></td>
+              </tr>
+              <tr id="drawer-feed"><td colspan="9" style="padding:0">
+                <div class="route-drawer" id="detail-feed"></div>
+              </td></tr>
+
+              <!-- /account -->
+              <tr class="route-row" onclick="toggleRow(this,'drawer-account')">
+                <td class="td-mono" style="font-size:0.8125rem">/account</td>
+                <td class="td-r td-count">892</td>
+                <td class="td-r">41</td>
+                <td class="td-r">0.7%</td>
+                <td class="td-r" style="color:var(--success)">1.4s</td>
+                <td class="td-r">140ms</td>
+                <td class="td-r">5</td>
+                <td>
+                  <div class="score-cell">
+                    <div class="score-bar-wrap"><div class="score-bar" style="width:88%;background:var(--success)"></div></div>
+                    <div class="score-num" style="color:var(--success)">88</div>
+                  </div>
+                </td>
+                <td class="td-c"><svg class="trend-svg" id="spark-account" viewBox="0 0 64 20" preserveAspectRatio="none"></svg></td>
+              </tr>
+              <tr id="drawer-account"><td colspan="9" style="padding:0">
+                <div class="route-drawer" id="detail-account"></div>
+              </td></tr>
+
+              <!-- /orders/:id — poor health -->
+              <tr class="route-row" onclick="toggleRow(this,'drawer-orders')">
+                <td class="td-mono" style="font-size:0.8125rem">/orders/:id</td>
+                <td class="td-r td-count">510</td>
+                <td class="td-r" style="color:var(--danger)">88</td>
+                <td class="td-r" style="color:var(--danger)">3.1%</td>
+                <td class="td-r" style="color:var(--danger)">3.2s</td>
+                <td class="td-r" style="color:var(--danger)">380ms</td>
+                <td class="td-r">16</td>
+                <td>
+                  <div class="score-cell">
+                    <div class="score-bar-wrap"><div class="score-bar" style="width:42%;background:var(--danger)"></div></div>
+                    <div class="score-num" style="color:var(--danger)">42</div>
+                  </div>
+                </td>
+                <td class="td-c"><svg class="trend-svg" id="spark-orders" viewBox="0 0 64 20" preserveAspectRatio="none"></svg></td>
+              </tr>
+              <tr id="drawer-orders"><td colspan="9" style="padding:0">
+                <div class="route-drawer" id="detail-orders"></div>
+              </td></tr>
+
+            </tbody>
+          </table>
+          <div class="tbl-foot">
+            <span class="tbl-foot-txt">6 routes · all environments</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+Shell.init('route-health');
+
+function toggleRow(row, drawerId) {
+  const drawerRow = document.getElementById(drawerId);
+  const detail    = drawerRow.querySelector('.route-drawer');
+  const isOpen    = detail && detail.classList.contains('open');
+  /* close all */
+  document.querySelectorAll('.route-drawer').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.route-row').forEach(r => r.classList.remove('selected'));
+  if (!isOpen && detail) {
+    detail.classList.add('open');
+    row.classList.add('selected');
+  }
+}
+
+/* mini sparklines */
+(function buildSparks() {
+  const sparkData = {
+    products: [68,70,72,71,74,73,72],
+    checkout: [72,70,65,63,60,59,58],
+    dash:     [89,91,90,92,91,92,91],
+    feed:     [82,83,84,84,83,85,84],
+    account:  [87,88,87,88,88,89,88],
+    orders:   [72,68,63,58,52,47,42],
+  };
+  for (const [key, vals] of Object.entries(sparkData)) {
+    const svg  = document.getElementById(`spark-${key}`);
+    if (!svg) { continue; }
+    const W = 64, H = 20, n = vals.length;
+    const mn = Math.min(...vals) - 5, mx = Math.max(...vals) + 5;
+    const xs = vals.map((_, i) => (i / (n - 1)) * W);
+    const ys = vals.map(v => H - ((v - mn) / (mx - mn)) * H);
+    const pts = xs.map((x, i) => `${x},${ys[i]}`).join(' ');
+    const last = vals[vals.length - 1];
+    const col  = last >= 80 ? 'var(--success)' : last >= 60 ? 'var(--warning)' : 'var(--danger)';
+    svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity="0.8"/>`;
+  }
+})();
+</script>
+</body>
+</html>

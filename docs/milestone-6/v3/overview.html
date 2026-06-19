@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Overview</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">Overview</span>
+      </nav>
+      <div class="topbar-right">
+        <select class="select" style="width:auto;height:28px;font-size:0.75rem;padding:0 26px 0 9px">
+          <option>Last 24h</option><option>Last 7d</option><option>Last 30d</option>
+        </select>
+        <button class="icon-btn" title="Refresh">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+        </button>
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+        <!-- Page header -->
+        <div class="pg-hd">
+          <div>
+            <h1 class="pg-title">Overview</h1>
+            <p class="pg-sub">Customer Portal &middot; staging &middot; Last 24 hours</p>
+          </div>
+        </div>
+
+        <!-- ── METRICS ── -->
+        <div class="g4" style="margin-bottom:18px">
+          <div class="metric">
+            <div class="metric-lbl">Error Events</div>
+            <div class="metric-val num">3,412</div>
+            <div class="metric-sub">
+              <span class="trend-up">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </span>
+              +14% vs yesterday
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Open Issues</div>
+            <div class="metric-val num" style="color:var(--danger)">47</div>
+            <div class="metric-sub"><span class="trend-up">↑</span>&nbsp;3 new this hour</div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">LCP p75</div>
+            <div class="metric-val num" style="color:var(--success)">1.8s</div>
+            <div class="metric-sub"><span class="badge badge-good" style="font-size:0.5625rem;padding:1px 6px">Good</span></div>
+          </div>
+          <div class="metric">
+            <div class="metric-lbl">Affected Sessions</div>
+            <div class="metric-val num">892</div>
+            <div class="metric-sub"><span class="trend-dn">↓</span>&nbsp;<span style="color:var(--success-text)">−8%</span>&nbsp;vs yesterday</div>
+          </div>
+        </div>
+
+        <!-- ── CHARTS ── -->
+        <div class="g2" style="margin-bottom:18px">
+
+          <!-- Error rollup -->
+          <div class="chart-card">
+            <div class="chart-hd">
+              <div>
+                <div class="chart-title">Error Rollup</div>
+                <div class="chart-sub">Last 24 hours · hourly</div>
+              </div>
+              <a href="issues.html" class="btn btn-ghost btn-xs">View issues →</a>
+            </div>
+            <div class="chart-bd">
+              <div class="chart-wrap">
+                <svg class="chart-svg" viewBox="0 0 420 186" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.25"/>
+                      <stop offset="100%" stop-color="var(--chart-1)" stop-opacity="0"/>
+                    </linearGradient>
+                    <filter id="glow1"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <line x1="0" y1="46" x2="420" y2="46" stroke="var(--border)" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="92" x2="420" y2="92" stroke="var(--border)" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="138" x2="420" y2="138" stroke="var(--border)" stroke-dasharray="4 4"/>
+                  <path d="M0,148 C20,140 35,118 60,128 C85,138 95,106 120,96 C145,86 155,74 180,64 C205,54 215,82 240,58 C265,34 275,48 300,32 C325,16 345,36 370,28 C395,20 410,18 420,16 L420,186 L0,186 Z" fill="url(#g1)"/>
+                  <path d="M0,148 C20,140 35,118 60,128 C85,138 95,106 120,96 C145,86 155,74 180,64 C205,54 215,82 240,58 C265,34 275,48 300,32 C325,16 345,36 370,28 C395,20 410,18 420,16" fill="none" stroke="var(--chart-1)" stroke-width="3.5" stroke-opacity="0.3" filter="url(#glow1)" stroke-linecap="round"/>
+                  <path d="M0,148 C20,140 35,118 60,128 C85,138 95,106 120,96 C145,86 155,74 180,64 C205,54 215,82 240,58 C265,34 275,48 300,32 C325,16 345,36 370,28 C395,20 410,18 420,16" fill="none" stroke="var(--chart-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <text x="4" y="42"  font-size="8" fill="var(--text-3)" font-family="monospace">300</text>
+                  <text x="4" y="88"  font-size="8" fill="var(--text-3)" font-family="monospace">200</text>
+                  <text x="4" y="134" font-size="8" fill="var(--text-3)" font-family="monospace">100</text>
+                </svg>
+              </div>
+              <div class="chart-xlbls">
+                <span class="chart-xlbl">00:00</span><span class="chart-xlbl">06:00</span><span class="chart-xlbl">12:00</span><span class="chart-xlbl">18:00</span><span class="chart-xlbl">Now</span>
+              </div>
+              <div class="chart-stats">
+                <div><div class="stat-val">312</div><div class="stat-lbl">Peak/hr</div></div>
+                <div><div class="stat-val">3,412</div><div class="stat-lbl">Total</div></div>
+                <div><div class="stat-val">142</div><div class="stat-lbl">Avg/hr</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Web Vitals summary -->
+          <div class="chart-card">
+            <div class="chart-hd">
+              <div>
+                <div class="chart-title">LCP — Largest Contentful Paint</div>
+                <div class="chart-sub">p75 · 7-day trend</div>
+              </div>
+              <a href="vitals.html" class="btn btn-ghost btn-xs">All vitals →</a>
+            </div>
+            <div class="chart-bd">
+              <div class="chart-wrap">
+                <svg class="chart-svg" viewBox="0 0 420 186" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--chart-2)" stop-opacity="0.20"/>
+                      <stop offset="100%" stop-color="var(--chart-2)" stop-opacity="0"/>
+                    </linearGradient>
+                    <filter id="glow2"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <line x1="0" y1="46" x2="420" y2="46" stroke="var(--border)" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="92" x2="420" y2="92" stroke="var(--border)" stroke-dasharray="4 4"/>
+                  <line x1="0" y1="138" x2="420" y2="138" stroke="var(--border)" stroke-dasharray="4 4"/>
+                  <path d="M0,100 C60,92 120,80 180,68 C240,56 300,50 360,42 C390,38 405,36 420,34 L420,186 L0,186 Z" fill="url(#g2)"/>
+                  <path d="M0,100 C60,92 120,80 180,68 C240,56 300,50 360,42 C390,38 405,36 420,34" fill="none" stroke="var(--chart-2)" stroke-width="3.5" stroke-opacity="0.3" filter="url(#glow2)" stroke-linecap="round"/>
+                  <path d="M0,100 C60,92 120,80 180,68 C240,56 300,50 360,42 C390,38 405,36 420,34" fill="none" stroke="var(--chart-2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="60"  cy="92"  r="4" fill="var(--warning)" stroke="var(--bg-surface)" stroke-width="2"/>
+                  <circle cx="180" cy="68"  r="4" fill="var(--success)" stroke="var(--bg-surface)" stroke-width="2"/>
+                  <circle cx="300" cy="50"  r="4" fill="var(--success)" stroke="var(--bg-surface)" stroke-width="2"/>
+                  <circle cx="420" cy="34"  r="4" fill="var(--success)" stroke="var(--bg-surface)" stroke-width="2"/>
+                  <text x="4" y="42"  font-size="8" fill="var(--text-3)" font-family="monospace">4.0s</text>
+                  <text x="4" y="88"  font-size="8" fill="var(--text-3)" font-family="monospace">2.5s</text>
+                  <text x="4" y="134" font-size="8" fill="var(--text-3)" font-family="monospace">1.0s</text>
+                </svg>
+              </div>
+              <div class="chart-xlbls">
+                <span class="chart-xlbl">Jun 12</span><span class="chart-xlbl">Jun 13</span><span class="chart-xlbl">Jun 14</span><span class="chart-xlbl">Jun 15</span><span class="chart-xlbl">Jun 16</span><span class="chart-xlbl">Jun 17</span><span class="chart-xlbl">Jun 18</span>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item"><div class="l-line" style="background:var(--chart-2)"></div>p75</div>
+                <div class="legend-item"><div class="l-dot" style="background:var(--success)"></div>Good</div>
+                <div class="legend-item"><div class="l-dot" style="background:var(--warning)"></div>Needs improvement</div>
+              </div>
+              <div class="chart-stats">
+                <div><div class="stat-val">1.8s</div><div class="stat-lbl">p75</div></div>
+                <div><div class="stat-val">1.4s</div><div class="stat-lbl">Mean</div></div>
+                <div><div class="stat-val" style="color:var(--success)">Good</div><div class="stat-lbl">Health</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── RECENT ISSUES ── -->
+        <div class="tbl-wrap">
+          <div class="card-hd">
+            <div>
+              <div class="card-title">Recent Issues</div>
+              <div class="card-sub">Most recently active in this environment</div>
+            </div>
+            <a href="issues.html" class="btn btn-ghost btn-sm">View all 47 &rarr;</a>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:86px">Status</th>
+                <th>Title</th>
+                <th style="width:140px">Route</th>
+                <th style="width:68px" class="td-r">Count</th>
+                <th style="width:110px" class="td-r">Last seen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;font-weight:500;line-height:1.35">TypeError: Cannot read properties of undefined (reading 'map')</div>
+                  <div class="td-mono" style="margin-top:2px">ProductList.tsx:47</div>
+                </td>
+                <td class="td-mono">/products</td>
+                <td class="td-r td-count">1,204</td>
+                <td class="td-r td-dim">2 min ago</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;font-weight:500;line-height:1.35">ChunkLoadError: Loading chunk 42 failed</div>
+                  <div class="td-mono" style="margin-top:2px">webpack/runtime:1</div>
+                </td>
+                <td class="td-mono">/checkout</td>
+                <td class="td-r td-count">387</td>
+                <td class="td-r td-dim">14 min ago</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-open">Open</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;font-weight:500;line-height:1.35">RangeError: Maximum call stack size exceeded</div>
+                  <div class="td-mono" style="margin-top:2px">useInfiniteScroll.ts:23</div>
+                </td>
+                <td class="td-mono">/feed</td>
+                <td class="td-r td-count">143</td>
+                <td class="td-r td-dim">38 min ago</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-ignored">Ignored</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;color:var(--text-2);line-height:1.35">NetworkError: Failed to fetch /api/analytics</div>
+                  <div class="td-mono" style="margin-top:2px">analytics.ts:112</div>
+                </td>
+                <td class="td-mono">/dashboard</td>
+                <td class="td-r td-count" style="color:var(--text-2)">92</td>
+                <td class="td-r td-dim">1 hr ago</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-resolved">Resolved</span></td>
+                <td>
+                  <div style="font-size:0.8125rem;color:var(--text-2);line-height:1.35">ReferenceError: sessionStorage is not defined</div>
+                  <div class="td-mono" style="margin-top:2px">auth.ts:88</div>
+                </td>
+                <td class="td-mono">/login</td>
+                <td class="td-r td-count" style="color:var(--text-2)">41</td>
+                <td class="td-r td-dim">3 hr ago</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>Shell.init('overview');</script>
+</body>
+</html>

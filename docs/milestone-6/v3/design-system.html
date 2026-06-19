@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Design System</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── DS-page-only styles ── */
+.sec{margin-bottom:48px}
+.sec-hd{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--border);padding-bottom:11px;margin-bottom:18px}
+.sec-title{font-size:1rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-1)}
+.sec-tag{font-size:0.6875rem;font-weight:500;color:var(--text-3);font-family:var(--font-mono)}
+.sec-desc{font-size:0.8125rem;color:var(--text-2);line-height:1.65;margin:-8px 0 18px}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}
+.sw{border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border)}
+.sw-color{height:48px}
+.sw-info{padding:7px 10px;background:var(--bg-surface)}
+.sw-name{font-size:0.6875rem;font-weight:600;color:var(--text-1);font-family:var(--font-mono)}
+.sw-use{font-size:0.5625rem;color:var(--text-3);margin-top:1px}
+.type-row{display:flex;align-items:baseline;gap:16px;padding:10px 0;border-bottom:1px solid var(--border)}
+.type-meta{width:130px;flex-shrink:0}
+.type-token{font-size:0.625rem;font-weight:600;color:var(--text-3);font-family:var(--font-mono)}
+.type-spec{font-size:0.5625rem;color:var(--text-4);margin-top:2px}
+.space-row{display:flex;align-items:center;gap:10px;height:22px}
+.space-bar{height:6px;background:var(--accent-muted);border-radius:2px;flex-shrink:0}
+.space-lbl{font-family:var(--font-mono);font-size:0.6875rem;color:var(--text-2);width:72px;flex-shrink:0}
+.space-use{font-size:0.6875rem;color:var(--text-3)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-page" style="color:var(--accent-text)">Design System</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-proj">v3</span>
+      </nav>
+      <div class="topbar-right">
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+      <!-- 1. COLORS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Color Tokens</span><span class="sec-tag">--bg-* --text-* --accent --success --warning --danger</span></div>
+        <p class="sec-desc">Three-layer system: primitives → semantic → component. Components only reference semantic tokens. Toggle light/dark above — every swatch updates automatically.</p>
+        <div class="lbl" style="margin-bottom:8px">Backgrounds</div>
+        <div class="palette" style="margin-bottom:16px">
+          <div class="sw"><div class="sw-color" style="background:var(--bg-base);border-bottom:1px solid var(--border)"></div><div class="sw-info"><div class="sw-name">bg-base</div><div class="sw-use">Page background</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--bg-surface);border-bottom:1px solid var(--border)"></div><div class="sw-info"><div class="sw-name">bg-surface</div><div class="sw-use">Card, panel</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--bg-sunken);border-bottom:1px solid var(--border)"></div><div class="sw-info"><div class="sw-name">bg-sunken</div><div class="sw-use">Input, code</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--bg-elevated);border-bottom:1px solid var(--border)"></div><div class="sw-info"><div class="sw-name">bg-elevated</div><div class="sw-use">Tooltip, menu</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--bg-sidebar);border-bottom:1px solid var(--border)"></div><div class="sw-info"><div class="sw-name">bg-sidebar</div><div class="sw-use">Nav rail</div></div></div>
+        </div>
+        <div class="lbl" style="margin-bottom:8px">Accent — Violet (not generic blue)</div>
+        <div class="palette" style="margin-bottom:16px">
+          <div class="sw"><div class="sw-color" style="background:var(--accent)"></div><div class="sw-info"><div class="sw-name">accent</div><div class="sw-use">Primary interactive</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--accent-muted)"></div><div class="sw-info"><div class="sw-name">accent-muted</div><div class="sw-use">Active nav, selected</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--accent-subtle)"></div><div class="sw-info"><div class="sw-name">accent-subtle</div><div class="sw-use">Row hover, focus ring</div></div></div>
+        </div>
+        <div class="lbl" style="margin-bottom:8px">Status</div>
+        <div class="palette" style="margin-bottom:16px">
+          <div class="sw"><div class="sw-color" style="background:var(--success)"></div><div class="sw-info"><div class="sw-name">success</div><div class="sw-use">Resolved · Good</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--success-muted)"></div><div class="sw-info"><div class="sw-name">success-muted</div><div class="sw-use">Badge bg</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--warning)"></div><div class="sw-info"><div class="sw-name">warning</div><div class="sw-use">Needs improvement</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--warning-muted)"></div><div class="sw-info"><div class="sw-name">warning-muted</div><div class="sw-use">Badge bg</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--danger)"></div><div class="sw-info"><div class="sw-name">danger</div><div class="sw-use">Open · Poor · Error</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--danger-muted)"></div><div class="sw-info"><div class="sw-name">danger-muted</div><div class="sw-use">Badge bg</div></div></div>
+        </div>
+        <div class="lbl" style="margin-bottom:8px">Chart Series</div>
+        <div class="palette">
+          <div class="sw"><div class="sw-color" style="background:var(--chart-1)"></div><div class="sw-info"><div class="sw-name">chart-1</div><div class="sw-use">Error rollup</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--chart-2)"></div><div class="sw-info"><div class="sw-name">chart-2</div><div class="sw-use">Web Vitals</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--chart-3)"></div><div class="sw-info"><div class="sw-name">chart-3</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--chart-4)"></div><div class="sw-info"><div class="sw-name">chart-4</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--chart-5)"></div><div class="sw-info"><div class="sw-name">chart-5</div></div></div>
+          <div class="sw"><div class="sw-color" style="background:var(--chart-6)"></div><div class="sw-info"><div class="sw-name">chart-6</div></div></div>
+        </div>
+      </div>
+
+      <!-- 2. TYPOGRAPHY -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Typography</span><span class="sec-tag">system font · negative tracking · tabular-nums</span></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">page-title</div><div class="type-spec">1.375rem · 800 · -0.03em</div></div><div style="font-size:1.375rem;font-weight:800;letter-spacing:-0.03em;color:var(--text-1)">Customer Portal</div></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">section</div><div class="type-spec">1rem · 700 · -0.02em</div></div><div style="font-size:1rem;font-weight:700;letter-spacing:-0.02em;color:var(--text-1)">Error Rollup — Last 24h</div></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">subsection</div><div class="type-spec">0.875rem · 600 · -0.01em</div></div><div style="font-size:0.875rem;font-weight:600;letter-spacing:-0.01em;color:var(--text-1)">Ingestion Keys</div></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">body</div><div class="type-spec">0.875rem · 400 · 1.6</div></div><div style="font-size:0.875rem;color:var(--text-1);line-height:1.6">Watch is a privacy-first, self-hosted production health monitor. It collects errors, Web Vitals, and network events without capturing personal data.</div></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">table-body</div><div class="type-spec">0.8125rem · 400 · snug</div></div><div style="font-size:0.8125rem;color:var(--text-1)">TypeError: Cannot read properties of undefined (reading 'map')</div></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">table-header</div><div class="type-spec">0.625rem · 600 · 0.07em · upper</div></div><div style="font-size:0.625rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3)">Status · Title · Route · Count · Last Seen</div></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">metric</div><div class="type-spec">2.1rem · 800 · -0.04em · tabular</div></div><div style="font-size:2.1rem;font-weight:800;letter-spacing:-0.04em;color:var(--text-1);line-height:1;font-variant-numeric:tabular-nums">3,412</div></div>
+        <div class="type-row"><div class="type-meta"><div class="type-token">helper</div><div class="type-spec">0.75rem · 400 · text-3</div></div><div style="font-size:0.75rem;color:var(--text-3);line-height:1.5">One origin per line. Wildcards are not supported.</div></div>
+        <div class="type-row" style="border-bottom:none"><div class="type-meta"><div class="type-token">code</div><div class="type-spec">0.8125rem · mono · 1.7</div></div><div style="font-family:var(--font-mono);font-size:0.8125rem;color:var(--text-code);background:var(--bg-sunken);padding:6px 10px;border-radius:var(--r-md);border:1px solid var(--border)">watch://a1b2c3@watch.example.com/ingest/1</div></div>
+      </div>
+
+      <!-- 3. SPACING -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Spacing Scale</span><span class="sec-tag">4px base grid</span></div>
+        <div class="col">
+          <div class="space-row"><div class="space-lbl">2px</div><div class="space-bar" style="width:2px"></div><div class="space-use">Icon nudge</div></div>
+          <div class="space-row"><div class="space-lbl">4px</div><div class="space-bar" style="width:4px"></div><div class="space-use">Badge padding</div></div>
+          <div class="space-row"><div class="space-lbl">8px</div><div class="space-bar" style="width:8px"></div><div class="space-use">Cell padding-y</div></div>
+          <div class="space-row"><div class="space-lbl">12px</div><div class="space-bar" style="width:12px"></div><div class="space-use">Cell padding-x</div></div>
+          <div class="space-row"><div class="space-lbl">16px</div><div class="space-bar" style="width:16px"></div><div class="space-use">Card padding</div></div>
+          <div class="space-row"><div class="space-lbl">24px</div><div class="space-bar" style="width:24px"></div><div class="space-use">Section gap, content pad</div></div>
+          <div class="space-row"><div class="space-lbl">32px</div><div class="space-bar" style="width:32px"></div><div class="space-use">Section break</div></div>
+          <div class="space-row"><div class="space-lbl">48px</div><div class="space-bar" style="width:48px"></div><div class="space-use">Empty state</div></div>
+        </div>
+      </div>
+
+      <!-- 4. BUTTONS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Buttons</span><span class="sec-tag">5 variants · 4 sizes</span></div>
+        <div class="lbl" style="margin-bottom:8px">Variants</div>
+        <div class="row" style="margin-bottom:18px">
+          <button class="btn btn-primary btn-md">Create project</button>
+          <button class="btn btn-secondary btn-md">Export CSV</button>
+          <button class="btn btn-ghost btn-md">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+            Refresh
+          </button>
+          <button class="btn btn-danger btn-md">Revoke key</button>
+          <button class="btn btn-danger-ghost btn-md">Delete project</button>
+          <button class="btn btn-primary btn-md" disabled>Disabled</button>
+        </div>
+        <div class="lbl" style="margin-bottom:8px">Sizes</div>
+        <div class="row" style="margin-bottom:18px">
+          <button class="btn btn-primary btn-xs">Extra small</button>
+          <button class="btn btn-primary btn-sm">Small</button>
+          <button class="btn btn-primary btn-md">Medium</button>
+          <button class="btn btn-primary btn-lg">Large</button>
+        </div>
+        <div class="lbl" style="margin-bottom:8px">Icon buttons</div>
+        <div class="row">
+          <button class="icon-btn" title="Refresh"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg></button>
+          <button class="icon-btn" title="Filter"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button>
+          <button class="icon-btn" title="More"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+          <button class="icon-btn" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 5. FORMS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Form Elements</span></div>
+        <div class="g2">
+          <div class="col">
+            <div class="field"><label class="f-label">Project name <span class="f-req">*</span></label><input class="input" type="text" placeholder="e.g. Customer Portal"><span class="f-hint">Used as the display name.</span></div>
+            <div class="field"><label class="f-label">Allowed origins</label><textarea class="textarea" placeholder="https://example.com"></textarea></div>
+            <div class="field"><label class="f-label">Environment</label><select class="select"><option>production</option><option>staging</option></select></div>
+          </div>
+          <div class="col">
+            <div class="field"><label class="f-label">Email <span class="f-req">*</span></label><input class="input err" type="email" value="not-valid"><span class="f-err"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Enter a valid email</span></div>
+            <div class="field"><label class="f-label">Password</label><input class="input" type="password" placeholder="Min. 12 characters"></div>
+            <div class="field"><label class="f-label">Disabled</label><input class="input" type="text" value="Cannot be changed" disabled style="opacity:0.4;cursor:not-allowed"></div>
+            <div class="col" style="gap:8px">
+              <label class="check-row"><input type="checkbox" class="check" checked><span class="check-label">Send error alerts by email</span></label>
+              <label class="check-row"><input type="checkbox" class="check"><span class="check-label">Enable 1-in-10 sampling</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. BADGES -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Badges &amp; Status</span></div>
+        <div class="lbl" style="margin-bottom:8px">Issue status</div>
+        <div class="row" style="margin-bottom:14px">
+          <span class="badge badge-open">Open</span>
+          <span class="badge badge-resolved">Resolved</span>
+          <span class="badge badge-ignored">Ignored</span>
+        </div>
+        <div class="lbl" style="margin-bottom:8px">Web Vital health</div>
+        <div class="row" style="margin-bottom:14px">
+          <span class="badge badge-good">Good</span>
+          <span class="badge badge-needs">Needs Improvement</span>
+          <span class="badge badge-poor">Poor</span>
+        </div>
+        <div class="lbl" style="margin-bottom:8px">Utility</div>
+        <div class="row">
+          <span class="badge badge-active">Active</span>
+          <span class="badge badge-revoked">Revoked</span>
+          <span class="badge badge-accent">New</span>
+          <span class="badge badge-outline">production</span>
+          <span class="badge badge-plain">staging</span>
+        </div>
+      </div>
+
+      <!-- 7. METRICS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Metric Cards</span></div>
+        <div class="g4">
+          <div class="metric"><div class="metric-lbl">Error Events</div><div class="metric-val num">3,412</div><div class="metric-sub"><span class="trend-up">↑</span>&nbsp;+14% vs yesterday</div></div>
+          <div class="metric"><div class="metric-lbl">Open Issues</div><div class="metric-val num" style="color:var(--danger)">47</div><div class="metric-sub"><span class="trend-up">↑</span>&nbsp;3 new this hour</div></div>
+          <div class="metric"><div class="metric-lbl">LCP p75</div><div class="metric-val num" style="color:var(--success)">1.8s</div><div class="metric-sub"><span class="badge badge-good" style="font-size:0.5625rem;padding:1px 6px">Good</span></div></div>
+          <div class="metric"><div class="metric-lbl">Sessions</div><div class="metric-val num">892</div><div class="metric-sub"><span class="trend-dn">↓</span>&nbsp;<span style="color:var(--success-text)">−8%</span></div></div>
+        </div>
+      </div>
+
+      <!-- 8. ALERTS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Alert Banners</span></div>
+        <div class="col">
+          <div class="alert alert-error"><svg class="alert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div class="alert-bd"><div class="alert-title">Login failed</div><div class="alert-msg">Invalid email or password.</div></div></div>
+          <div class="alert alert-warning"><svg class="alert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div class="alert-bd"><div class="alert-title">Key expires in 3 days</div><div class="alert-msg">Rotate before it expires to avoid SDK failures.</div></div></div>
+          <div class="alert alert-success"><svg class="alert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div class="alert-bd"><div class="alert-title">Project created</div><div class="alert-msg">Customer Portal is ready. Add an environment.</div></div></div>
+          <div class="alert alert-info"><svg class="alert-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><div class="alert-bd"><div class="alert-title">Setup incomplete</div><div class="alert-msg">Create the owner account to activate the dashboard.</div></div></div>
+        </div>
+      </div>
+
+      <!-- 9. EMPTY STATES -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Empty States</span></div>
+        <div class="g3">
+          <div class="card"><div class="empty"><svg class="empty-icon" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><div class="empty-title">No issues yet</div><div class="empty-desc">Install the SDK and send your first error event to start seeing grouped issues here.</div><button class="btn btn-secondary btn-sm">View SDK setup</button></div></div>
+          <div class="card"><div class="empty"><svg class="empty-icon" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><div class="empty-title">No projects yet</div><div class="empty-desc">Create your first project to start monitoring a frontend application.</div><button class="btn btn-primary btn-sm"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New project</button></div></div>
+          <div class="card"><div class="empty"><svg class="empty-icon" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><div class="empty-title">No vitals data</div><div class="empty-desc">Web Vital events will appear once the SDK collects LCP, CLS, and INP measurements.</div><button class="btn btn-secondary btn-sm">Learn more</button></div></div>
+        </div>
+      </div>
+
+      <!-- 10. DSN & CODE -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">DSN &amp; Code Display</span></div>
+        <div class="card" style="max-width:500px">
+          <div class="card-hd"><div><div class="card-title">SDK Ingestion Key</div><div class="card-sub">production · Customer Portal</div></div><span class="badge badge-active">Active</span></div>
+          <div class="card-bd col">
+            <div>
+              <div class="lbl" style="margin-bottom:6px">Your DSN</div>
+              <div class="dsn-box">
+                <div class="dsn-val">watch://a1b2c3d4@watch.example.com/ingest/1</div>
+                <button class="btn btn-ghost btn-sm" onclick="copyText(this,'watch://a1b2c3d4@watch.example.com/ingest/1')">Copy</button>
+              </div>
+            </div>
+            <div>
+              <div class="lbl" style="margin-bottom:6px">Quickstart</div>
+              <div class="code-block">import { init } from '@watch/browser';
+
+init({
+  dsn: 'watch://a1b2c3d4@watch.example.com/ingest/1',
+});</div>
+            </div>
+            <div style="display:flex;gap:7px">
+              <button class="btn btn-secondary btn-sm">Rotate key</button>
+              <button class="btn btn-danger-ghost btn-sm">Revoke</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. TABS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Tabs</span></div>
+        <div class="tabs" id="ds-tabs">
+          <button class="tab active" onclick="switchTab(this)">Overview</button>
+          <button class="tab" onclick="switchTab(this)">Issues <span class="badge badge-open" style="margin-left:4px;font-size:0.5625rem;padding:1px 5px">47</span></button>
+          <button class="tab" onclick="switchTab(this)">Web Vitals</button>
+          <button class="tab" onclick="switchTab(this)">Settings</button>
+        </div>
+        <div class="card" style="border-top-left-radius:0;border-top-right-radius:0;border-top:none;box-shadow:none">
+          <div class="card-bd" style="color:var(--text-3);font-size:0.8125rem">Tab panel content renders here.</div>
+        </div>
+      </div>
+
+      <!-- 12. DIALOG -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Dialog</span></div>
+        <div class="dialog">
+          <div class="dialog-hd"><div class="dialog-title">Revoke ingestion key?</div><div class="dialog-desc">SDK events using this key will stop immediately. Mint a new key to resume ingestion.</div></div>
+          <div class="dialog-bd">
+            <div class="alert alert-error" style="margin:0">
+              <svg class="alert-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div class="alert-bd"><div class="alert-title" style="font-size:0.8125rem">Key: <span style="font-family:var(--font-mono)">a1b2c3d4…</span></div><div class="alert-msg">production · Customer Portal</div></div>
+            </div>
+          </div>
+          <div class="dialog-ft"><button class="btn btn-secondary btn-sm">Cancel</button><button class="btn btn-danger btn-sm">Revoke key</button></div>
+        </div>
+      </div>
+
+      <!-- 13. TOASTS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Toasts</span></div>
+        <div class="row" style="margin-bottom:16px">
+          <button class="btn btn-secondary btn-sm" onclick="fireToast('success')">Success</button>
+          <button class="btn btn-secondary btn-sm" onclick="fireToast('error')">Error</button>
+          <button class="btn btn-secondary btn-sm" onclick="fireToast('warning')">Warning</button>
+          <button class="btn btn-secondary btn-sm" onclick="fireToast('info')">Info</button>
+        </div>
+        <div class="col" style="max-width:320px">
+          <div class="toast t-success" style="position:relative;animation:none">
+            <svg class="toast-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="toast-bd"><div class="toast-title">Issue resolved</div><div class="toast-msg">TypeError — marked as resolved.</div></div>
+            <button class="toast-x">&#x2715;</button>
+          </div>
+          <div class="toast t-error" style="position:relative;animation:none">
+            <svg class="toast-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div class="toast-bd"><div class="toast-title">Failed to revoke</div><div class="toast-msg">Server error. Try again.</div></div>
+            <button class="toast-x">&#x2715;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. SKELETON -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Skeleton States</span></div>
+        <div class="g2">
+          <div class="metric">
+            <div class="skel" style="width:80px;height:9px;margin-bottom:9px"></div>
+            <div class="skel" style="width:70px;height:30px;margin-bottom:8px;border-radius:var(--r-sm)"></div>
+            <div class="skel" style="width:110px;height:10px"></div>
+          </div>
+          <div class="card">
+            <div class="card-bd col">
+              <div style="display:flex;gap:10px;align-items:center">
+                <div class="skel" style="width:28px;height:28px;border-radius:50%;flex-shrink:0"></div>
+                <div style="flex:1"><div class="skel" style="width:55%;height:12px;margin-bottom:5px"></div><div class="skel" style="width:35%;height:10px"></div></div>
+              </div>
+              <div class="skel" style="width:100%;height:12px"></div>
+              <div class="skel" style="width:82%;height:12px"></div>
+              <div style="display:flex;gap:7px">
+                <div class="skel" style="width:72px;height:30px;border-radius:var(--r-md)"></div>
+                <div class="skel" style="width:58px;height:30px;border-radius:var(--r-md)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15. FOCUS -->
+      <div class="sec">
+        <div class="sec-hd"><span class="sec-title">Focus States</span></div>
+        <p class="sec-desc">Tab through these. Every interactive element shows a 2px violet ring on <span class="inline-code">:focus-visible</span>. Mouse clicks never show the ring.</p>
+        <div class="row">
+          <button class="btn btn-primary btn-md">Tab to me</button>
+          <button class="btn btn-secondary btn-md">And me</button>
+          <input class="input" type="text" placeholder="Focus this input" style="width:180px">
+          <select class="select" style="width:150px;height:34px"><option>And this select</option></select>
+          <a href="#" class="btn btn-ghost btn-md" style="color:var(--accent-text)">And this link</a>
+        </div>
+      </div>
+
+      </div><!-- /content-inner -->
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+Shell.init('design-system');
+
+document.querySelectorAll('#ds-tabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#ds-tabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

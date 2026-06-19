@@ -19,7 +19,7 @@ postgres://watch:watch@localhost:5432/watch?sslmode=disable
 ## Browser Database UI
 
 Start the optional pgweb profile when you want to inspect tables in the
-browser:
+browser with a lightweight read/query UI:
 
 ```bash
 docker compose -f deploy/docker-compose.yml --profile db-ui up -d

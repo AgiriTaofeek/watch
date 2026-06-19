@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Performance</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .nav-type-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 10px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .nav-type-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .nav-type-btn:hover { background: var(--bg-surface-2); }
+  .nav-type-btn.active {
+    background: var(--bg-surface-2);
+    border-color: var(--border-strong);
+  }
+  .nav-type-val {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-1);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .nav-type-lbl { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
+  .nav-type-left { display: flex; flex-direction: column; align-items: flex-start; }
+
+  /* navigation waterfall chart */
+  .waterfall-wrap {
+    padding: 16px 14px;
+    overflow-x: auto;
+  }
+  .wf-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 60px;
+    gap: 0 10px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .wf-lbl { font-size: 0.75rem; color: var(--text-3); text-align: right; }
+  .wf-track { height: 8px; background: var(--bg-surface-2); border-radius: 4px; position: relative; }
+  .wf-bar {
+    position: absolute;
+    height: 100%;
+    border-radius: 4px;
+    top: 0;
+  }
+  .wf-val { font-size: 0.75rem; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .wf-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 0 14px 14px;
+  }
+  .wf-leg-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    color: var(--text-3);
+  }
+  .wf-leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* distribution bar */
+  .dist-bar {
+    height: 8px;
+    border-radius: 4px;
+    display: flex;
+    overflow: hidden;
+    gap: 2px;
+    margin: 8px 0;
+  }
+  .dist-seg { height: 100%; border-radius: 2px; }
+
+  .health-score-ring {
+    width: 64px;
+    height: 64px;
+    position: relative;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <div class="main">
+    <div class="topbar">
+      <nav class="breadcrumb">
+        <span class="bc-proj">Customer Portal</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-page">Performance</span>
+      </nav>
+      <div class="topbar-right">
+        <select class="select" style="height:30px;font-size:0.8125rem;padding:0 26px 0 9px;width:auto">
+          <option>Last 24h</option><option>Last 7d</option><option>Last 30d</option>
+        </select>
+        <button class="icon-btn icon-btn-sm" title="Refresh" onclick="fireToast('info')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.17"/></svg>
+        </button>
+        <button class="toggle-pill" onclick="toggleMode()">
+          <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg id="ico-sun" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+          <span id="mode-label">Light mode</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+
+        <div class="pg-hd">
+          <h1 class="pg-title">Performance</h1>
+        </div>
+
+        <!-- Nav type breakdown -->
+        <div class="nav-type-strip">
+          <div style="display:flex;flex-direction:column;justify-content:center;margin-right:8px;padding-right:14px;border-right:1px solid var(--border)">
+            <div style="font-size:0.72rem;color:var(--text-3);margin-bottom:4px">Navigation type split</div>
+            <div class="dist-bar" style="width:180px">
+              <div class="dist-seg" style="width:68%;background:var(--accent)"></div>
+              <div class="dist-seg" style="width:32%;background:var(--chart-2)"></div>
+            </div>
+            <div style="display:flex;gap:12px;font-size:0.72rem;color:var(--text-3)">
+              <span><span style="color:var(--accent)">●</span> Hard 68%</span>
+              <span><span style="color:var(--chart-2)">●</span> SPA 32%</span>
+            </div>
+          </div>
+          <button class="nav-type-btn active" onclick="this.parentElement.querySelectorAll('.nav-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <div class="nav-type-left">
+              <div class="nav-type-val">All</div>
+              <div class="nav-type-lbl">9,062 sessions</div>
+            </div>
+          </button>
+          <button class="nav-type-btn" onclick="this.parentElement.querySelectorAll('.nav-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <div class="nav-type-left">
+              <div class="nav-type-val">Hard nav</div>
+              <div class="nav-type-lbl">6,162 sessions</div>
+            </div>
+          </button>
+          <button class="nav-type-btn" onclick="this.parentElement.querySelectorAll('.nav-type-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <div class="nav-type-left">
+              <div class="nav-type-val">SPA nav</div>
+              <div class="nav-type-lbl">2,900 sessions</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Navigation waterfall -->
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-card-hd">
+            <span class="chart-card-title">Navigation timing waterfall</span>
+            <span style="font-size:0.75rem;color:var(--text-3)">p75 · last 24h</span>
+          </div>
+          <div class="waterfall-wrap">
+            <div class="wf-row">
+              <div class="wf-lbl">DNS lookup</div>
+              <div class="wf-track"><div class="wf-bar" style="left:0%;width:5%;background:var(--chart-3)"></div></div>
+              <div class="wf-val">12ms</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">TCP connect</div>
+              <div class="wf-track"><div class="wf-bar" style="left:5%;width:8%;background:var(--chart-3)"></div></div>
+              <div class="wf-val">18ms</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">TLS handshake</div>
+              <div class="wf-track"><div class="wf-bar" style="left:13%;width:7%;background:var(--chart-2)"></div></div>
+              <div class="wf-val">16ms</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">Request / TTFB</div>
+              <div class="wf-track"><div class="wf-bar" style="left:20%;width:22%;background:var(--accent)"></div></div>
+              <div class="wf-val">180ms</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">Response body</div>
+              <div class="wf-track"><div class="wf-bar" style="left:42%;width:10%;background:var(--accent)"></div></div>
+              <div class="wf-val">84ms</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">DOM parse</div>
+              <div class="wf-track"><div class="wf-bar" style="left:52%;width:14%;background:var(--chart-4)"></div></div>
+              <div class="wf-val">118ms</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">FCP</div>
+              <div class="wf-track"><div class="wf-bar" style="left:0%;width:52%;background:none;border-top:2px dashed var(--chart-2);height:0;top:50%"></div></div>
+              <div class="wf-val" style="color:var(--chart-2)">900ms</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">LCP</div>
+              <div class="wf-track"><div class="wf-bar" style="left:0%;width:72%;background:none;border-top:2px dashed var(--success);height:0;top:50%"></div></div>
+              <div class="wf-val" style="color:var(--success)">1.8s</div>
+            </div>
+            <div class="wf-row">
+              <div class="wf-lbl">Load complete</div>
+              <div class="wf-track"><div class="wf-bar" style="left:72%;width:11%;background:var(--bg-surface-2);border:1px solid var(--border)"></div></div>
+              <div class="wf-val">2.3s</div>
+            </div>
+          </div>
+          <div class="wf-legend">
+            <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--chart-3)"></div>Network</div>
+            <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--accent)"></div>Server</div>
+            <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--chart-4)"></div>Parse / render</div>
+          </div>
+        </div>
+
+        <!-- Route timing table -->
+        <div class="tbl-wrap">
+          <div class="tbl-toolbar">
+            <span style="font-size:0.8125rem;font-weight:600;color:var(--text-1)">Route timings</span>
+            <input class="input" type="text" placeholder="Filter routes…" style="width:180px;height:30px;font-size:0.8125rem;margin-left:8px">
+            <div style="margin-left:auto">
+              <select class="select" style="width:auto;height:30px;font-size:0.8125rem;padding:0 26px 0 9px">
+                <option>Sort: LCP p75</option>
+                <option>Sort: Sessions</option>
+                <option>Sort: TTFB p75</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th class="td-r" style="width:80px">Sessions</th>
+                <th class="td-r" style="width:90px">FCP p75</th>
+                <th class="td-r" style="width:90px">LCP p75</th>
+                <th class="td-r" style="width:90px">TTFB p75</th>
+                <th class="td-r" style="width:90px">Load p75</th>
+                <th style="width:90px" class="td-c">Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-mono">/products</td>
+                <td class="td-r td-count">4,210</td>
+                <td class="td-r" style="color:var(--success)">0.9s</td>
+                <td class="td-r" style="color:var(--success)">1.8s</td>
+                <td class="td-r">180ms</td>
+                <td class="td-r">2.3s</td>
+                <td class="td-c"><span class="badge badge-resolved">Good</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">/checkout</td>
+                <td class="td-r td-count">1,840</td>
+                <td class="td-r" style="color:var(--warning)">1.2s</td>
+                <td class="td-r" style="color:var(--warning)">2.4s</td>
+                <td class="td-r">210ms</td>
+                <td class="td-r">3.8s</td>
+                <td class="td-c"><span class="badge badge-warning" style="background:rgba(251,191,36,0.12);color:var(--warning);border-color:rgba(251,191,36,0.25)">Needs work</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">/dashboard</td>
+                <td class="td-r td-count">3,120</td>
+                <td class="td-r" style="color:var(--success)">0.8s</td>
+                <td class="td-r" style="color:var(--success)">1.6s</td>
+                <td class="td-r">145ms</td>
+                <td class="td-r">2.0s</td>
+                <td class="td-c"><span class="badge badge-resolved">Good</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">/feed</td>
+                <td class="td-r td-count">2,890</td>
+                <td class="td-r" style="color:var(--success)">1.0s</td>
+                <td class="td-r" style="color:var(--success)">2.0s</td>
+                <td class="td-r">175ms</td>
+                <td class="td-r">2.6s</td>
+                <td class="td-c"><span class="badge badge-resolved">Good</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">/account</td>
+                <td class="td-r td-count">892</td>
+                <td class="td-r" style="color:var(--success)">0.7s</td>
+                <td class="td-r" style="color:var(--success)">1.4s</td>
+                <td class="td-r">130ms</td>
+                <td class="td-r">1.7s</td>
+                <td class="td-c"><span class="badge badge-resolved">Good</span></td>
+              </tr>
+              <tr>
+                <td class="td-mono">/orders/:id</td>
+                <td class="td-r td-count">510</td>
+                <td class="td-r" style="color:var(--danger)">1.8s</td>
+                <td class="td-r" style="color:var(--danger)">3.2s</td>
+                <td class="td-r" style="color:var(--danger)">420ms</td>
+                <td class="td-r">5.1s</td>
+                <td class="td-c"><span class="badge badge-open">Poor</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tbl-foot">
+            <span class="tbl-foot-txt">6 routes · all pages</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>Shell.init('performance');</script>
+</body>
+</html>
