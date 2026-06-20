@@ -3,7 +3,14 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/dist", "!**/.turbo", "!**/coverage", "!docs"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/.turbo",
+      "!**/coverage",
+      "!docs",
+      "!**/public/mockServiceWorker.js"
+    ]
   },
   "assist": {
     "actions": { "source": { "organizeImports": "on" } }

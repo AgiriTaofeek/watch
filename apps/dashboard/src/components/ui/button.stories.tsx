@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Settings } from "lucide-react"
-import { fn } from "storybook/test"
+import { expect, fn, userEvent, within } from "storybook/test"
 import { Button } from "./button"
 
 const meta = {
@@ -138,4 +138,17 @@ export const AllSizes: Story = {
       </Button>
     </div>
   ),
+}
+
+// --- Interaction test ---
+
+export const ClickInteraction: Story = {
+  name: "Click (interaction test)",
+  args: { children: "Submit" },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const button = canvas.getByRole("button", { name: /submit/i })
+    await userEvent.click(button)
+    await expect(args.onClick).toHaveBeenCalledOnce()
+  },
 }
