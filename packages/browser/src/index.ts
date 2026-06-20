@@ -1,17 +1,17 @@
 export type { EventEnvelope, EventType } from "@watch/contracts"
+export type { AssetLoadPayload } from "./assets"
 export type { BreadcrumbEntry } from "./breadcrumbs"
 export type { InitOptions } from "./client"
 export type { FrontendErrorPayload } from "./errors"
 export type { NavigationPayload } from "./navigation"
 export type { NetworkRequestPayload } from "./network"
-export type { AssetLoadPayload } from "./assets"
 export type { WebVitalPayload } from "./vitals"
 
 import type { BreadcrumbEntry } from "./breadcrumbs"
 import {
-  type InitOptions,
   addBreadcrumbToClient,
   captureError,
+  type InitOptions,
   initClient,
   setRoute,
 } from "./client"
@@ -31,8 +31,6 @@ export function addBreadcrumb(entry: Omit<BreadcrumbEntry, "timestamp">): void {
 }
 
 // Reports a framework-level render error (e.g. from a React error boundary).
-export { captureError }
-
 // Sets the current route pattern so all subsequent events carry the route
 // template (e.g. "/users/:id") rather than the actual URL path.
-export { setRoute }
+export { captureError, setRoute }

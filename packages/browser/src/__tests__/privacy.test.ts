@@ -31,6 +31,7 @@ afterEach(() => {
 
 describe("privacy — frontend_error events", () => {
   it("does not include cookie values in the error payload", () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: intentionally sets a cookie to verify the SDK does not capture it
     document.cookie = "session_token=super-secret-value"
 
     const payload = {

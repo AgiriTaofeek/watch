@@ -76,6 +76,8 @@
 - Route health view
 - Settings screen
 - System health screen
+- i18n infrastructure via Paraglide JS (English only in M6; second locale and
+  locale switcher UI deferred until strings are stable)
 
 ## Milestone 7: Alerts
 
