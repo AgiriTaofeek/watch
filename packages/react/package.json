@@ -24,7 +24,10 @@
       "require": "./dist/router.cjs"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -39,13 +42,13 @@
     "@watch/browser": "workspace:*"
   },
   "devDependencies": {
-    "@testing-library/react": "^15",
-    "@types/react": "^18",
-    "jsdom": "^29",
-    "react": "^18",
-    "react-dom": "^18",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.2.0",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-router": "^7",
-    "tsup": "^8",
-    "vitest": "^2"
+    "tsup": "^8.3.5",
+    "vitest": "^4.1.5"
   }
 }

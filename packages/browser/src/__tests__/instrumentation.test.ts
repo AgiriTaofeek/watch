@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { type AssetLoadPayload, installAssetInstrumentation } from "../assets"
 import type { BreadcrumbEntry } from "../breadcrumbs"
 import {
-  type NavigationPayload,
   installNavigationInstrumentation,
+  type NavigationPayload,
 } from "../navigation"
 import {
-  type NetworkRequestPayload,
   installNetworkInstrumentation,
+  type NetworkRequestPayload,
 } from "../network"
 
 // ---------------------------------------------------------------------------

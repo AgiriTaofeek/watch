@@ -650,14 +650,24 @@ browser local time for readability only if labels make that explicit.
 
 ### Internationalization
 
-Decision needed: Is v1 English-only, and if so, what coding patterns keep future
-i18n possible?
+Decision: Paraglide JS (`@inlang/paraglide-js`) is included in the dashboard
+scaffold from M6 onwards. The Paraglide Vite plugin is wired into `vite.config.ts`
+and message files live under `apps/dashboard/messages/`. This decision was made
+upfront to avoid retrofitting i18n into a codebase that has already hard-coded
+English strings throughout.
 
-Risk if ignored: Text, layout, and formatting assumptions can make later
-translation expensive.
+M6 posture: All user-visible strings in the dashboard must be wrapped in
+Paraglide message functions (`m.key()`) rather than written as raw string
+literals. The initial locale is English (`en`). No second locale is shipped in
+M6, but the infrastructure is in place so adding one later requires only a new
+message file and a route-or-cookie locale strategy — not a refactor.
 
-M6 posture: English-only for v1, but avoid hard-coded width assumptions, string
-concatenation for sentences, and locale-hostile date/number formatting.
+Avoid hard-coded width assumptions, string concatenation for sentences, and
+locale-hostile date/number formatting regardless of locale count.
+
+A `LocaleSwitcher` component is scaffolded but kept out of the production shell
+until a second locale is available. Do not expose it in the real UI until there
+is something to switch to.
 
 ### Privacy and retention visibility
 

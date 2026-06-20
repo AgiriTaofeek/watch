@@ -288,6 +288,19 @@ server tests.
 
 ## 9. Key Design Decisions
 
+### Internationalization is infrastructure-first
+
+Paraglide JS is included in the scaffold from day one. All user-visible strings
+in dashboard components must go through Paraglide message functions (`m.key()`)
+rather than raw string literals. M6 ships English only — no locale switcher is
+exposed in the production shell until a second locale is available. The goal is
+to avoid a costly i18n retrofit later, not to ship translations in M6.
+
+Message files live in `apps/dashboard/messages/`. The Paraglide Vite plugin
+generates type-safe message functions at build time. Refer to the
+[Paraglide JS docs](https://inlang.com/m/gerre34r/library-inlang-paraglideJs)
+for the message syntax and URL-based locale strategy used in the scaffold.
+
 ### Auth state is server-owned
 
 The session cookie is `HttpOnly`, so dashboard JavaScript cannot read it. That
@@ -438,9 +451,10 @@ Each task should be one PR, branched off `main`.
 ### Task 1 - `feat/m6-docs-and-tooling-research`
 
 Keep this document current with the official setup links above. Decide the exact
-commands for TanStack Start, shadcn/ui, Storybook, Vitest, MSW, and Playwright
-from current docs before implementation. This task is complete when the team can
-review the frontend platform choices and the setup order without ambiguity.
+commands for TanStack Start, shadcn/ui, Storybook, Vitest, MSW, Playwright, and
+Paraglide JS from current docs before implementation. This task is complete when
+the team can review the frontend platform choices and the setup order without
+ambiguity.
 
 ### Task 2 - `feat/m6-dashboard-scaffold`
 
@@ -449,6 +463,11 @@ Turborepo, and add build, dev, lint, test, and typecheck scripts. Keep the first
 screen minimal: a route renders, the app builds, and CI commands include the
 dashboard package. Preserve the repo's existing package manager, Node version,
 Biome setup, and Turborepo task shape.
+
+The scaffold includes Paraglide JS for i18n. Wire the Paraglide Vite plugin and
+ensure `apps/dashboard/messages/en.json` is the source of truth for all
+user-visible strings. All strings in real dashboard components must use
+Paraglide message functions — never raw string literals.
 
 ### Task 3 - `feat/m6-shadcn-foundation`
 
@@ -559,6 +578,10 @@ repeatable scripted/manual verification documented in the PR.
   and rollups first.
 - **Separate published design-system package** - start inside `apps/dashboard`.
   Extract later only if multiple apps need the same UI library.
+- **Second locale / locale switcher UI** - Paraglide is scaffolded and all
+  strings must use message functions, but no additional locale ships in M6. The
+  `LocaleSwitcher` component exists in the scaffold but must not be shown in the
+  production shell until a real second locale is ready.
 - **Perfect visual design in the scaffold PR** - polish is real work and gets
   explicit design-system and hardening tasks.
 

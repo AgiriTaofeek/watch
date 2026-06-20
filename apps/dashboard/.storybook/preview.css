@@ -1,0 +1,4 @@
+/* Storybook canvas resets — keeps the preview clean regardless of app-level body styles */
+body {
+  background-color: var(--background);
+}

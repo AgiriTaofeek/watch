@@ -204,7 +204,7 @@
 <div class="toast-stack" id="toast-stack"></div>
 <script src="shell.js"></script>
 <script>
-  (function() {
+  (() => {
     const mode = localStorage.getItem('watch-mode') || 'dark';
     document.documentElement.classList.add(mode);
     Shell.updateToggle(mode);

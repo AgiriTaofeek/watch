@@ -1,5 +1,5 @@
-import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals"
 import type { Metric } from "web-vitals"
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals"
 
 export interface WebVitalPayload {
   name: "LCP" | "CLS" | "INP" | "FCP" | "TTFB"
