@@ -91,7 +91,7 @@ importers:
         version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       nitro:
         specifier: npm:nitro-nightly@latest
-        version: nitro-nightly@3.0.1-20260619-111502-ca57c6e5(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
+        version: nitro-nightly@3.0.1-20260621-112201-f9f328e1(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
       radix-ui:
         specifier: ^1.6.0
         version: 1.6.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -194,9 +194,6 @@ importers:
 
   packages/browser:
     dependencies:
-      '@watch/contracts':
-        specifier: workspace:*
-        version: link:../contracts
       web-vitals:
         specifier: ^5.3.0
         version: 5.3.0
@@ -204,6 +201,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.1.5
         version: 4.1.9(vitest@4.1.9)
+      '@watch/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
@@ -3874,8 +3874,8 @@ packages:
   nf3@0.3.17:
     resolution: {integrity: sha512-N9zEWySuJFw+gR0lhS5863YsvNeudOdqRyFvNb+jMXbeTJOdrjDqkCpDginIZfUm0LzT1t1nCRiDeqQm/8kirQ==}
 
-  nitro-nightly@3.0.1-20260619-111502-ca57c6e5:
-    resolution: {integrity: sha512-btP0u2l8UFQ737NJUngP6qJfCAN/ll58dYakcLURuO/cV8Ib8EYdMxOCM8KAf1fODz7Bgm3f4F2Uhafw8jT02w==}
+  nitro-nightly@3.0.1-20260621-112201-f9f328e1:
+    resolution: {integrity: sha512-663HEHPqRYtDxokk8usX+SLS2+WZyv0FhIq07enAcxD+0lXzsLeHMxokMaB327XbWmDzSt8BK8G9Pj0D6JwxJA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -8317,7 +8317,7 @@ snapshots:
 
   nf3@0.3.17: {}
 
-  nitro-nightly@3.0.1-20260619-111502-ca57c6e5(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)):
+  nitro-nightly@3.0.1-20260621-112201-f9f328e1(chokidar@5.0.0)(jiti@2.7.0)(lru-cache@11.5.1)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.6(srvx@0.11.17)
