@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,8 +66,22 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 	// Use a deliberate vague message to avoid confirming whether an email exists.
 	const invalidCredentials = "invalid email or password"
 
-	user, err := a.store.GetUserByEmail(r.Context(), strings.TrimSpace(strings.ToLower(req.Email)))
+	email := strings.TrimSpace(strings.ToLower(req.Email))
+
+	// Throttle password guessing per account. Keyed by email (not IP) because the
+	// BFF forwards every login from one upstream — see loginRateLimiter. The check
+	// runs before the password hash so locked accounts don't pay the Argon2id cost.
+	if !a.loginLimiter.allowed(email) {
+		w.Header().Set("Retry-After", strconv.Itoa(int(loginLockoutWindow.Seconds())))
+		writeError(w, http.StatusTooManyRequests, "too many login attempts; try again later")
+		return
+	}
+
+	user, err := a.store.GetUserByEmail(r.Context(), email)
 	if errors.Is(err, store.ErrNotFound) {
+		// Count failures for unknown emails too, so lockout behavior can't be used
+		// to tell which emails exist.
+		a.loginLimiter.recordFailure(email)
 		writeError(w, http.StatusUnauthorized, invalidCredentials)
 		return
 	}
@@ -81,9 +96,13 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !ok {
+		a.loginLimiter.recordFailure(email)
 		writeError(w, http.StatusUnauthorized, invalidCredentials)
 		return
 	}
+
+	// Successful login clears the account's failure counter.
+	a.loginLimiter.reset(email)
 
 	sessionID, err := auth.NewToken(32)
 	if err != nil {

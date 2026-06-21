@@ -25,7 +25,7 @@ against).
 | --- | --- | --- |
 | App auth | Argon2id, session + CSRF cookies, vague login errors | MFA/SSO (via proxy), login rate-limiting (proxy/WAF) |
 | Transport | `Secure` cookie flag (`WATCH_COOKIE_SECURE`) | TLS certs, HTTPS termination, HSTS |
-| HTTP headers | — | CSP, frame-ancestors, etc. at the proxy **[gap]** |
+| HTTP headers | X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, HSTS | CSP at the proxy (in-app CSP is a follow-up) |
 | Data | redaction, retention, size caps | encryption at rest, backups, DB access control |
 | Network | BFF keeps the API internal | firewall, segmentation, non-root runtime |
 | Supply chain | signed SDK releases | lockfiles, image scanning, update cadence |
@@ -48,27 +48,30 @@ against).
   (`sslmode=require` or stricter in `DATABASE_URL`); `sslmode=disable` is for
   local dev only.
 
-## 3. HTTP security headers **[gap]**
+## 3. HTTP security headers
 
-Watch does **not** currently set browser security headers. Set them at your
-reverse proxy (or add a small Go middleware later). Recommended baseline for the
-dashboard origin:
+- **[built-in]** The dashboard (Nitro) sets these on every response, via
+  `routeRules` in `apps/dashboard/vite.config.ts` (kept out of `src/start.ts` so
+  Start's auto-CSRF middleware isn't displaced):
+  ```
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains   (honored only over HTTPS)
+  ```
+  `X-Frame-Options: DENY` blocks clickjacking; `nosniff` blocks content-type
+  sniffing; HSTS (in prod) stops protocol downgrade.
 
-```
-Content-Security-Policy: default-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-Referrer-Policy: no-referrer
-Permissions-Policy: camera=(), microphone=(), geolocation=()
-```
-
-Notes:
-- `frame-ancestors 'none'` / `X-Frame-Options: DENY` prevent clickjacking by
-  blocking the dashboard from being framed.
-- A strict CSP is the strongest mitigation against XSS (which is also what makes
-  the `HttpOnly` CSRF cookie matter — see the CSRF explainer in
-  [auth-model.md](auth-model.md)). Tune `script-src`/`style-src` to the assets the
-  dashboard actually loads; test before enforcing.
+- **[gap] Content-Security-Policy** — not set yet. A strict CSP is the strongest
+  XSS mitigation (and what makes the `HttpOnly` CSRF cookie matter — see the CSRF
+  explainer in [auth-model.md](auth-model.md)), but the app emits an inline theme
+  script and inline hydration scripts, so a strict policy needs nonce/hash
+  plumbing through SSR. Until that lands, set a CSP at the reverse proxy, e.g.:
+  ```
+  Content-Security-Policy: default-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'
+  ```
+  (Tighten `script-src` away from `'unsafe-inline'` once nonces are in place.)
 
 ## 4. Authentication & session management
 
@@ -82,9 +85,13 @@ Notes:
 - **[built-in]** Request bodies capped (`MaxBytesReader`, 1 MiB on auth routes).
 - **[built-in]** Sessions expire after 24h; expired sessions are invisible
   (`LookupSession` filters `expires_at > now()`).
-- **[gap] Login brute-force / lockout** — there is no per-account or per-IP rate
-  limit on `/auth/login`. Until added, throttle it at the proxy/WAF (e.g. N
-  attempts/min/IP) and consider fail2ban-style banning on repeated 401s.
+- **[built-in] Per-account login throttling** — `/auth/login` locks an account
+  after 5 failed attempts within a 15-minute window, returning `429` with a
+  `Retry-After` header; a successful login clears the counter. It is keyed by
+  email (the BFF hides the real client IP from Go), and unknown emails are counted
+  too so lockout can't be used to probe which accounts exist. Add **per-IP**
+  throttling at the proxy/WAF for defense in depth. (In-memory; a multi-instance
+  deployment would need a shared store.)
 - **[gap] MFA / SSO** — not in v1. Compensate with an authenticating reverse
   proxy (oauth2-proxy, SSO gateway), VPN, or IP allowlists. The user model is
   built to accept OIDC/trusted-header auth later.
@@ -180,8 +187,8 @@ never grants dashboard access).
 Before exposing Watch to real traffic:
 
 - [ ] HTTPS everywhere; `WATCH_COOKIE_SECURE=true`; HSTS at the proxy.
-- [ ] Security headers (CSP, `frame-ancestors`, `nosniff`, `Referrer-Policy`) at the proxy.
-- [ ] Login rate-limiting at the proxy/WAF (no app-level brute-force protection yet).
+- [ ] CSP at the proxy (X-Frame-Options/nosniff/Referrer-Policy/Permissions-Policy/HSTS are set by the app).
+- [ ] Per-IP login throttling at the proxy/WAF (the app provides per-account lockout).
 - [ ] Postgres: TLS (`sslmode=require`+), least-privilege user, encryption at rest, encrypted backups.
 - [ ] Secrets via env/secrets manager; nothing committed; DB creds rotated.
 - [ ] Go API bound to a private network; only the dashboard + `/ingest` exposed.

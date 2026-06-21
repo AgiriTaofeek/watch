@@ -69,10 +69,10 @@ The ingestion API applies per-key rate limits.
 
 ## Login brute force
 
-The dashboard login endpoint has **no** per-account or per-IP rate limiting or lockout in v1.
+The dashboard login endpoint applies **per-account** rate limiting: an account is locked for 15 minutes after 5 failed attempts (`429` + `Retry-After`).
 
-- **Mitigation provided**: Argon2id's ~100ms cost slows offline and online guessing; login errors are vague to prevent enumeration.
-- **Not protected**: sustained online password guessing. Throttle `/auth/login` at the reverse proxy/WAF and consider fail2ban-style banning. Tracked in [security-hardening.md](security-hardening.md) §4.
+- **Mitigation provided**: per-account lockout plus Argon2id's ~100ms cost; vague errors prevent enumeration, and unknown emails are counted too so lockout can't probe which accounts exist.
+- **Not protected**: distributed guessing spread across many accounts, per-IP abuse (the BFF hides client IPs from Go), and a nuisance lockout-DoS against a known email. Add per-IP throttling at the reverse proxy/WAF. See [security-hardening.md](security-hardening.md) §4.
 
 ## Browser security headers
 
