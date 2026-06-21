@@ -133,7 +133,7 @@ Dashboard auth must remain separate from ingestion auth. A browser ingestion key
 
 These are not yet implemented in v1; operators should compensate at the proxy/network layer (full detail in [security-hardening.md](security-hardening.md)):
 
-- No login rate-limiting / account lockout — throttle `/auth/login` at the proxy/WAF.
+- Per-account login lockout is built in; **per-IP** login throttling is not — add it at the proxy/WAF.
 - No MFA/SSO — front with an authenticating proxy or VPN.
 - Per-route role enforcement not wired — issue dashboard accounts only to trusted operators.
 - No session-ID rotation after login or expired-session sweep.

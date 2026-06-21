@@ -69,6 +69,7 @@ type Options struct {
 type API struct {
 	store        Store
 	cookieSecure CookieSecureMode
+	loginLimiter *loginRateLimiter
 }
 
 // New returns an API backed by the given store.
@@ -80,7 +81,11 @@ func New(st Store, opts ...Options) *API {
 	if cfg.CookieSecure == "" {
 		cfg.CookieSecure = CookieSecureAuto
 	}
-	return &API{store: st, cookieSecure: cfg.CookieSecure}
+	return &API{
+		store:        st,
+		cookieSecure: cfg.CookieSecure,
+		loginLimiter: newLoginRateLimiter(maxFailedLogins, loginLockoutWindow),
+	}
 }
 
 // Handler builds the router for the whole HTTP surface, wrapped in the

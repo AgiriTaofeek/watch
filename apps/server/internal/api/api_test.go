@@ -270,6 +270,35 @@ func TestLogoutClearsBothCookies(t *testing.T) {
 	}
 }
 
+func TestLoginRateLimitReturns429(t *testing.T) {
+	// Empty store → every login is a failed (unknown-email) attempt.
+	handler := New(&fakeStore{}).Handler()
+	body := `{"email":"victim@example.com","password":"guess"}`
+
+	send := func() int {
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(body))
+		handler.ServeHTTP(rec, req)
+		return rec.Code
+	}
+
+	for i := 0; i < maxFailedLogins; i++ {
+		if code := send(); code != http.StatusUnauthorized {
+			t.Fatalf("attempt %d: status = %d, want %d", i+1, code, http.StatusUnauthorized)
+		}
+	}
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(body))
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusTooManyRequests {
+		t.Fatalf("after lockout: status = %d, want %d", rec.Code, http.StatusTooManyRequests)
+	}
+	if rec.Header().Get("Retry-After") == "" {
+		t.Error("expected Retry-After header on a rate-limited login")
+	}
+}
+
 func TestCSRFMiddleware(t *testing.T) {
 	fake := &fakeStore{
 		user:    store.User{ID: "user-1", Email: "a@example.com"},
