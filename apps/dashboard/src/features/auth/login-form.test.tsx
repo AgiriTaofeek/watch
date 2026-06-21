@@ -67,15 +67,24 @@ describe("LoginForm", () => {
 
   test("disables the submit button while submitting", async () => {
     const user = userEvent.setup()
+    // Controlled promise: stays pending until we resolve it, so the submitting
+    // state is deterministic regardless of CI timing (a timer-resolved promise
+    // can settle before the assertion runs).
+    let resolveLogin: () => void = () => {}
     mockLogin.mockReturnValue(
-      new Promise((resolve) =>
-        setTimeout(() => resolve({ ok: true, data: MOCK_USER }), 50),
-      ),
+      new Promise((resolve) => {
+        resolveLogin = () => resolve({ ok: true, data: MOCK_USER })
+      }),
     )
     render(<LoginForm onSuccess={vi.fn()} />)
     await user.type(screen.getByLabelText(/email/i), "a@b.com")
     await user.type(screen.getByLabelText(/password/i), "pass")
     await user.click(screen.getByRole("button", { name: /sign in/i }))
-    expect(screen.getByRole("button", { name: /signing in/i })).toBeDisabled()
+    expect(
+      await screen.findByRole("button", { name: /signing in/i }),
+    ).toBeDisabled()
+    // Resolve so the pending submit finishes and the component settles.
+    resolveLogin()
+    await screen.findByRole("button", { name: /sign in/i })
   })
 })
