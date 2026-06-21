@@ -94,7 +94,7 @@ func New(st Store, opts ...Options) *API {
 // logged 500 captured by the logger.
 //
 // Route groups:
-//   - Public:              GET /health, POST /ingest/{key}, POST /auth/setup, POST /auth/login
+//   - Public:              GET /health, POST/OPTIONS /ingest/{key}, POST /auth/setup, POST /auth/login
 //   - Session-only:        POST /auth/logout, GET /me
 //   - Session + CSRF:      /api/* subtree (all dashboard CRUD)
 func (a *API) Handler() http.Handler {
@@ -103,6 +103,7 @@ func (a *API) Handler() http.Handler {
 	// Public routes — no authentication required.
 	mux.HandleFunc("GET /health", a.handleHealth)
 	mux.HandleFunc("POST /ingest/{key}", a.handleIngest)
+	mux.HandleFunc("OPTIONS /ingest/{key}", a.handleIngestPreflight)
 	mux.HandleFunc("POST /auth/setup", a.handleAuthSetup)
 	mux.HandleFunc("POST /auth/login", a.handleLogin)
 

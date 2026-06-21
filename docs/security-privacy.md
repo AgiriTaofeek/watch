@@ -105,7 +105,8 @@ Keys must support:
 - Rotation
 - Revocation
 - Rate limiting
-- Origin allowlists for browser events
+- Origin allowlists for browser events, enforced via CORS (preflight + headers)
+  so browsers can post cross-origin only from allowed origins
 
 Dashboard user auth must never be used for SDK ingestion.
 
