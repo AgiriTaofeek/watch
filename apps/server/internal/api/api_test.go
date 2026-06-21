@@ -196,6 +196,80 @@ func TestLoginCookieSecureModes(t *testing.T) {
 	}
 }
 
+func TestLoginSetsReadableCSRFCookie(t *testing.T) {
+	hash, err := auth.HashPassword("password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fake := &fakeStore{user: store.User{ID: "user-1", Email: "a@example.com", PasswordHash: hash}}
+	req := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(`{"email":"a@example.com","password":"password"}`))
+	rec := httptest.NewRecorder()
+
+	New(fake).Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	cookies := map[string]*http.Cookie{}
+	for _, c := range rec.Result().Cookies() {
+		cookies[c.Name] = c
+	}
+
+	sess, ok := cookies[sessionCookieName]
+	if !ok {
+		t.Fatal("expected session cookie")
+	}
+	if !sess.HttpOnly {
+		t.Error("session cookie must be HttpOnly")
+	}
+
+	csrf, ok := cookies[csrfCookieName]
+	if !ok {
+		t.Fatal("expected watch_csrf cookie")
+	}
+	if !csrf.HttpOnly {
+		t.Error("watch_csrf cookie must be HttpOnly (read server-side by the BFF)")
+	}
+	// The cookie must carry the same token persisted in the session row so the
+	// forwarded X-CSRF-Token header validates against it.
+	if csrf.Value != fake.session.CSRFToken {
+		t.Errorf("watch_csrf value = %q, want session token %q", csrf.Value, fake.session.CSRFToken)
+	}
+
+	// The token is delivered via cookie, not the response body.
+	if strings.Contains(rec.Body.String(), "csrf_token") {
+		t.Errorf("login body should not contain csrf_token: %s", rec.Body.String())
+	}
+}
+
+func TestLogoutClearsBothCookies(t *testing.T) {
+	fake := &fakeStore{
+		user:    store.User{ID: "user-1", Email: "a@example.com"},
+		session: store.Session{ID: "session-1", UserID: "user-1", CSRFToken: "csrf-1", ExpiresAt: time.Now().Add(time.Hour)},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
+	req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: "session-1"})
+	rec := httptest.NewRecorder()
+
+	New(fake).Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNoContent)
+	}
+	for _, name := range []string{sessionCookieName, csrfCookieName} {
+		var cleared bool
+		for _, c := range rec.Result().Cookies() {
+			if c.Name == name && c.MaxAge < 0 {
+				cleared = true
+			}
+		}
+		if !cleared {
+			t.Errorf("expected %s cookie to be cleared (MaxAge < 0)", name)
+		}
+	}
+}
+
 func TestCSRFMiddleware(t *testing.T) {
 	fake := &fakeStore{
 		user:    store.User{ID: "user-1", Email: "a@example.com"},

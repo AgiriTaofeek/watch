@@ -1,39 +1,54 @@
-import { request } from "./client"
+import { createServerFn } from "@tanstack/react-start"
+import { serverRequest } from "./server/request"
 import type { Environment, IngestionKey, ProjectDetail } from "./types"
 
-export async function listProjects(): Promise<ProjectDetail[]> {
-  const data = await request<{ projects: ProjectDetail[] }>(
-    "GET",
-    "/api/projects",
+// TODO(result-pattern): the mutations below (createProject, createEnvironment,
+// mintKey, revokeKey) still throw ApiError. An ApiError thrown from a server
+// function loses its class and `status` when serialized across the RPC boundary,
+// so the client only sees a generic error. Harmless today (no UI callers), but
+// before wiring a screen that must branch on status (e.g. createProject's 409 or
+// revokeKey's 404), convert these to return a Result via attempt() — see
+// [result.ts](./result.ts) and how auth.ts login/setup do it. The read
+// (listProjects) can keep throwing: TanStack Query only needs an error to enter
+// its error state, and the message survives.
+
+export const listProjects = createServerFn({ method: "GET" }).handler(
+  async (): Promise<ProjectDetail[]> => {
+    const data = await serverRequest<{ projects: ProjectDetail[] }>(
+      "GET",
+      "/api/projects",
+    )
+    return data.projects
+  },
+)
+
+export const createProject = createServerFn({ method: "POST" })
+  .validator((data: { name: string; allowed_origins: string[] }) => data)
+  .handler(({ data }) =>
+    serverRequest<ProjectDetail>("POST", "/api/projects", data),
   )
-  return data.projects
-}
 
-export async function createProject(input: {
-  name: string
-  allowed_origins: string[]
-}): Promise<ProjectDetail> {
-  return request<ProjectDetail>("POST", "/api/projects", input)
-}
-
-export async function createEnvironment(
-  projectId: string,
-  name: string,
-): Promise<Environment> {
-  return request<Environment>(
-    "POST",
-    `/api/projects/${projectId}/environments`,
-    { name },
+export const createEnvironment = createServerFn({ method: "POST" })
+  .validator((data: { projectId: string; name: string }) => data)
+  .handler(({ data }) =>
+    serverRequest<Environment>(
+      "POST",
+      `/api/projects/${data.projectId}/environments`,
+      { name: data.name },
+    ),
   )
-}
 
-export async function mintKey(environmentId: string): Promise<IngestionKey> {
-  return request<IngestionKey>(
-    "POST",
-    `/api/environments/${environmentId}/keys`,
+export const mintKey = createServerFn({ method: "POST" })
+  .validator((data: { environmentId: string }) => data)
+  .handler(({ data }) =>
+    serverRequest<IngestionKey>(
+      "POST",
+      `/api/environments/${data.environmentId}/keys`,
+    ),
   )
-}
 
-export async function revokeKey(keyId: string): Promise<void> {
-  return request<void>("DELETE", `/api/keys/${keyId}`)
-}
+export const revokeKey = createServerFn({ method: "POST" })
+  .validator((data: { keyId: string }) => data)
+  .handler(({ data }) =>
+    serverRequest<void>("DELETE", `/api/keys/${data.keyId}`),
+  )

@@ -1,6 +1,6 @@
 export type { Credentials } from "./auth"
 export { fetchMe, login, logout, setup } from "./auth"
-export { ApiError, clearCsrfToken, setCsrfToken } from "./client"
+export { ApiError } from "./error"
 export type { ListIssuesParams, ListIssuesResult } from "./issues"
 export { getIssue, listIssues, updateIssueStatus } from "./issues"
 export {
