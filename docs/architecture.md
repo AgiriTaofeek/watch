@@ -9,8 +9,18 @@ Browser SDK ── Ingestion API ── Postgres raw events
                       │
                       ├── Worker: rollups, grouping, retention
                       ├── Worker: alerts
-                      └── Dashboard API ── TanStack Start dashboard
+                      └── Dashboard API ◄── TanStack Start dashboard ◄── Dashboard browser
+                         (internal)         (BFF: SSR + server functions)   (only origin)
 ```
+
+The dashboard browser talks only to the TanStack Start (Nitro) server, which
+renders the first load on the server and runs as a client SPA thereafter. Start
+is a backend-for-frontend: it forwards authenticated calls (cookie + CSRF) to the
+internal Dashboard API and relays responses. The Dashboard API is not exposed to
+the browser directly, so it needs no CORS. See [auth-model.md](auth-model.md) for
+the cookie/CSRF flow, [request-lifecycle.md](request-lifecycle.md) for the full
+end-to-end walkthrough of a page load, and
+[cross-origin-deployment.md](cross-origin-deployment.md) for split-host setups.
 
 ## Browser SDK Design
 

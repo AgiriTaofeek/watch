@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "go build -o bin/watch ./cmd/watch",
-    "dev": "air",
+    "dev": "DATABASE_URL=postgres://watch:watch@localhost:5432/watch?sslmode=disable WATCH_COOKIE_SECURE=false air",
     "test": "go test ./...",
     "typecheck": "go vet ./...",
     "lint": "golangci-lint run ./..."

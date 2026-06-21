@@ -1,6 +1,6 @@
 # Threat Model
 
-[security-privacy.md](security-privacy.md) describes the controls Watch ships with. This document is the counterpart: an honest list of what Watch does **not** protect against, so operators can plan compensating controls.
+[security-privacy.md](security-privacy.md) describes the controls Watch ships with, and [security-hardening.md](security-hardening.md) is the operator checklist for closing the gaps below. This document is the counterpart: an honest list of what Watch does **not** protect against, so operators can plan compensating controls.
 
 Watch v1 is a self-hosted system. The deploying organization is responsible for the network, database, and OS-level posture of the host. Watch does not replace those layers.
 
@@ -66,6 +66,34 @@ The ingestion API applies per-key rate limits.
 
 - **Mitigation provided**: protection from accidental flooding by a buggy SDK or runaway client.
 - **Not protected**: distributed abuse at scale. Front Watch with a WAF or CDN-level rate limiter if exposed to the public internet.
+
+## Login brute force
+
+The dashboard login endpoint has **no** per-account or per-IP rate limiting or lockout in v1.
+
+- **Mitigation provided**: Argon2id's ~100ms cost slows offline and online guessing; login errors are vague to prevent enumeration.
+- **Not protected**: sustained online password guessing. Throttle `/auth/login` at the reverse proxy/WAF and consider fail2ban-style banning. Tracked in [security-hardening.md](security-hardening.md) §4.
+
+## Browser security headers
+
+Watch does not emit `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`, etc.
+
+- **Mitigation provided**: `HttpOnly` cookies (including the CSRF token) limit what XSS can steal; the BFF keeps the API off the public internet.
+- **Not protected**: clickjacking, content sniffing, and the full XSS blast radius without a CSP. Set headers at the reverse proxy — see [security-hardening.md](security-hardening.md) §3.
+
+## Role enforcement
+
+Roles (`owner`, `admin`, `member`, `viewer`) are stored, but per-route role enforcement is not yet wired.
+
+- **Mitigation provided**: every `/api/*` route requires a valid session.
+- **Not protected**: separation of duties between dashboard accounts — any authenticated user can perform any dashboard mutation. Issue accounts only to trusted operators until RBAC is enforced. See [security-hardening.md](security-hardening.md) §5.
+
+## Session lifecycle
+
+Sessions last 24h and expired ones are filtered out at lookup, but the session ID is not rotated after login and expired rows are not swept.
+
+- **Mitigation provided**: `HttpOnly`+`Secure`+`SameSite=Lax` cookies and a bounded 24h TTL.
+- **Not protected**: session-fixation hardening via post-login rotation, and unbounded growth of expired session rows. Low risk; tracked in [security-hardening.md](security-hardening.md) §4.
 
 ## Out of scope for the threat model
 

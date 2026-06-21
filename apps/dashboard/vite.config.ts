@@ -7,6 +7,9 @@ import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react"
 import { nitro } from "nitro/vite"
 import { defineConfig } from "vite"
 
+// The browser only ever talks to this Start (Nitro) server. Dashboard data
+// flows through server functions that reach the Go API server-side via
+// INTERNAL_API_URL, so no browser→Go dev proxy is needed.
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [

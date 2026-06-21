@@ -10,7 +10,11 @@ import (
 
 const (
 	sessionCookieName = "watch_session"
-	csrfHeaderName    = "X-CSRF-Token"
+	// csrfCookieName holds the session's CSRF token. It is HttpOnly: the dashboard
+	// BFF server reads it server-side and echoes it back in csrfHeaderName when
+	// proxying browser requests here. The session row stays the source of truth.
+	csrfCookieName = "watch_csrf"
+	csrfHeaderName = "X-CSRF-Token"
 )
 
 // SessionFromContext retrieves the session stored by sessionRequired.
@@ -61,7 +65,9 @@ func (a *API) sessionRequired(next http.Handler) http.Handler {
 
 // csrfProtected is middleware that enforces the X-CSRF-Token header on all
 // non-safe HTTP methods. Must be chained after sessionRequired so the session
-// (and its csrf_token) is already in context.
+// (and its csrf_token) is already in context. The header is compared against
+// the token stored in the session row — the watch_csrf cookie is only the
+// transport the client uses to recover the value across page refreshes.
 func (a *API) csrfProtected(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

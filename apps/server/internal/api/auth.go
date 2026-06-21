@@ -102,6 +102,10 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Both cookies are HttpOnly. The dashboard's TanStack Start (BFF) server reads
+	// watch_csrf server-side and echoes it in the X-CSRF-Token header when calling
+	// this API, so the browser never needs to read it. The session row remains the
+	// CSRF source of truth (see csrfProtected).
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    sessionID,
@@ -111,11 +115,17 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 	})
-
-	writeJSON(w, http.StatusOK, map[string]any{
-		"user":       user,
-		"csrf_token": csrfToken,
+	http.SetCookie(w, &http.Cookie{
+		Name:     csrfCookieName,
+		Value:    csrfToken,
+		Expires:  expiresAt,
+		HttpOnly: true,
+		Secure:   a.secureCookie(r),
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
 	})
+
+	writeJSON(w, http.StatusOK, map[string]any{"user": user})
 }
 
 // handleLogout deletes the session and clears the cookie.
@@ -127,6 +137,16 @@ func (a *API) handleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   a.secureCookie(r),
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		MaxAge:   -1,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     csrfCookieName,
 		Value:    "",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,

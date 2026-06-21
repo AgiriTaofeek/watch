@@ -17,6 +17,31 @@ To build this application for production:
 pnpm build
 ```
 
+## Architecture: how the dashboard reaches the Go API (BFF)
+
+The browser only ever talks to **this** server (TanStack Start / Nitro). It is a
+backend-for-frontend: every call to the Go Dashboard API goes through a TanStack
+*server function* that forwards the session cookie and CSRF token to Go and
+relays the response (including `Set-Cookie`) back to the browser. The Go API is
+an internal service the browser never reaches directly, so it needs no CORS.
+
+- Transport lives in [`src/lib/api/server/request.ts`](src/lib/api/server/request.ts);
+  each operation in `src/lib/api/*.ts` is a `createServerFn` wrapper over it.
+- Auth resolves in the root route via `meQueryOptions` — server-side during SSR,
+  RPC on client navigation.
+- `INTERNAL_API_URL` (default `http://localhost:8080`) is the **server-only**
+  address of the Go API. It must not be `VITE_`-prefixed (never sent to the
+  client bundle).
+
+**Deployment note:** because the dashboard renders on the server, production runs
+this Node/Nitro server as the browser-facing front door alongside the internal Go
+binary and Postgres. See [`docs/auth-model.md`](../../docs/auth-model.md) for the
+full topology and cookie/CSRF flow. Packaging both into `docker compose` is
+tracked as follow-up work.
+
+**Local dev:** run the Go server on `:8080` and `pnpm dev` (`:3000`). The browser
+hits only `:3000`; server functions reach Go server-side. No dev proxy needed.
+
 ## Testing
 
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:

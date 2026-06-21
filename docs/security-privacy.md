@@ -1,6 +1,12 @@
 # Security And Privacy
 
-This document describes the controls Watch ships with. See [threat-model.md](threat-model.md) for an honest list of what Watch does *not* protect against.
+This document describes the data-collection and redaction controls Watch ships
+with. For deploying Watch securely (TLS, security headers, auth/session
+hardening, network, secrets, DB), see the operator-focused
+[security-hardening.md](security-hardening.md). For an honest list of what Watch
+does *not* protect against, see [threat-model.md](threat-model.md). For the
+dashboard auth and CSRF design (including a CSRF explainer), see
+[auth-model.md](auth-model.md).
 
 ## Privacy Defaults
 
@@ -122,6 +128,25 @@ Future dashboard auth modes, not implemented in v1:
 - Trusted header auth for deployments behind an authenticated reverse proxy
 
 Dashboard auth must remain separate from ingestion auth. A browser ingestion key must never grant dashboard access.
+
+### Known auth gaps to compensate for
+
+These are not yet implemented in v1; operators should compensate at the proxy/network layer (full detail in [security-hardening.md](security-hardening.md)):
+
+- No login rate-limiting / account lockout — throttle `/auth/login` at the proxy/WAF.
+- No MFA/SSO — front with an authenticating proxy or VPN.
+- Per-route role enforcement not wired — issue dashboard accounts only to trusted operators.
+- No session-ID rotation after login or expired-session sweep.
+
+## Application And Transport Security
+
+Beyond data handling, the deployment must be hardened. Watch provides secure auth
+cookies (`HttpOnly`, `Secure` via `WATCH_COOKIE_SECURE`, `SameSite=Lax`), CSRF
+protection on mutations, request size caps, and a backend-for-frontend that keeps
+the API off the public internet. The operator is responsible for HTTPS/HSTS,
+browser security headers (CSP, `frame-ancestors`, `nosniff`, `Referrer-Policy`),
+Postgres TLS + encryption at rest, secrets management, and network segmentation.
+The full checklist lives in [security-hardening.md](security-hardening.md).
 
 ## Monitored App User Identity
 

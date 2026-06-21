@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router"
-import ParaglideLocaleSwitcher from "./LocaleSwitcher.tsx"
-import ThemeToggle from "./ThemeToggle"
+import ParaglideLocaleSwitcher from "./locale-switcher.tsx"
+import ThemeToggle from "./theme-toggle"
 
 export default function Header() {
   return (
@@ -35,7 +35,7 @@ export default function Header() {
             href="https://tanstack.com/start/latest/docs/framework/react/overview"
             className="nav-link"
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer noopener"
           >
             Docs
           </a>
@@ -94,7 +94,7 @@ export default function Header() {
           <a
             href="https://x.com/tan_stack"
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer noopener"
             className="hidden rounded-xl p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)] sm:block"
           >
             <span className="sr-only">Follow TanStack on X</span>
@@ -108,7 +108,7 @@ export default function Header() {
           <a
             href="https://github.com/TanStack"
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer noopener"
             className="hidden rounded-xl p-2 text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)] sm:block"
           >
             <span className="sr-only">Go to TanStack GitHub</span>
