@@ -425,4 +425,81 @@ func TestIngestOriginAllowlist(t *testing.T) {
 	})
 }
 
+func TestIngestCORS(t *testing.T) {
+	const allowed = "https://app.example.com"
+	keyWithAllowlist := func() *fakeStore {
+		return &fakeStore{key: store.KeyLookup{
+			KeyID: "key-1", EnvironmentID: "env-1", ProjectID: "project-1",
+			AllowedOrigins: []string{allowed},
+		}}
+	}
+	validBody := `{"environment":"production","service":"frontend","timestamp":"2026-06-17T12:00:00Z","type":"frontend_error","context":{},"payload":{}}`
+
+	t.Run("preflight from allowed origin gets CORS headers", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodOptions, "/ingest/pk_test", nil)
+		req.Header.Set("Origin", allowed)
+		rec := httptest.NewRecorder()
+
+		New(keyWithAllowlist()).Handler().ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusNoContent)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != allowed {
+			t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, allowed)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Methods"); got == "" {
+			t.Error("expected Access-Control-Allow-Methods on preflight")
+		}
+		if got := rec.Header().Get("Vary"); got != "Origin" {
+			t.Errorf("Vary = %q, want Origin", got)
+		}
+	})
+
+	t.Run("preflight from disallowed origin gets no CORS headers", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodOptions, "/ingest/pk_test", nil)
+		req.Header.Set("Origin", "https://evil.example.com")
+		rec := httptest.NewRecorder()
+
+		New(keyWithAllowlist()).Handler().ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusNoContent)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+			t.Errorf("Access-Control-Allow-Origin = %q, want empty", got)
+		}
+	})
+
+	t.Run("accepted POST from allowed origin carries CORS header", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/ingest/pk_test", strings.NewReader(validBody))
+		req.Header.Set("Origin", allowed)
+		rec := httptest.NewRecorder()
+
+		New(keyWithAllowlist()).Handler().ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusNoContent {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusNoContent)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != allowed {
+			t.Errorf("Access-Control-Allow-Origin = %q, want %q", got, allowed)
+		}
+	})
+
+	t.Run("blocked POST has no CORS header", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/ingest/pk_test", strings.NewReader(validBody))
+		req.Header.Set("Origin", "https://evil.example.com")
+		rec := httptest.NewRecorder()
+
+		New(keyWithAllowlist()).Handler().ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusForbidden {
+			t.Fatalf("status = %d, want %d", rec.Code, http.StatusForbidden)
+		}
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+			t.Errorf("Access-Control-Allow-Origin = %q, want empty", got)
+		}
+	})
+}
+
 var _ Store = (*fakeStore)(nil)

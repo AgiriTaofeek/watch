@@ -58,7 +58,12 @@ func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if origin := r.Header.Get("Origin"); origin != "" && !originAllowed(origin, key.AllowedOrigins) {
+	// Browser SDKs post cross-origin, so the response needs CORS headers for the
+	// browser to accept it. Set them when the Origin is allowed; a disallowed
+	// origin gets no headers and is rejected below.
+	origin := r.Header.Get("Origin")
+	writeIngestCORS(w, origin, key.AllowedOrigins)
+	if origin != "" && !originAllowed(origin, key.AllowedOrigins) {
 		a.dropAndRespond(ctx, w, &key.EnvironmentID, "blocked_origin", http.StatusForbidden, "origin is not allowed")
 		return
 	}
@@ -140,6 +145,35 @@ func (a *API) dropAndRespond(ctx context.Context, w http.ResponseWriter, environ
 		)
 	}
 	writeError(w, status, msg)
+}
+
+// handleIngestPreflight answers the browser's CORS preflight (OPTIONS) for the
+// ingest endpoint. It grants CORS only when the request Origin is permitted by
+// the key's allowlist; unknown keys, revoked keys, and disallowed origins get no
+// CORS headers, so the browser blocks the real request. It deliberately does not
+// leak key validity — every "not allowed" case looks the same to the browser.
+func (a *API) handleIngestPreflight(w http.ResponseWriter, r *http.Request) {
+	key, err := a.store.LookupIngestionKey(r.Context(), r.PathValue("key"))
+	if err == nil && key.RevokedAt == nil {
+		writeIngestCORS(w, r.Header.Get("Origin"), key.AllowedOrigins)
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// writeIngestCORS sets CORS response headers when the request carries an Origin
+// the key's allowlist permits. Ingestion is key-based with no credentials, so
+// the specific origin is echoed (not "*") and Vary: Origin is set so caches and
+// proxies don't serve one origin's response to another.
+func writeIngestCORS(w http.ResponseWriter, origin string, allowed []string) {
+	if origin == "" || !originAllowed(origin, allowed) {
+		return
+	}
+	h := w.Header()
+	h.Set("Access-Control-Allow-Origin", origin)
+	h.Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	h.Set("Access-Control-Allow-Headers", "Content-Type")
+	h.Set("Access-Control-Max-Age", "600")
+	h.Add("Vary", "Origin")
 }
 
 func originAllowed(origin string, allowed []string) bool {
