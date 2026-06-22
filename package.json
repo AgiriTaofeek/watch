@@ -25,7 +25,8 @@
     "db:admin": "docker compose -f deploy/docker-compose.yml --profile db-admin up -d",
     "db:down": "docker compose -f deploy/docker-compose.yml --profile db-ui --profile db-admin down",
     "server:dev": "pnpm --filter @watch/server dev",
-    "dashboard:dev": "pnpm --filter @watch/dashboard dev"
+    "dashboard:dev": "pnpm --filter @watch/dashboard dev",
+    "mint:dsn": "node scripts/mint-dsn.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",

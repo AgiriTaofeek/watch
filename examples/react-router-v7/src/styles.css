@@ -1,0 +1,31 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 2rem;
+  line-height: 1.5;
+}
+
+nav {
+  margin: 0.5rem 0 1rem;
+}
+
+.group {
+  margin-bottom: 0.75rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* A dynamically inserted tall block produces a layout shift (CLS). */
+.shift-block {
+  height: 180px;
+  background: #fee;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+}

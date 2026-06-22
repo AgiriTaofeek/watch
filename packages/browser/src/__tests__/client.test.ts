@@ -1,8 +1,10 @@
+import type { EventEnvelope } from "@watch/contracts"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { _resetClient, initClient } from "../client"
+import { _resetClient, captureEvent, initClient, setUser } from "../client"
 
 const transportState = vi.hoisted(() => ({
   endpoints: [] as string[],
+  events: [] as EventEnvelope[],
 }))
 
 vi.mock("../transport", () => ({
@@ -10,7 +12,9 @@ vi.mock("../transport", () => ({
     constructor(endpoint: string) {
       transportState.endpoints.push(endpoint)
     }
-    enqueue() {}
+    enqueue(event: EventEnvelope) {
+      transportState.events.push(event)
+    }
     async flush() {}
   },
 }))
@@ -18,6 +22,7 @@ vi.mock("../transport", () => ({
 afterEach(() => {
   _resetClient()
   transportState.endpoints.length = 0
+  transportState.events.length = 0
   vi.clearAllMocks()
 })
 
@@ -57,5 +62,33 @@ describe("client DSN parsing", () => {
     expect(() => initClient({ dsn: "not a url", environment: "test" })).toThrow(
       /invalid DSN/,
     )
+  })
+})
+
+describe("setUser", () => {
+  const dsn = "https://watch.company.com/ingest/pk_abc123"
+
+  it("attaches the pseudonymous hash to subsequent events", () => {
+    initClient({ dsn, environment: "test" })
+    setUser({ idHash: "hash-123" })
+    captureEvent("navigation", { to: "/" })
+
+    expect(transportState.events.at(-1)?.context.user_id_hash).toBe("hash-123")
+  })
+
+  it("omits user_id_hash when no user is set", () => {
+    initClient({ dsn, environment: "test" })
+    captureEvent("navigation", { to: "/" })
+
+    expect(transportState.events.at(-1)?.context.user_id_hash).toBeUndefined()
+  })
+
+  it("clears the user when passed null", () => {
+    initClient({ dsn, environment: "test" })
+    setUser({ idHash: "hash-123" })
+    setUser(null)
+    captureEvent("navigation", { to: "/" })
+
+    expect(transportState.events.at(-1)?.context.user_id_hash).toBeUndefined()
   })
 })
