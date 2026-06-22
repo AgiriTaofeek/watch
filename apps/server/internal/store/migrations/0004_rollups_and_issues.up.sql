@@ -55,7 +55,7 @@ CREATE TABLE error_rollups (
   error_count     bigint      NOT NULL DEFAULT 0,
   session_count   bigint      NOT NULL DEFAULT 0,
   -- NULLS NOT DISTINCT so (project, env, '', NULL, period) conflicts correctly.
-  UNIQUE (project_id, environment_id, route, release, period_start) NULLS NOT DISTINCT
+  UNIQUE NULLS NOT DISTINCT (project_id, environment_id, route, release, period_start)
 );
 
 CREATE INDEX idx_error_rollups_lookup ON error_rollups (project_id, environment_id, period_start DESC);
@@ -73,7 +73,7 @@ CREATE TABLE vital_rollups (
   sample_count    bigint      NOT NULL DEFAULT 0,
   sum_value       float       NOT NULL DEFAULT 0,
   samples         float[]     NOT NULL DEFAULT '{}',
-  UNIQUE (project_id, environment_id, route, release, period_start, metric_name) NULLS NOT DISTINCT
+  UNIQUE NULLS NOT DISTINCT (project_id, environment_id, route, release, period_start, metric_name)
 );
 
 CREATE INDEX idx_vital_rollups_lookup ON vital_rollups (project_id, environment_id, period_start DESC);

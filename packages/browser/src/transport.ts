@@ -17,7 +17,9 @@ export class Transport {
   // Snapshot of the global fetch taken at construction time so that the
   // network instrumentation wrapper (which patches window.fetch later) does
   // not intercept the SDK's own ingest calls and create feedback loops.
-  private readonly _fetch: typeof fetch = fetch
+  // Bound to globalThis: a bare `fetch` reference called as `this._fetch(...)`
+  // throws "Illegal invocation" in real browsers (fetch requires this === window).
+  private readonly _fetch: typeof fetch = fetch.bind(globalThis)
 
   constructor(endpoint: string) {
     this.endpoint = endpoint

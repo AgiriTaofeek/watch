@@ -19,5 +19,17 @@
   "linter": { "enabled": true, "rules": { "preset": "recommended" } },
   "javascript": {
     "formatter": { "quoteStyle": "double", "semicolons": "asNeeded" }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUndeclaredEnvVars": "off"
+          }
+        }
+      }
+    }
+  ]
 }

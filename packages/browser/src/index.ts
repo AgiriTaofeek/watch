@@ -14,6 +14,7 @@ import {
   type InitOptions,
   initClient,
   setRoute,
+  setUser,
 } from "./client"
 
 // Initialises the Watch SDK. Call once, as early as possible on the page.
@@ -30,7 +31,7 @@ export function addBreadcrumb(entry: Omit<BreadcrumbEntry, "timestamp">): void {
   addBreadcrumbToClient(entry)
 }
 
-// Reports a framework-level render error (e.g. from a React error boundary).
-// Sets the current route pattern so all subsequent events carry the route
-// template (e.g. "/users/:id") rather than the actual URL path.
-export { captureError, setRoute }
+// captureError: reports a framework-level render error (e.g. from a React error
+// boundary). setRoute: sets the current route template (e.g. "/users/:id").
+// setUser: associates events with a pseudonymous user hash (PII-free).
+export { captureError, setRoute, setUser }

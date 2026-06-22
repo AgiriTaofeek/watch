@@ -39,6 +39,7 @@ interface WatchClient {
 
 let _client: WatchClient | null = null
 let _routePattern: string | undefined
+let _userIdHash: string | undefined
 
 function parseDSN(dsn: string): ParsedDSN {
   let url: URL
@@ -79,6 +80,13 @@ function currentRoute(): string {
 // group events by route template (e.g. "/users/:id") rather than actual URL.
 export function setRoute(pattern: string): void {
   _routePattern = pattern
+}
+
+// Associates subsequent events with a pseudonymous user. Only an opaque hash is
+// accepted — never a raw id, email, or name — so impact can be measured without
+// storing PII (see docs/security-privacy.md). Pass null to clear (e.g. on logout).
+export function setUser(user: { idHash: string } | null): void {
+  _userIdHash = user?.idHash
 }
 
 // Reports a framework-level render error (e.g. from a React error boundary).
@@ -181,6 +189,7 @@ export function captureEvent(type: EventType, payload: unknown): void {
     context: {
       route: currentRoute(),
       session_id: client.sessionID,
+      ...(_userIdHash ? { user_id_hash: _userIdHash } : {}),
     },
     payload,
   }
@@ -207,4 +216,5 @@ export function _resetClient(): void {
   }
   _client = null
   _routePattern = undefined
+  _userIdHash = undefined
 }
