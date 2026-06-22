@@ -78,11 +78,14 @@ res = await fetch(`${API}/api/projects`, {
 if (!res.ok) fail("create project failed", res, await res.text())
 const project = await res.json()
 const key = project?.environments?.[0]?.keys?.[0]?.public_key
-if (!key) fail("no ingestion key in project response", null, JSON.stringify(project))
+if (!key)
+  fail("no ingestion key in project response", null, JSON.stringify(project))
 
 const dsn = `${API}/ingest/${key}`
 console.log(`\n✓ Project "${project.name}" (${project.id})`)
 console.log(`  Allowed origins: ${origins.join(", ")}`)
 console.log(`\nDSN:\n  ${dsn}`)
-console.log(`\nUse it in the example app (examples/react-router-v7/.env.local):`)
+console.log(
+  `\nUse it in the example app (examples/react-router-v7/.env.local):`,
+)
 console.log(`  VITE_WATCH_DSN=${dsn}\n`)
