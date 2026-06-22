@@ -45,14 +45,9 @@ export const NAV: NavGroup[] = [
       { segment: "overview", label: "Overview", icon: LayoutGrid },
       { segment: "issues", label: "Issues", icon: AlertCircle },
       { segment: "vitals", label: "Web Vitals", icon: Activity },
-      { segment: "performance", label: "Performance", icon: Clock, soon: true },
-      { segment: "network", label: "Network", icon: Globe, soon: true },
-      {
-        segment: "route-health",
-        label: "Route Health",
-        icon: GitBranch,
-        soon: true,
-      },
+      { segment: "performance", label: "Performance", icon: Clock },
+      { segment: "network", label: "Network", icon: Globe },
+      { segment: "route-health", label: "Route Health", icon: GitBranch },
     ],
   },
   {

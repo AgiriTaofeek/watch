@@ -1,13 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { ScreenPlaceholder } from "#/features/shell/screen-placeholder"
+import { NetworkScreen } from "#/features/network/network-screen"
 
 export const Route = createFileRoute("/_protected/projects/$projectId/network")(
   {
-    component: () => (
-      <ScreenPlaceholder
-        title="Network"
-        description="Failed network requests arrive in a later milestone."
-      />
-    ),
+    component: NetworkScreen,
   },
 )

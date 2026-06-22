@@ -1,13 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { ScreenPlaceholder } from "#/features/shell/screen-placeholder"
+import { SystemHealthScreen } from "#/features/system-health/system-health-screen"
 
 export const Route = createFileRoute(
   "/_protected/projects/$projectId/system-health",
 )({
-  component: () => (
-    <ScreenPlaceholder
-      title="System Health"
-      description="Ingestion, worker and database health arrives in a later milestone."
-    />
-  ),
+  component: SystemHealthScreen,
 })
