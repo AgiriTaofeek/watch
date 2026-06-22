@@ -25,7 +25,8 @@ import { Route as ProtectedProjectsProjectIdRouteHealthRouteImport } from './rou
 import { Route as ProtectedProjectsProjectIdPerformanceRouteImport } from './routes/_protected/projects/$projectId/performance'
 import { Route as ProtectedProjectsProjectIdOverviewRouteImport } from './routes/_protected/projects/$projectId/overview'
 import { Route as ProtectedProjectsProjectIdNetworkRouteImport } from './routes/_protected/projects/$projectId/network'
-import { Route as ProtectedProjectsProjectIdIssuesRouteImport } from './routes/_protected/projects/$projectId/issues'
+import { Route as ProtectedProjectsProjectIdIssuesIndexRouteImport } from './routes/_protected/projects/$projectId/issues/index'
+import { Route as ProtectedProjectsProjectIdIssuesIssueIdRouteImport } from './routes/_protected/projects/$projectId/issues/$issueId'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -114,10 +115,16 @@ const ProtectedProjectsProjectIdNetworkRoute =
     path: '/network',
     getParentRoute: () => ProtectedProjectsProjectIdRoute,
   } as any)
-const ProtectedProjectsProjectIdIssuesRoute =
-  ProtectedProjectsProjectIdIssuesRouteImport.update({
-    id: '/issues',
-    path: '/issues',
+const ProtectedProjectsProjectIdIssuesIndexRoute =
+  ProtectedProjectsProjectIdIssuesIndexRouteImport.update({
+    id: '/issues/',
+    path: '/issues/',
+    getParentRoute: () => ProtectedProjectsProjectIdRoute,
+  } as any)
+const ProtectedProjectsProjectIdIssuesIssueIdRoute =
+  ProtectedProjectsProjectIdIssuesIssueIdRouteImport.update({
+    id: '/issues/$issueId',
+    path: '/issues/$issueId',
     getParentRoute: () => ProtectedProjectsProjectIdRoute,
   } as any)
 
@@ -128,7 +135,6 @@ export interface FileRoutesByFullPath {
   '/setup': typeof AuthSetupRoute
   '/demo/i18n': typeof DemoI18nRoute
   '/projects/$projectId': typeof ProtectedProjectsProjectIdRouteWithChildren
-  '/projects/$projectId/issues': typeof ProtectedProjectsProjectIdIssuesRoute
   '/projects/$projectId/network': typeof ProtectedProjectsProjectIdNetworkRoute
   '/projects/$projectId/overview': typeof ProtectedProjectsProjectIdOverviewRoute
   '/projects/$projectId/performance': typeof ProtectedProjectsProjectIdPerformanceRoute
@@ -137,6 +143,8 @@ export interface FileRoutesByFullPath {
   '/projects/$projectId/system-health': typeof ProtectedProjectsProjectIdSystemHealthRoute
   '/projects/$projectId/vitals': typeof ProtectedProjectsProjectIdVitalsRoute
   '/projects/$projectId/': typeof ProtectedProjectsProjectIdIndexRoute
+  '/projects/$projectId/issues/$issueId': typeof ProtectedProjectsProjectIdIssuesIssueIdRoute
+  '/projects/$projectId/issues/': typeof ProtectedProjectsProjectIdIssuesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof ProtectedIndexRoute
@@ -144,7 +152,6 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/setup': typeof AuthSetupRoute
   '/demo/i18n': typeof DemoI18nRoute
-  '/projects/$projectId/issues': typeof ProtectedProjectsProjectIdIssuesRoute
   '/projects/$projectId/network': typeof ProtectedProjectsProjectIdNetworkRoute
   '/projects/$projectId/overview': typeof ProtectedProjectsProjectIdOverviewRoute
   '/projects/$projectId/performance': typeof ProtectedProjectsProjectIdPerformanceRoute
@@ -153,6 +160,8 @@ export interface FileRoutesByTo {
   '/projects/$projectId/system-health': typeof ProtectedProjectsProjectIdSystemHealthRoute
   '/projects/$projectId/vitals': typeof ProtectedProjectsProjectIdVitalsRoute
   '/projects/$projectId': typeof ProtectedProjectsProjectIdIndexRoute
+  '/projects/$projectId/issues/$issueId': typeof ProtectedProjectsProjectIdIssuesIssueIdRoute
+  '/projects/$projectId/issues': typeof ProtectedProjectsProjectIdIssuesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -164,7 +173,6 @@ export interface FileRoutesById {
   '/demo/i18n': typeof DemoI18nRoute
   '/_protected/': typeof ProtectedIndexRoute
   '/_protected/projects/$projectId': typeof ProtectedProjectsProjectIdRouteWithChildren
-  '/_protected/projects/$projectId/issues': typeof ProtectedProjectsProjectIdIssuesRoute
   '/_protected/projects/$projectId/network': typeof ProtectedProjectsProjectIdNetworkRoute
   '/_protected/projects/$projectId/overview': typeof ProtectedProjectsProjectIdOverviewRoute
   '/_protected/projects/$projectId/performance': typeof ProtectedProjectsProjectIdPerformanceRoute
@@ -173,6 +181,8 @@ export interface FileRoutesById {
   '/_protected/projects/$projectId/system-health': typeof ProtectedProjectsProjectIdSystemHealthRoute
   '/_protected/projects/$projectId/vitals': typeof ProtectedProjectsProjectIdVitalsRoute
   '/_protected/projects/$projectId/': typeof ProtectedProjectsProjectIdIndexRoute
+  '/_protected/projects/$projectId/issues/$issueId': typeof ProtectedProjectsProjectIdIssuesIssueIdRoute
+  '/_protected/projects/$projectId/issues/': typeof ProtectedProjectsProjectIdIssuesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -183,7 +193,6 @@ export interface FileRouteTypes {
     | '/setup'
     | '/demo/i18n'
     | '/projects/$projectId'
-    | '/projects/$projectId/issues'
     | '/projects/$projectId/network'
     | '/projects/$projectId/overview'
     | '/projects/$projectId/performance'
@@ -192,6 +201,8 @@ export interface FileRouteTypes {
     | '/projects/$projectId/system-health'
     | '/projects/$projectId/vitals'
     | '/projects/$projectId/'
+    | '/projects/$projectId/issues/$issueId'
+    | '/projects/$projectId/issues/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,7 +210,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/setup'
     | '/demo/i18n'
-    | '/projects/$projectId/issues'
     | '/projects/$projectId/network'
     | '/projects/$projectId/overview'
     | '/projects/$projectId/performance'
@@ -208,6 +218,8 @@ export interface FileRouteTypes {
     | '/projects/$projectId/system-health'
     | '/projects/$projectId/vitals'
     | '/projects/$projectId'
+    | '/projects/$projectId/issues/$issueId'
+    | '/projects/$projectId/issues'
   id:
     | '__root__'
     | '/_auth'
@@ -218,7 +230,6 @@ export interface FileRouteTypes {
     | '/demo/i18n'
     | '/_protected/'
     | '/_protected/projects/$projectId'
-    | '/_protected/projects/$projectId/issues'
     | '/_protected/projects/$projectId/network'
     | '/_protected/projects/$projectId/overview'
     | '/_protected/projects/$projectId/performance'
@@ -227,6 +238,8 @@ export interface FileRouteTypes {
     | '/_protected/projects/$projectId/system-health'
     | '/_protected/projects/$projectId/vitals'
     | '/_protected/projects/$projectId/'
+    | '/_protected/projects/$projectId/issues/$issueId'
+    | '/_protected/projects/$projectId/issues/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -350,11 +363,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedProjectsProjectIdNetworkRouteImport
       parentRoute: typeof ProtectedProjectsProjectIdRoute
     }
-    '/_protected/projects/$projectId/issues': {
-      id: '/_protected/projects/$projectId/issues'
+    '/_protected/projects/$projectId/issues/': {
+      id: '/_protected/projects/$projectId/issues/'
       path: '/issues'
-      fullPath: '/projects/$projectId/issues'
-      preLoaderRoute: typeof ProtectedProjectsProjectIdIssuesRouteImport
+      fullPath: '/projects/$projectId/issues/'
+      preLoaderRoute: typeof ProtectedProjectsProjectIdIssuesIndexRouteImport
+      parentRoute: typeof ProtectedProjectsProjectIdRoute
+    }
+    '/_protected/projects/$projectId/issues/$issueId': {
+      id: '/_protected/projects/$projectId/issues/$issueId'
+      path: '/issues/$issueId'
+      fullPath: '/projects/$projectId/issues/$issueId'
+      preLoaderRoute: typeof ProtectedProjectsProjectIdIssuesIssueIdRouteImport
       parentRoute: typeof ProtectedProjectsProjectIdRoute
     }
   }
@@ -373,7 +393,6 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface ProtectedProjectsProjectIdRouteChildren {
-  ProtectedProjectsProjectIdIssuesRoute: typeof ProtectedProjectsProjectIdIssuesRoute
   ProtectedProjectsProjectIdNetworkRoute: typeof ProtectedProjectsProjectIdNetworkRoute
   ProtectedProjectsProjectIdOverviewRoute: typeof ProtectedProjectsProjectIdOverviewRoute
   ProtectedProjectsProjectIdPerformanceRoute: typeof ProtectedProjectsProjectIdPerformanceRoute
@@ -382,12 +401,12 @@ interface ProtectedProjectsProjectIdRouteChildren {
   ProtectedProjectsProjectIdSystemHealthRoute: typeof ProtectedProjectsProjectIdSystemHealthRoute
   ProtectedProjectsProjectIdVitalsRoute: typeof ProtectedProjectsProjectIdVitalsRoute
   ProtectedProjectsProjectIdIndexRoute: typeof ProtectedProjectsProjectIdIndexRoute
+  ProtectedProjectsProjectIdIssuesIssueIdRoute: typeof ProtectedProjectsProjectIdIssuesIssueIdRoute
+  ProtectedProjectsProjectIdIssuesIndexRoute: typeof ProtectedProjectsProjectIdIssuesIndexRoute
 }
 
 const ProtectedProjectsProjectIdRouteChildren: ProtectedProjectsProjectIdRouteChildren =
   {
-    ProtectedProjectsProjectIdIssuesRoute:
-      ProtectedProjectsProjectIdIssuesRoute,
     ProtectedProjectsProjectIdNetworkRoute:
       ProtectedProjectsProjectIdNetworkRoute,
     ProtectedProjectsProjectIdOverviewRoute:
@@ -403,6 +422,10 @@ const ProtectedProjectsProjectIdRouteChildren: ProtectedProjectsProjectIdRouteCh
     ProtectedProjectsProjectIdVitalsRoute:
       ProtectedProjectsProjectIdVitalsRoute,
     ProtectedProjectsProjectIdIndexRoute: ProtectedProjectsProjectIdIndexRoute,
+    ProtectedProjectsProjectIdIssuesIssueIdRoute:
+      ProtectedProjectsProjectIdIssuesIssueIdRoute,
+    ProtectedProjectsProjectIdIssuesIndexRoute:
+      ProtectedProjectsProjectIdIssuesIndexRoute,
   }
 
 const ProtectedProjectsProjectIdRouteWithChildren =

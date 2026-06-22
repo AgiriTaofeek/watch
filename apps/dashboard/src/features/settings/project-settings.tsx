@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Check, Copy } from "lucide-react"
+import { Check, Copy, Key, Settings, User } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "#/components/ui/badge"
 import { Button } from "#/components/ui/button"
@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "#/components/ui/card"
 import { Input } from "#/components/ui/input"
+import { LogoutButton } from "#/features/auth/logout-button"
 import {
   createEnvironment,
   type EnvironmentDetail,
@@ -21,8 +22,14 @@ import {
 import { projectsQueryOptions } from "#/lib/api/queries"
 import { dsnFor } from "#/lib/ingest"
 
-// Invalidate the shared projects cache after any mutation so the shell switchers
-// and this screen reflect the change.
+type Panel = "general" | "keys" | "account"
+
+const NAV_ITEMS: { id: Panel; label: string; icon: typeof Key }[] = [
+  { id: "general", label: "General", icon: Settings },
+  { id: "keys", label: "Environments & Keys", icon: Key },
+  { id: "account", label: "Account", icon: User },
+]
+
 function useInvalidateProjects() {
   const queryClient = useQueryClient()
   return () =>
@@ -30,21 +37,83 @@ function useInvalidateProjects() {
 }
 
 export function ProjectSettings({ projectId }: { projectId: string }) {
+  const [panel, setPanel] = useState<Panel>("keys")
   const { data: projects = [] } = useQuery(projectsQueryOptions())
   const project = projects.find((p) => p.id === projectId)
 
   if (!project) return null
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-4">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground">{project.name}</p>
       </div>
 
+      <div className="flex gap-6 items-start">
+        {/* Sidebar nav */}
+        <nav className="w-44 shrink-0 overflow-hidden rounded-lg border bg-card">
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setPanel(id)}
+              className={`flex w-full items-center gap-2 border-b px-3.5 py-2.5 text-left text-sm font-medium transition-colors last:border-b-0 ${
+                panel === id
+                  ? "bg-primary/8 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              <Icon className="size-3.5 shrink-0 opacity-70" />
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Panel content */}
+        <div className="min-w-0 flex-1">
+          {panel === "general" && <GeneralPanel project={project} />}
+          {panel === "keys" && (
+            <KeysPanel projectId={projectId} project={project} />
+          )}
+          {panel === "account" && <AccountPanel />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function GeneralPanel({
+  project,
+}: {
+  project: { name: string; slug: string; allowed_origins: string[] }
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-base font-semibold">Project Settings</p>
+          <p className="text-xs text-muted-foreground">
+            General configuration for this project
+          </p>
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Allowed origins</CardTitle>
+          <CardTitle className="text-sm">Project name</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">{project.name}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Contact your instance admin to rename this project.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Allowed origins</CardTitle>
           <CardDescription>
             Browser events are only accepted from these origins.
           </CardDescription>
@@ -61,12 +130,58 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
           )}
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function KeysPanel({
+  projectId,
+  project,
+}: {
+  projectId: string
+  project: { environments: EnvironmentDetail[] }
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-base font-semibold">Environments &amp; Keys</p>
+          <p className="text-xs text-muted-foreground">
+            Ingestion keys authenticate SDK events from your environments
+          </p>
+        </div>
+      </div>
 
       {project.environments.map((env) => (
         <EnvironmentCard key={env.id} env={env} />
       ))}
 
       <CreateEnvironmentCard projectId={projectId} />
+    </div>
+  )
+}
+
+function AccountPanel() {
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-base font-semibold">Account</p>
+        <p className="text-xs text-muted-foreground">
+          Manage your session and account settings
+        </p>
+      </div>
+
+      <Card>
+        <CardContent className="flex items-center justify-between pt-6">
+          <div>
+            <p className="text-sm font-medium">Sign out</p>
+            <p className="text-xs text-muted-foreground">
+              You will be redirected to the login page
+            </p>
+          </div>
+          <LogoutButton />
+        </CardContent>
+      </Card>
     </div>
   )
 }

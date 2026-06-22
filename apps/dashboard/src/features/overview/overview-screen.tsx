@@ -1,8 +1,10 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query"
+import { Link } from "@tanstack/react-router"
 import { lazy, Suspense, useEffect, useMemo, useState } from "react"
 import { Button } from "#/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card"
 import { EmptyState } from "#/components/ui/empty-state"
+import { IssueStatusBadge } from "#/components/ui/issue-status-badge"
+import { MetricCard } from "#/components/ui/metric-card"
 import {
   Select,
   SelectContent,
@@ -12,13 +14,25 @@ import {
 } from "#/components/ui/select"
 import { Skeleton } from "#/components/ui/skeleton"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "#/components/ui/table"
+import {
+  type VitalsHealth,
+  VitalsHealthBadge,
+} from "#/components/ui/vitals-health-badge"
+import {
   type ErrorBucket,
   getErrorRollups,
   getVitalRollups,
+  listIssues,
   type VitalBucket,
 } from "#/lib/api"
 
-// Recharts is lazy-loaded so it stays out of the auth bundles (§9).
 const TimeSeriesChart = lazy(
   () => import("#/features/charts/time-series-chart"),
 )
@@ -29,6 +43,24 @@ const RANGES = {
 } as const
 type RangeKey = keyof typeof RANGES
 
+function lcpHealth(p75Ms: number): VitalsHealth {
+  if (p75Ms < 2500) return "good"
+  if (p75Ms < 4000) return "needs-improvement"
+  return "poor"
+}
+
+function formatWhen(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const minutes = Math.floor(diff / 60000)
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hr ago`
+  return new Date(iso).toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  })
+}
+
 export function OverviewScreen({
   projectId,
   environmentId,
@@ -37,7 +69,6 @@ export function OverviewScreen({
   environmentId: string
 }) {
   const [range, setRange] = useState<RangeKey>("24h")
-  // Render charts only after mount: Recharts needs the DOM and must not run during SSR.
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
@@ -62,6 +93,15 @@ export function OverviewScreen({
     enabled: !!environmentId,
   })
 
+  const openIssues = useQuery({
+    queryKey: ["issues", projectId, environmentId, "open", 0],
+    queryFn: () =>
+      listIssues({
+        data: { projectId, environmentId, status: "open", limit: 5, offset: 0 },
+      }),
+    enabled: !!environmentId,
+  })
+
   const formatX = (iso: string) => {
     const d = new Date(iso)
     return range === "24h"
@@ -71,8 +111,25 @@ export function OverviewScreen({
 
   const latestVital = vitals.data?.buckets.at(-1)
 
+  // Derived metrics from rollup data
+  const totalErrors = errors.data?.reduce((s, b) => s + b.error_count, 0) ?? 0
+  const totalSessions =
+    errors.data?.reduce((s, b) => s + b.session_count, 0) ?? 0
+  const peakErrors = errors.data
+    ? Math.max(0, ...errors.data.map((b) => b.error_count))
+    : 0
+  const avgErrors =
+    errors.data && errors.data.length > 0
+      ? Math.round(totalErrors / errors.data.length)
+      : 0
+
+  const errorBucketsLoading = errors.isPending
+  const vitalsLoading = vitals.isPending
+  const issuesLoading = openIssues.isPending
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
         <Select value={range} onValueChange={(v) => setRange(v as RangeKey)}>
@@ -89,12 +146,64 @@ export function OverviewScreen({
         </Select>
       </div>
 
+      {/* Metric cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <MetricCard
+          label="Error Events"
+          value={errorBucketsLoading ? "" : totalErrors.toLocaleString()}
+          loading={errorBucketsLoading}
+        />
+        <MetricCard
+          label="Open Issues"
+          value={
+            issuesLoading ? "" : (openIssues.data?.total ?? 0).toLocaleString()
+          }
+          loading={issuesLoading}
+        />
+        <MetricCard
+          label="LCP p75"
+          value={
+            vitalsLoading || !latestVital
+              ? ""
+              : latestVital.p75 >= 1000
+                ? `${(latestVital.p75 / 1000).toFixed(1)}s`
+                : `${Math.round(latestVital.p75)}ms`
+          }
+          loading={vitalsLoading}
+          description={
+            latestVital
+              ? lcpHealth(latestVital.p75).replace("-", " ")
+              : undefined
+          }
+        />
+        <MetricCard
+          label="Affected Sessions"
+          value={errorBucketsLoading ? "" : totalSessions.toLocaleString()}
+          loading={errorBucketsLoading}
+        />
+      </div>
+
+      {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Errors</CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Error rollup chart */}
+        <div className="overflow-hidden rounded-lg border bg-card">
+          <div className="flex items-start justify-between border-b px-4 py-3">
+            <div>
+              <p className="text-sm font-medium">Error Rollup</p>
+              <p className="text-xs text-muted-foreground">
+                {RANGES[range].label} · hourly
+              </p>
+            </div>
+            <Link
+              to="/projects/$projectId/issues"
+              params={{ projectId }}
+              search={(prev) => prev}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              View issues →
+            </Link>
+          </div>
+          <div className="p-4">
             <ChartState
               mounted={mounted}
               query={errors}
@@ -119,21 +228,30 @@ export function OverviewScreen({
                 </Suspense>
               )}
             </ChartState>
-          </CardContent>
-        </Card>
+          </div>
+          {/* Chart summary stats */}
+          {!errorBucketsLoading && totalErrors > 0 && (
+            <div className="flex divide-x border-t">
+              <ChartStat label="Peak/hr" value={peakErrors.toLocaleString()} />
+              <ChartStat label="Total" value={totalErrors.toLocaleString()} />
+              <ChartStat label="Avg/hr" value={avgErrors.toLocaleString()} />
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="text-base">LCP (p75)</CardTitle>
-            {latestVital && (
-              <div className="flex gap-4 text-xs text-muted-foreground">
-                <span>p75 {Math.round(latestVital.p75)} ms</span>
-                <span>mean {Math.round(latestVital.mean)} ms</span>
-                <span>{latestVital.sample_count} samples</span>
-              </div>
-            )}
-          </CardHeader>
-          <CardContent>
+        {/* LCP vitals chart */}
+        <div className="overflow-hidden rounded-lg border bg-card">
+          <div className="flex items-start justify-between border-b px-4 py-3">
+            <div>
+              <p className="text-sm font-medium">
+                LCP — Largest Contentful Paint
+              </p>
+              <p className="text-xs text-muted-foreground">
+                p75 · {RANGES[range].label}
+              </p>
+            </div>
+          </div>
+          <div className="p-4">
             <ChartState
               mounted={mounted}
               query={vitals}
@@ -154,8 +272,122 @@ export function OverviewScreen({
                 </Suspense>
               )}
             </ChartState>
-          </CardContent>
-        </Card>
+          </div>
+          {/* Chart summary stats */}
+          {!vitalsLoading && latestVital && (
+            <div className="flex divide-x border-t">
+              <ChartStat
+                label="p75"
+                value={
+                  latestVital.p75 >= 1000
+                    ? `${(latestVital.p75 / 1000).toFixed(1)}s`
+                    : `${Math.round(latestVital.p75)}ms`
+                }
+              />
+              <ChartStat
+                label="Mean"
+                value={
+                  latestVital.mean >= 1000
+                    ? `${(latestVital.mean / 1000).toFixed(1)}s`
+                    : `${Math.round(latestVital.mean)}ms`
+                }
+              />
+              <div className="flex flex-col items-center justify-center px-4 py-3">
+                <VitalsHealthBadge health={lcpHealth(latestVital.p75)} />
+                <span className="mt-1 text-xs text-muted-foreground">
+                  Health
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recent issues table */}
+      <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Recent Issues</p>
+            <p className="text-xs text-muted-foreground">
+              Most recently active open issues
+            </p>
+          </div>
+          <Link
+            to="/projects/$projectId/issues"
+            params={{ projectId }}
+            search={(prev) => prev}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            {openIssues.data && openIssues.data.total > 0
+              ? `View all ${openIssues.data.total} →`
+              : "View issues →"}
+          </Link>
+        </div>
+
+        {issuesLoading ? (
+          <div className="p-4">
+            <Skeleton className="h-40 w-full" />
+          </div>
+        ) : openIssues.isError ? (
+          <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
+            Couldn't load recent issues.
+          </div>
+        ) : openIssues.data && openIssues.data.issues.length === 0 ? (
+          <div className="flex h-32 items-center justify-center">
+            <EmptyState
+              title="No open issues"
+              description="No grouped errors in this environment."
+            />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs font-medium uppercase tracking-wide">
+                  Status
+                </TableHead>
+                <TableHead className="text-xs font-medium uppercase tracking-wide">
+                  Title
+                </TableHead>
+                <TableHead className="w-20 text-right text-xs font-medium uppercase tracking-wide">
+                  Count
+                </TableHead>
+                <TableHead className="w-32 text-xs font-medium uppercase tracking-wide">
+                  Last seen
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {openIssues.data?.issues.map((issue) => (
+                <TableRow key={issue.id}>
+                  <TableCell className="w-24">
+                    <IssueStatusBadge status={issue.status} />
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      to="/projects/$projectId/issues/$issueId"
+                      params={{ projectId, issueId: issue.id }}
+                      className="text-sm font-medium hover:underline"
+                    >
+                      {issue.title}
+                    </Link>
+                    {issue.culprit && (
+                      <div className="mt-0.5 font-mono text-xs text-muted-foreground">
+                        {issue.culprit}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-sm">
+                    {issue.event_count.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatWhen(issue.last_seen_at)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   )
@@ -165,8 +397,15 @@ function ChartSkeleton() {
   return <Skeleton className="h-60 w-full" />
 }
 
-// Renders the right state for a chart query: skeleton while loading/pre-mount,
-// an error state with retry, an empty state for zero buckets, else the chart.
+function ChartStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-3">
+      <span className="text-sm font-semibold tabular-nums">{value}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </div>
+  )
+}
+
 function ChartState<T>({
   mounted,
   query,
@@ -184,7 +423,7 @@ function ChartState<T>({
   if (query.isError) {
     return (
       <div className="flex h-60 flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
-        <p>Couldn’t load this chart.</p>
+        <p>Couldn't load this chart.</p>
         <Button size="sm" variant="outline" onClick={() => query.refetch()}>
           Retry
         </Button>

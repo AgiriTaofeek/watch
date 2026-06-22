@@ -1,17 +1,19 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { VitalsScreen } from "#/features/vitals/vitals-screen"
+import { IssuesList } from "#/features/issues/issues-list"
 import { projectsQueryOptions } from "#/lib/api/queries"
 
-export const Route = createFileRoute("/_protected/projects/$projectId/vitals")({
-  component: VitalsRoute,
-})
+export const Route = createFileRoute("/_protected/projects/$projectId/issues/")(
+  {
+    component: IssuesRoute,
+  },
+)
 
-function VitalsRoute() {
+function IssuesRoute() {
   const { projectId } = Route.useParams()
   const { environment_id } = Route.useSearch()
   const { data: projects = [] } = useQuery(projectsQueryOptions())
   const project = projects.find((p) => p.id === projectId)
   const environmentId = environment_id ?? project?.environments[0]?.id ?? ""
-  return <VitalsScreen projectId={projectId} environmentId={environmentId} />
+  return <IssuesList projectId={projectId} environmentId={environmentId} />
 }
