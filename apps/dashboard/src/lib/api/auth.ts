@@ -14,8 +14,13 @@ export const fetchMe = createServerFn({ method: "GET" }).handler(
     try {
       return await serverRequest<User>("GET", "/me")
     } catch (err) {
-      if (err instanceof ApiError && err.isUnauthorized) return null
-      throw err
+      if (err instanceof ApiError) {
+        if (err.isUnauthorized) return null // not logged in
+        throw err // a real API error (e.g. 5xx) — surface it
+      }
+      // Network failure (backend unreachable) or timeout: degrade to logged-out
+      // so route guards show /login instead of crashing SSR with an uncaught error.
+      return null
     }
   },
 )
