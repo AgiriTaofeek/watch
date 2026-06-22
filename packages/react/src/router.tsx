@@ -1,33 +1,18 @@
 import { setRoute } from "@watch/browser"
 import { useEffect } from "react"
 import { useLocation, useMatches } from "react-router"
+import { buildRoutePattern } from "./route-pattern"
 
-// Reconstructs a route template from the deepest matched pathname + params.
-// Replaces actual param values with their named placeholders so the route
-// stored in Watch is "/users/:id" rather than "/users/123".
-function buildRoutePattern(
-  pathname: string,
-  params: Record<string, string | undefined>,
-): string {
-  let pattern = pathname
-  for (const [key, value] of Object.entries(params)) {
-    // Skip wildcard splat — it spans multiple segments and can't be templated
-    // reliably without knowing the original route definition.
-    if (value && key !== "*") {
-      pattern = pattern.replace(`/${value}`, `/:${key}`)
-    }
-  }
-  return pattern
-}
-
-// Place this component anywhere inside a React Router v7 <RouterProvider> (or
-// root layout) to keep Watch's route context in sync with navigations. It
+// Place this component anywhere inside a React Router v6.4+/v7 <RouterProvider>
+// (or root layout) to keep Watch's route context in sync with navigations. It
 // renders nothing — it only calls setRoute() when the active route changes so
 // all subsequent Watch events carry the route template rather than the raw URL.
 //
 // Requires Data mode or Framework mode (RouterProvider). useMatches() is not
-// available in Declarative mode (<BrowserRouter>); those apps rely on M3
-// navigation instrumentation which captures pathname changes automatically.
+// available in Declarative mode (<BrowserRouter>); those apps rely on the core
+// navigation instrumentation (pathname-level) and can use useWatchRoute() to set
+// a template manually. For React Router v4/v5 use WatchRouterContextV5 from
+// "@watch/react/router-v5".
 //
 // Usage (in your root layout or _app equivalent):
 //   import { WatchRouterContext } from "@watch/react/router"
