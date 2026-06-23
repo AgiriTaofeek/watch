@@ -2,12 +2,12 @@ import { createServerFn } from "@tanstack/react-start"
 import { serverRequest } from "./server/request"
 import type { Issue, IssueStatus } from "./types"
 
-// TODO(result-pattern): updateIssueStatus is a mutation that still throws
-// ApiError, which loses its class and `status` across the RPC boundary. Before a
-// screen branches on its status, convert it to return a Result via attempt() —
-// see [result.ts](./result.ts). The reads (listIssues, getIssue) can keep
-// throwing: TanStack Query only needs an error to surface, and the message
-// survives serialization.
+// updateIssueStatus throws ApiError intentionally: useMutation surfaces errors
+// via mutation.isError and mutation.error, so a thrown error is the right
+// contract. If a caller ever needs to branch on HTTP status codes, convert to
+// Result via attempt() — see result.ts and how auth.ts handles login/setup.
+// The reads (listIssues, getIssue) also throw; TanStack Query only needs an
+// error value to enter its error state.
 
 export type ListIssuesParams = {
   projectId: string
