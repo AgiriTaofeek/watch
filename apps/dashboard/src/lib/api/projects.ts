@@ -2,15 +2,14 @@ import { createServerFn } from "@tanstack/react-start"
 import { serverRequest } from "./server/request"
 import type { Environment, IngestionKey, ProjectDetail } from "./types"
 
-// TODO(result-pattern): the mutations below (createProject, createEnvironment,
-// mintKey, revokeKey) still throw ApiError. An ApiError thrown from a server
-// function loses its class and `status` when serialized across the RPC boundary,
-// so the client only sees a generic error. Harmless today (no UI callers), but
-// before wiring a screen that must branch on status (e.g. createProject's 409 or
-// revokeKey's 404), convert these to return a Result via attempt() — see
-// [result.ts](./result.ts) and how auth.ts login/setup do it. The read
-// (listProjects) can keep throwing: TanStack Query only needs an error to enter
-// its error state, and the message survives.
+// The mutations below (createProject, createEnvironment, mintKey, revokeKey)
+// throw ApiError intentionally: useMutation surfaces errors via mutation.isError,
+// so a thrown error is the right contract. Note that ApiError loses its class
+// and `status` when serialized across the RPC boundary — if a future screen
+// needs to branch on a specific status code (e.g. 409 conflict on createProject),
+// convert that function to return a Result via attempt() — see result.ts and
+// how auth.ts handles login/setup. listProjects also throws; TanStack Query
+// only needs an error value to enter its error state.
 
 export const listProjects = createServerFn({ method: "GET" }).handler(
   async (): Promise<ProjectDetail[]> => {
