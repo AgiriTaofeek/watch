@@ -222,8 +222,8 @@ func (w *Worker) aggregateNetworkRollups(ctx context.Context, hourStart time.Tim
 	// Group by (project, env, url, method, status_code, hour).
 	type key struct {
 		projectID, environmentID, url, method string
-		statusCode                             int
-		periodStart                            time.Time
+		statusCode                            int
+		periodStart                           time.Time
 	}
 	type bucket struct {
 		count    int64
@@ -286,7 +286,7 @@ func (w *Worker) aggregateNavRollups(ctx context.Context, hourStart time.Time) {
 	// Group by (project, env, route, nav_type, hour).
 	type key struct {
 		projectID, environmentID, route, navType string
-		periodStart                               time.Time
+		periodStart                              time.Time
 	}
 	type bucket struct {
 		sessions map[string]struct{}

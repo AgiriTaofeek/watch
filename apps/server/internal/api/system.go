@@ -38,10 +38,10 @@ func (a *API) handleGetSystemHealth(w http.ResponseWriter, r *http.Request) {
 			"max":         db.MaxConns,
 		},
 		"server": map[string]any{
-			"version":         "0.0.0",
-			"go_version":      runtime.Version(),
-			"uptime_seconds":  int64(uptime.Seconds()),
-			"uptime_human":    formatUptime(uptime),
+			"version":        "0.0.0",
+			"go_version":     runtime.Version(),
+			"uptime_seconds": int64(uptime.Seconds()),
+			"uptime_human":   formatUptime(uptime),
 		},
 	})
 }

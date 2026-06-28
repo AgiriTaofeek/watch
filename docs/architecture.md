@@ -145,7 +145,8 @@ not auto-refresh (system health is the exception at 30s).
 Resolution path:
 1. Run the worker on a shorter interval (60s) and include the current partial
    hour in aggregation — closes the PRD promise with minimal infrastructure
-2. Add SSE endpoint + in-process fan-out hub for a live event ticker
+2. Add SSE endpoint + in-process fan-out hub for a live event ticker — see
+   [real-time.md](real-time.md) for the full implementation pattern
 3. Implement alerts (Milestone 7) so operators do not need the dashboard open
    to be notified of problems
 

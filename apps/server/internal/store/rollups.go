@@ -468,7 +468,7 @@ func (s *Store) UpsertNavRollup(ctx context.Context, p UpsertNavRollupParams) er
 
 // UpsertErrorRollupsBatch persists a slice of hourly error buckets in a single
 // Postgres round-trip using pgx.Batch. No-op when params is empty.
-func (s *Store) UpsertErrorRollupsBatch(ctx context.Context, params []UpsertErrorRollupParams) error {
+func (s *Store) UpsertErrorRollupsBatch(ctx context.Context, params []UpsertErrorRollupParams) (err error) {
 	if len(params) == 0 {
 		return nil
 	}
@@ -484,10 +484,14 @@ func (s *Store) UpsertErrorRollupsBatch(ctx context.Context, params []UpsertErro
 		`, p.ProjectID, p.EnvironmentID, p.Route, p.Release, p.PeriodStart, p.ErrorCount, p.SessionCount)
 	}
 	results := s.pool.SendBatch(ctx, batch)
-	defer results.Close()
+	defer func() {
+		if cerr := results.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	for range params {
-		if _, err := results.Exec(); err != nil {
-			return fmt.Errorf("upsert error rollups batch: %w", err)
+		if _, execErr := results.Exec(); execErr != nil {
+			return fmt.Errorf("upsert error rollups batch: %w", execErr)
 		}
 	}
 	return nil
@@ -495,7 +499,7 @@ func (s *Store) UpsertErrorRollupsBatch(ctx context.Context, params []UpsertErro
 
 // UpsertVitalRollupsBatch persists a slice of hourly vital buckets in a single
 // Postgres round-trip using pgx.Batch. No-op when params is empty.
-func (s *Store) UpsertVitalRollupsBatch(ctx context.Context, params []UpsertVitalRollupParams) error {
+func (s *Store) UpsertVitalRollupsBatch(ctx context.Context, params []UpsertVitalRollupParams) (err error) {
 	if len(params) == 0 {
 		return nil
 	}
@@ -515,10 +519,14 @@ func (s *Store) UpsertVitalRollupsBatch(ctx context.Context, params []UpsertVita
 			p.MetricName, p.SampleCount, p.SumValue, p.Samples)
 	}
 	results := s.pool.SendBatch(ctx, batch)
-	defer results.Close()
+	defer func() {
+		if cerr := results.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	for range params {
-		if _, err := results.Exec(); err != nil {
-			return fmt.Errorf("upsert vital rollups batch: %w", err)
+		if _, execErr := results.Exec(); execErr != nil {
+			return fmt.Errorf("upsert vital rollups batch: %w", execErr)
 		}
 	}
 	return nil
@@ -526,7 +534,7 @@ func (s *Store) UpsertVitalRollupsBatch(ctx context.Context, params []UpsertVita
 
 // UpsertNetworkRollupsBatch persists a slice of hourly network failure buckets
 // in a single Postgres round-trip using pgx.Batch. No-op when params is empty.
-func (s *Store) UpsertNetworkRollupsBatch(ctx context.Context, params []UpsertNetworkRollupParams) error {
+func (s *Store) UpsertNetworkRollupsBatch(ctx context.Context, params []UpsertNetworkRollupParams) (err error) {
 	if len(params) == 0 {
 		return nil
 	}
@@ -548,10 +556,14 @@ func (s *Store) UpsertNetworkRollupsBatch(ctx context.Context, params []UpsertNe
 			p.PeriodStart, p.RequestCount, p.FailureCount, p.SessionCount, p.LastSeenAt)
 	}
 	results := s.pool.SendBatch(ctx, batch)
-	defer results.Close()
+	defer func() {
+		if cerr := results.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	for range params {
-		if _, err := results.Exec(); err != nil {
-			return fmt.Errorf("upsert network rollups batch: %w", err)
+		if _, execErr := results.Exec(); execErr != nil {
+			return fmt.Errorf("upsert network rollups batch: %w", execErr)
 		}
 	}
 	return nil
@@ -559,7 +571,7 @@ func (s *Store) UpsertNetworkRollupsBatch(ctx context.Context, params []UpsertNe
 
 // UpsertNavRollupsBatch persists a slice of hourly navigation timing buckets
 // in a single Postgres round-trip using pgx.Batch. No-op when params is empty.
-func (s *Store) UpsertNavRollupsBatch(ctx context.Context, params []UpsertNavRollupParams) error {
+func (s *Store) UpsertNavRollupsBatch(ctx context.Context, params []UpsertNavRollupParams) (err error) {
 	if len(params) == 0 {
 		return nil
 	}
@@ -583,12 +595,15 @@ func (s *Store) UpsertNavRollupsBatch(ctx context.Context, params []UpsertNavRol
 			p.SessionCount, p.DNSP75, p.TCPP75, p.TLSP75, p.TTFBP75, p.DOMP75)
 	}
 	results := s.pool.SendBatch(ctx, batch)
-	defer results.Close()
+	defer func() {
+		if cerr := results.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 	for range params {
-		if _, err := results.Exec(); err != nil {
-			return fmt.Errorf("upsert nav rollups batch: %w", err)
+		if _, execErr := results.Exec(); execErr != nil {
+			return fmt.Errorf("upsert nav rollups batch: %w", execErr)
 		}
 	}
 	return nil
 }
-
