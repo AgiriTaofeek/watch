@@ -199,20 +199,26 @@ export function IssueDetail({
                   </div>
 
                   {/* Sidebar: metadata */}
-                  <div className="w-full sm:w-64 shrink-0">
+                  <div className="w-full shrink-0 sm:w-64">
                     <div className="overflow-hidden rounded-lg border bg-card">
                       <div className="border-b px-3.5 py-2.5">
                         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                           Metadata
                         </span>
                       </div>
-                      <div className="divide-y text-sm">
+                      <dl className="grid grid-cols-[auto_1fr]">
+                        {query.data.culprit && (
+                          <MetaRow
+                            label="route"
+                            value={query.data.culprit}
+                            accent
+                          />
+                        )}
                         <MetaRow
                           label="fingerprint"
                           value={query.data.fingerprint}
-                          mono
                         />
-                        <MetaRow label="issue id" value={query.data.id} mono />
+                        <MetaRow label="issue id" value={query.data.id} />
                         <MetaRow
                           label="created"
                           value={formatAbsolute(query.data.created_at)}
@@ -221,7 +227,7 @@ export function IssueDetail({
                           label="updated"
                           value={formatAbsolute(query.data.updated_at)}
                         />
-                      </div>
+                      </dl>
                     </div>
                   </div>
                 </div>
@@ -264,20 +270,22 @@ function StatItem({ label, value }: { label: string; value: string }) {
 function MetaRow({
   label,
   value,
-  mono,
+  accent,
 }: {
   label: string
   value: string
-  mono?: boolean
+  accent?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-0.5 px-3.5 py-2">
-      <span className="font-mono text-xs text-muted-foreground">{label}</span>
-      <span
-        className={`break-all text-xs ${mono ? "font-mono text-foreground/80" : "text-foreground"}`}
+    <>
+      <dt className="border-b px-3.5 py-2 font-mono text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground last:border-b-0">
+        {label}
+      </dt>
+      <dd
+        className={`break-all border-b px-3.5 py-2 font-mono text-[11px] last:border-b-0 ${accent ? "text-primary" : "text-foreground/80"}`}
       >
         {value}
-      </span>
-    </div>
+      </dd>
+    </>
   )
 }

@@ -31,6 +31,7 @@ export type NavItem = {
   label: string
   icon: LucideIcon
   soon?: boolean
+  count?: number
 }
 
 export type NavGroup = {

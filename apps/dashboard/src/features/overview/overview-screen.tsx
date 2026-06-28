@@ -32,6 +32,7 @@ import {
   listIssues,
   type VitalBucket,
 } from "#/lib/api"
+import { projectsQueryOptions } from "#/lib/api/queries"
 
 const TimeSeriesChart = lazy(
   () => import("#/features/charts/time-series-chart"),
@@ -69,6 +70,10 @@ export function OverviewScreen({
   environmentId: string
 }) {
   const [range, setRange] = useState<RangeKey>("24h")
+  const { data: projects = [] } = useQuery(projectsQueryOptions())
+  const project = projects.find((p) => p.id === projectId)
+  const envName =
+    project?.environments.find((e) => e.id === environmentId)?.name ?? ""
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
@@ -131,7 +136,16 @@ export function OverviewScreen({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Overview</h1>
+          {(project || envName) && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {[project?.name, envName, RANGES[range].label]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          )}
+        </div>
         <Select value={range} onValueChange={(v) => setRange(v as RangeKey)}>
           <SelectTrigger className="w-40" aria-label="Time range">
             <SelectValue />
@@ -343,11 +357,14 @@ export function OverviewScreen({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs font-medium uppercase tracking-wide">
+                <TableHead className="w-24 text-xs font-medium uppercase tracking-wide">
                   Status
                 </TableHead>
                 <TableHead className="text-xs font-medium uppercase tracking-wide">
                   Title
+                </TableHead>
+                <TableHead className="text-xs font-medium uppercase tracking-wide">
+                  Route
                 </TableHead>
                 <TableHead className="w-20 text-right text-xs font-medium uppercase tracking-wide">
                   Count
@@ -360,7 +377,7 @@ export function OverviewScreen({
             <TableBody>
               {openIssues.data?.issues.map((issue) => (
                 <TableRow key={issue.id}>
-                  <TableCell className="w-24">
+                  <TableCell>
                     <IssueStatusBadge status={issue.status} />
                   </TableCell>
                   <TableCell>
@@ -371,11 +388,9 @@ export function OverviewScreen({
                     >
                       {issue.title}
                     </Link>
-                    {issue.culprit && (
-                      <div className="mt-0.5 font-mono text-xs text-muted-foreground">
-                        {issue.culprit}
-                      </div>
-                    )}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {issue.culprit ?? "—"}
                   </TableCell>
                   <TableCell className="text-right tabular-nums text-sm">
                     {issue.event_count.toLocaleString()}

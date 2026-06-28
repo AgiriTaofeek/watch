@@ -177,22 +177,22 @@
     <div class="setup-steps">
       <div class="step active">
         <div class="step-num">1</div>
-        Create account
+        Account
       </div>
       <div class="step-conn"></div>
       <div class="step">
         <div class="step-num">2</div>
-        Create project
+        Project
       </div>
       <div class="step-conn"></div>
       <div class="step">
         <div class="step-num">3</div>
-        Add environment
+        Install
       </div>
       <div class="step-conn"></div>
       <div class="step">
         <div class="step-num">4</div>
-        Copy DSN
+        Verify
       </div>
     </div>
 
@@ -210,6 +210,12 @@
       <div class="field">
         <label class="lbl" for="su-email">Email address</label>
         <input class="input" type="email" id="su-email" placeholder="you@example.com" value="taofeeqomotolani@gmail.com" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="su-org">Organization name</label>
+        <input class="input" type="text" id="su-org" placeholder="e.g. Acme Inc" value="Acme Financial" autocomplete="organization">
+        <span class="hint-text">Shown to team members you invite later.</span>
       </div>
 
       <div class="field">
@@ -292,8 +298,10 @@
   }
 
   function goNext() {
-    fireToast('success');
-    setTimeout(() => { window.location.href = 'overview.html'; }, 800);
+    const org = document.getElementById('su-org').value.trim();
+    if (org) localStorage.setItem('watch-org-name', org);
+    Shell.toast('Account created. Let\'s set up your first project.', 'success');
+    setTimeout(() => { window.location.href = 'onboarding-project.html'; }, 800);
   }
 </script>
 </body>

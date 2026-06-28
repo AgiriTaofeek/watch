@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Create your first project</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .auth-root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-base);
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 480px;
+  }
+  .auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .auth-brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.03em;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 4px 16px rgba(124,58,237,0.25);
+  }
+  .auth-brand-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+  }
+  .setup-steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-3);
+    flex: 1;
+  }
+  .step.active { color: var(--text-1); }
+  .step.done { color: var(--success); }
+  .step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .step.active .step-num { border-color: var(--accent); color: var(--accent); background: rgba(167,139,250,0.1); }
+  .step.done .step-num { border-color: var(--success); color: var(--success); background: rgba(52,211,153,0.1); }
+  .step.done .step-num::before { content: '✓'; font-size: 0.6rem; }
+  .step-conn { flex: 1; height: 1px; background: var(--border); margin: 0 4px; max-width: 32px; }
+  .auth-heading {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .auth-sub {
+    font-size: 0.8125rem;
+    color: var(--text-3);
+    margin-bottom: 28px;
+    line-height: 1.55;
+  }
+  .field { display: flex; flex-direction: column; margin-bottom: 20px; }
+  .lbl {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-bottom: 6px;
+  }
+  .hint-text {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    margin-top: 5px;
+    line-height: 1.5;
+  }
+  /* Framework picker */
+  .fw-section-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-bottom: 10px;
+  }
+  .fw-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .fw-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 8px 12px;
+    border-radius: var(--r-lg);
+    border: 1.5px solid var(--border);
+    background: var(--bg-sunken);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-2);
+    transition: border-color 0.12s, background 0.12s, color 0.12s;
+    font-family: var(--font-sans);
+  }
+  .fw-btn:hover {
+    border-color: var(--border-strong);
+    color: var(--text-1);
+    background: var(--bg-elevated);
+  }
+  .fw-btn.selected {
+    border-color: var(--accent);
+    background: rgba(139,92,246,0.08);
+    color: var(--text-1);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+  }
+  .fw-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  /* Actions */
+  .action-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .back-link {
+    font-size: 0.8125rem;
+    color: var(--text-3);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 16px;
+    transition: color 0.12s;
+  }
+  .back-link:hover { color: var(--text-1); }
+  .skip-link {
+    font-size: 0.8rem;
+    color: var(--text-3);
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    margin-top: 12px;
+    transition: color 0.12s;
+  }
+  .skip-link:hover { color: var(--text-2); }
+  .auth-theme {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="auth-root">
+  <div class="auth-card">
+
+    <div class="auth-brand">
+      <div class="auth-brand-mark">W</div>
+      <span class="auth-brand-name">Watch</span>
+    </div>
+
+    <div class="setup-steps">
+      <div class="step done">
+        <div class="step-num"></div>
+        Account
+      </div>
+      <div class="step-conn"></div>
+      <div class="step active">
+        <div class="step-num">2</div>
+        Project
+      </div>
+      <div class="step-conn"></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        Install
+      </div>
+      <div class="step-conn"></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        Verify
+      </div>
+    </div>
+
+    <h1 class="auth-heading">Create your first project</h1>
+    <p class="auth-sub">A project tracks one frontend app. You'll be able to add more from the dashboard anytime.</p>
+
+    <div class="field">
+      <label class="lbl" for="proj-name">Project name</label>
+      <input class="input" type="text" id="proj-name" placeholder="e.g. Customer Portal" autocomplete="off" oninput="syncName(this.value)">
+      <span class="hint-text">Use the name your team already calls it.</span>
+    </div>
+
+    <div class="fw-section-label">What framework does it use?</div>
+    <div class="fw-grid" id="fw-grid">
+
+      <button class="fw-btn selected" data-fw="react" onclick="selectFw(this)">
+        <div class="fw-icon" style="background:rgba(97,218,251,0.12);color:#61DAFB">⚛</div>
+        React
+      </button>
+
+      <button class="fw-btn" data-fw="nextjs" onclick="selectFw(this)">
+        <div class="fw-icon" style="background:rgba(240,239,254,0.07);color:var(--text-1)">N</div>
+        Next.js
+      </button>
+
+      <button class="fw-btn" data-fw="reactrouter" onclick="selectFw(this)">
+        <div class="fw-icon" style="background:rgba(229,62,62,0.12);color:#fc8181">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12h8M12 8l4 4-4 4"/></svg>
+        </div>
+        React Router
+      </button>
+
+      <button class="fw-btn" data-fw="vue" onclick="selectFw(this)">
+        <div class="fw-icon" style="background:rgba(65,184,131,0.12);color:#41B883">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 1.61h-9.94L12 5.16 9.94 1.61H0l12 20.78L24 1.61zM12 14.08L5.16 2.23h4.43L12 6.41l2.41-4.18h4.43L12 14.08z"/></svg>
+        </div>
+        Vue
+      </button>
+
+      <button class="fw-btn" data-fw="svelte" onclick="selectFw(this)">
+        <div class="fw-icon" style="background:rgba(255,62,0,0.12);color:#FF3E00">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10.354 21.125a4.44 4.44 0 01-4.765-1.767 4.109 4.109 0 01-.703-3.107 3.898 3.898 0 01.134-.522l.105-.321.287.21a7.21 7.21 0 002.209 1.1l.205.063-.02.207a1.253 1.253 0 00.225.83 1.337 1.337 0 001.435.533 1.231 1.231 0 00.344-.15l5.56-3.55a1.154 1.154 0 00.52-.782 1.228 1.228 0 00-.21-.943 1.337 1.337 0 00-1.435-.533 1.231 1.231 0 00-.344.15l-2.12 1.354a4.075 4.075 0 01-1.138.497 4.44 4.44 0 01-4.765-1.766 4.108 4.108 0 01-.702-3.108 3.855 3.855 0 011.742-2.582l5.56-3.55a4.075 4.075 0 011.138-.496 4.44 4.44 0 014.765 1.766 4.109 4.109 0 01.703 3.108 3.898 3.898 0 01-.134.522l-.105.32-.287-.21a7.21 7.21 0 00-2.209-1.1l-.205-.063.02-.207a1.253 1.253 0 00-.225-.83 1.337 1.337 0 00-1.435-.532 1.231 1.231 0 00-.344.15L9.334 9.738a1.154 1.154 0 00-.52.782 1.228 1.228 0 00.21.942 1.337 1.337 0 001.435.533 1.231 1.231 0 00.344-.15l2.12-1.354a4.075 4.075 0 011.138-.497 4.44 4.44 0 014.765 1.767 4.108 4.108 0 01.703 3.107 3.855 3.855 0 01-1.742 2.583l-5.56 3.55a4.075 4.075 0 01-1.138.496z"/></svg>
+        </div>
+        Svelte
+      </button>
+
+      <button class="fw-btn" data-fw="other" onclick="selectFw(this)">
+        <div class="fw-icon" style="background:rgba(113,113,122,0.15);color:var(--text-2)">JS</div>
+        Other / Vanilla
+      </button>
+
+    </div>
+    <p class="hint-text" style="margin-bottom:24px">This shapes the install snippet. You can always change it in settings.</p>
+
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="goNext()">
+        Continue
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
+    <a href="overview.html" class="skip-link">Skip and go to dashboard →</a>
+    <a href="setup.html" class="back-link">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </a>
+
+  </div>
+</div>
+
+<div class="auth-theme">
+  <button class="toggle-pill" onclick="toggleMode()">
+    <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg id="ico-sun"  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+    <span id="mode-label">Light mode</span>
+  </button>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+  (() => {
+    const mode = localStorage.getItem('watch-mode') || 'dark';
+    document.documentElement.classList.add(mode);
+    Shell.updateToggle(mode);
+  })();
+
+  let selectedFw = 'react';
+
+  function selectFw(btn) {
+    document.querySelectorAll('.fw-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedFw = btn.dataset.fw;
+    localStorage.setItem('watch-fw', selectedFw);
+  }
+
+  function syncName(val) {
+    localStorage.setItem('watch-project-name', val || 'My App');
+  }
+
+  function goNext() {
+    const name = document.getElementById('proj-name').value.trim();
+    if (!name) {
+      document.getElementById('proj-name').focus();
+      Shell.toast('Enter a project name to continue.', 'warning');
+      return;
+    }
+    localStorage.setItem('watch-project-name', name);
+    localStorage.setItem('watch-fw', selectedFw);
+    Shell.toast('Project created.', 'success');
+    setTimeout(() => { window.location.href = 'onboarding-install.html'; }, 700);
+  }
+
+  function toggleMode() {
+    const html = document.documentElement;
+    const next = html.classList.contains('dark') ? 'light' : 'dark';
+    html.classList.remove('dark','light');
+    html.classList.add(next);
+    localStorage.setItem('watch-mode', next);
+    Shell.updateToggle(next);
+  }
+</script>
+</body>
+</html>

@@ -49,6 +49,36 @@ V1 intentionally excludes:
 - Optional browser SDK integrations, starting with React and React Router v7
 - Docker Compose for the first self-hosted deployment path
 
+## Users, Teams, and Projects
+
+Watch is a single-organization deployment. One running instance serves one engineering team. There is no SaaS-style multi-tenancy.
+
+**First-run setup** — When a fresh Watch instance starts with no users, visiting the dashboard opens a one-time owner-creation screen. The first person sets their email, a password, and an organization name. The setup endpoint returns `409` once any user exists, so it runs exactly once per deployment.
+
+**Multiple projects** — A deployment can host as many projects as the team needs. Each project tracks one frontend application independently. An organization might run three projects side by side:
+
+```
+Organization: Acme Financial
+├── Project: Customer Portal       (production, staging)
+├── Project: Admin Dashboard       (production)
+└── Project: Marketing Site        (production, staging)
+```
+
+Each project gets its own environments, ingestion keys, issues, rollups, health scores, and alert rules. Environments keep staging traffic out of production data.
+
+**Roles** — Every dashboard user holds one role across all projects. Access is org-wide: all users can see all projects; the role controls what they can do, not which projects they can reach.
+
+| Role | What they can do |
+|------|----------------|
+| `owner` | Full control. Created once during setup. |
+| `admin` | Create and manage projects, rotate ingestion keys, invite and manage users, configure settings. |
+| `member` | View all projects, issues, performance data. Manage alert rules. Cannot manage users or rotate keys. |
+| `viewer` | Read-only access across all projects. Good for stakeholders. |
+
+**Inviting team members** — After setup, the owner or an admin invites colleagues from Settings → Users. They pick a role, then either send an invite email (requires SMTP, already configured for alerts) or copy a one-time invite link valid for 72 hours. The invited user clicks the link, sets a display name and password, and lands directly in the dashboard. They skip the first-run wizard because the organization, projects, and data already exist.
+
+See [docs/auth-model.md](docs/auth-model.md) for the full auth design including the invite flow, CSRF protection, and future OIDC/trusted-header auth modes.
+
 ## Repository Shape
 
 ```txt

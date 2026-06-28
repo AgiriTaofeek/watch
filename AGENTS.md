@@ -2,6 +2,8 @@
 
 Watch is a privacy-first, self-hosted production health monitor for frontend web apps — a pnpm + Turborepo monorepo (Go server in `apps/server`, TypeScript browser SDK in `packages/browser`). Start with [README.md](README.md), [CONTRIBUTING.md](CONTRIBUTING.md), and [docs/](docs/).
 
+For Go-specific architecture patterns, standing conventions, and known refactor targets see [docs/go-architecture.md](docs/go-architecture.md).
+
 ## Engineering standards
 
 Write code for the developer who will open this repository years later and need to understand it without a live explanation.
@@ -18,6 +20,59 @@ Write code for the developer who will open this repository years later and need 
 - Handle errors with context. Return or log enough detail to diagnose the failing operation without leaking secrets, credentials, tokens, payload bodies, or sensitive user data.
 - Leave concise comments for non-obvious decisions, invariants, privacy constraints, security assumptions, and scalability tradeoffs.
 - Update docs when a change alters product behavior, architecture, setup, configuration, data shape, or operational expectations.
+
+## Go conventions
+
+### `init()` usage
+
+`init()` is appropriate in Watch for two narrow cases:
+
+**1. Package-level setup that cannot fail and has no testable input.**
+Compiling a static regex, registering a codec, or setting package-level
+constants that are always valid. These have no error path and no dependency on
+runtime configuration.
+
+```go
+// OK — deterministic, cannot fail, no external dependency
+var routePattern = regexp.MustCompile(`^/api/v\d+/`)
+```
+
+**2. Setting logger defaults before `main()` body runs** (`cmd/watch/main.go`
+or the `logging` package). The global `slog` logger must be configured before
+any other package emits a log line. An `init()` in `logging` that installs a
+safe default (JSON to stderr, INFO level) ensures packages imported before
+`main()` configure logging do not log to the default text handler.
+
+```go
+// logging/init.go
+func init() {
+    slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+        Level: slog.LevelInfo,
+    })))
+}
+```
+
+**Do not use `init()` for:**
+
+- Configuration loading (`config.Load()` belongs in `main()` — it can fail,
+  and errors must reach the operator with context, not via a panic).
+- Database connections or any I/O that can fail.
+- Populating a package-level variable that code outside the package depends on
+  — that is hidden global state and breaks testability. Pass dependencies
+  through constructors instead.
+- Anything that makes a package impossible to import in tests without side
+  effects. If `init()` in package `foo` dials the database, any test that
+  imports `foo` dials the database too.
+
+**Why the tension with "explicit data flow over magic":**
+
+`init()` runs automatically on import, in an order determined by the compiler,
+before any code the caller controls. This is exactly the kind of implicit
+execution the engineering standards warn against. The exception is justified
+only when the alternative is worse — forcing every caller to call a setup
+function before using the package, or accepting unsafe-default behavior for
+early log lines. Keep `init()` functions short, side-effect-minimal, and
+commented with why the explicit pattern was not sufficient.
 
 ## Dependency and documentation discipline
 

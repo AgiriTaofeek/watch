@@ -143,7 +143,7 @@ export function VitalsScreen({
       </div>
 
       {/* Metric selector tabs */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="flex flex-wrap gap-2.5">
         {VITAL_METRICS.map((metric) => {
           const q = allQueries[metric]
           const latest = q.data?.buckets.at(-1)
@@ -156,14 +156,16 @@ export function VitalsScreen({
               key={metric}
               type="button"
               onClick={() => setSelected(metric)}
-              className={`flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`flex min-w-27.5 flex-col gap-1 rounded-lg border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 isActive
                   ? "border-primary bg-primary/5"
                   : "border-border bg-card hover:bg-muted/40"
               }`}
             >
               <div className="flex items-center justify-between gap-1">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <span
+                  className={`text-[11px] font-semibold uppercase tracking-[0.07em] ${isActive ? "text-primary" : "text-muted-foreground"}`}
+                >
                   {metric}
                 </span>
                 {health && (
@@ -176,13 +178,12 @@ export function VitalsScreen({
               {q.isPending ? (
                 <div className="h-6 w-14 animate-pulse rounded bg-muted" />
               ) : latest ? (
-                <span className="text-lg font-bold tabular-nums leading-tight">
+                <span className="text-[22px] font-extrabold tabular-nums leading-none tracking-tight">
                   {format(latest.p75)}
                 </span>
               ) : (
                 <span className="text-sm text-muted-foreground">—</span>
               )}
-              <span className="text-xs text-muted-foreground">p75</span>
             </button>
           )
         })}
@@ -232,6 +233,44 @@ export function VitalsScreen({
           )}
         </div>
       </div>
+
+      {/* Stats strip */}
+      {!activeQuery.isPending &&
+        activeBuckets.length > 0 &&
+        (() => {
+          const latest = activeBuckets.at(-1)
+          if (!latest) return null
+          const { format } = METRIC_CONFIG[selected]
+          const totalSamples = activeBuckets.reduce(
+            (s, b) => s + b.sample_count,
+            0,
+          )
+          const health = vitalHealth(selected, latest.p75)
+          return (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <VitalStat
+                label="p75"
+                value={format(latest.p75)}
+                sub={`Good ≤ ${format(METRIC_CONFIG[selected].thresholds.good)}`}
+              />
+              <VitalStat label="Mean" value={format(latest.mean)} />
+              <VitalStat
+                label="Samples"
+                value={totalSamples.toLocaleString()}
+                sub="This period"
+              />
+              <div className="flex flex-col gap-0.5 rounded-lg border bg-card px-4 py-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Health
+                </span>
+                <VitalsHealthBadge
+                  health={health}
+                  className="mt-1 self-start"
+                />
+              </div>
+            </div>
+          )
+        })()}
 
       {/* Recent buckets table */}
       {activeBuckets.length > 0 && (
@@ -296,6 +335,28 @@ export function VitalsScreen({
           </Table>
         </div>
       )}
+    </div>
+  )
+}
+
+function VitalStat({
+  label,
+  value,
+  sub,
+}: {
+  label: string
+  value: string
+  sub?: string
+}) {
+  return (
+    <div className="flex flex-col gap-0.5 rounded-lg border bg-card px-4 py-3">
+      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="text-[22px] font-extrabold tabular-nums leading-none tracking-tight">
+        {value}
+      </span>
+      {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
     </div>
   )
 }

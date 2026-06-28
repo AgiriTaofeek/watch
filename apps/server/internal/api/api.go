@@ -5,7 +5,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"regexp"
 	"time"
@@ -49,6 +48,10 @@ type Store interface {
 	// Rollups
 	QueryErrorRollups(ctx context.Context, projectID, envID string, from, to time.Time) ([]store.ErrorRollup, error)
 	QueryVitalRollups(ctx context.Context, projectID, envID, metric string, from, to time.Time) ([]store.VitalRollup, error)
+	QueryRouteRollups(ctx context.Context, projectID, envID string, from, to time.Time) (*store.RouteSummaryResult, error)
+	QueryNetworkRollups(ctx context.Context, projectID, envID string, from, to time.Time) ([]store.NetworkRollup, error)
+	QueryNavSummary(ctx context.Context, projectID, envID string, from, to time.Time) (*store.NavSummaryResult, error)
+	SystemHealthStats() store.DBStats
 }
 
 // CookieSecureMode controls the Secure attribute on dashboard auth cookies.
@@ -70,6 +73,7 @@ type API struct {
 	store        Store
 	cookieSecure CookieSecureMode
 	loginLimiter *loginRateLimiter
+	startTime    time.Time
 }
 
 // New returns an API backed by the given store.
@@ -85,6 +89,7 @@ func New(st Store, opts ...Options) *API {
 		store:        st,
 		cookieSecure: cfg.CookieSecure,
 		loginLimiter: newLoginRateLimiter(maxFailedLogins, loginLockoutWindow),
+		startTime:    time.Now(),
 	}
 }
 
@@ -128,6 +133,12 @@ func (a *API) Handler() http.Handler {
 	// Rollups
 	apiMux.HandleFunc("GET /api/projects/{id}/rollups/errors", a.handleGetErrorRollups)
 	apiMux.HandleFunc("GET /api/projects/{id}/rollups/vitals", a.handleGetVitalRollups)
+	apiMux.HandleFunc("GET /api/projects/{id}/rollups/routes", a.handleGetRouteRollups)
+	apiMux.HandleFunc("GET /api/projects/{id}/rollups/network", a.handleGetNetworkRollups)
+	apiMux.HandleFunc("GET /api/projects/{id}/rollups/navigation", a.handleGetNavSummary)
+
+	// System health — session required, no project scoping.
+	apiMux.HandleFunc("GET /api/system/health", a.handleGetSystemHealth)
 
 	mux.Handle("/api/", a.sessionRequired(a.csrfProtected(apiMux)))
 
@@ -141,8 +152,8 @@ func (a *API) handleHealth(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 	if err := a.store.Ping(ctx); err != nil {
-		slog.ErrorContext(r.Context(), "health check: database unreachable",
-			"error", err, "request_id", RequestIDFromContext(r.Context()))
+		LoggerFromContext(r.Context()).ErrorContext(r.Context(), "health check: database unreachable",
+			"error", err)
 		writeJSON(w, http.StatusServiceUnavailable, map[string]string{
 			"status": "degraded",
 			"db":     "unreachable",
@@ -167,7 +178,6 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 // generic message to the client. Use it for every 5xx so failures are
 // debuggable from logs without leaking internals to callers.
 func (a *API) serverError(w http.ResponseWriter, r *http.Request, err error, clientMsg string) {
-	slog.ErrorContext(r.Context(), clientMsg,
-		"error", err, "request_id", RequestIDFromContext(r.Context()))
+	LoggerFromContext(r.Context()).ErrorContext(r.Context(), clientMsg, "error", err)
 	writeError(w, http.StatusInternalServerError, clientMsg)
 }

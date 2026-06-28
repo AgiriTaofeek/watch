@@ -128,6 +128,18 @@ func (f *fakeStore) QueryErrorRollups(_ context.Context, _, _ string, _, _ time.
 func (f *fakeStore) QueryVitalRollups(_ context.Context, _, _, _ string, _, _ time.Time) ([]store.VitalRollup, error) {
 	return nil, nil
 }
+func (f *fakeStore) QueryRouteRollups(_ context.Context, _, _ string, _, _ time.Time) (*store.RouteSummaryResult, error) {
+	return &store.RouteSummaryResult{}, nil
+}
+func (f *fakeStore) QueryNetworkRollups(_ context.Context, _, _ string, _, _ time.Time) ([]store.NetworkRollup, error) {
+	return nil, nil
+}
+func (f *fakeStore) QueryNavSummary(_ context.Context, _, _ string, _, _ time.Time) (*store.NavSummaryResult, error) {
+	return &store.NavSummaryResult{}, nil
+}
+func (f *fakeStore) SystemHealthStats() store.DBStats {
+	return store.DBStats{TotalConns: 1, IdleConns: 1, MaxConns: 10}
+}
 
 func TestAuthSetupMapsSetupCompleteToConflict(t *testing.T) {
 	fake := &fakeStore{setupErr: store.ErrSetupComplete}

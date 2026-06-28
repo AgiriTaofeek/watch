@@ -14,6 +14,7 @@ type fakeWorkerStore struct {
 
 	vitalUpserts []store.UpsertVitalRollupParams
 	errorUpserts []store.UpsertErrorRollupParams
+	navUpserts   []store.UpsertNavRollupParams
 }
 
 func (f *fakeWorkerStore) FetchUnprocessedErrors(context.Context, int) ([]store.UnprocessedError, error) {
@@ -34,13 +35,30 @@ func (f *fakeWorkerStore) FetchErrorCounts(context.Context, time.Time) ([]store.
 	return f.errorCounts, nil
 }
 
-func (f *fakeWorkerStore) UpsertErrorRollup(_ context.Context, p store.UpsertErrorRollupParams) error {
-	f.errorUpserts = append(f.errorUpserts, p)
+func (f *fakeWorkerStore) UpsertErrorRollupsBatch(_ context.Context, params []store.UpsertErrorRollupParams) error {
+	f.errorUpserts = append(f.errorUpserts, params...)
 	return nil
 }
 
-func (f *fakeWorkerStore) UpsertVitalRollup(_ context.Context, p store.UpsertVitalRollupParams) error {
-	f.vitalUpserts = append(f.vitalUpserts, p)
+func (f *fakeWorkerStore) UpsertVitalRollupsBatch(_ context.Context, params []store.UpsertVitalRollupParams) error {
+	f.vitalUpserts = append(f.vitalUpserts, params...)
+	return nil
+}
+
+func (f *fakeWorkerStore) FetchNetworkRequestSamples(context.Context, time.Time) ([]store.NetworkRequestSample, error) {
+	return nil, nil
+}
+
+func (f *fakeWorkerStore) UpsertNetworkRollupsBatch(context.Context, []store.UpsertNetworkRollupParams) error {
+	return nil
+}
+
+func (f *fakeWorkerStore) FetchNavSamples(context.Context, time.Time) ([]store.NavSample, error) {
+	return nil, nil
+}
+
+func (f *fakeWorkerStore) UpsertNavRollupsBatch(_ context.Context, params []store.UpsertNavRollupParams) error {
+	f.navUpserts = append(f.navUpserts, params...)
 	return nil
 }
 

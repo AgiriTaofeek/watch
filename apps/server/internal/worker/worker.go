@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/AgiriTaofeek/watch/apps/server/internal/stats"
 	"github.com/AgiriTaofeek/watch/apps/server/internal/store"
 )
 
@@ -20,8 +21,14 @@ type Store interface {
 
 	FetchVitalSamples(ctx context.Context, hourStart time.Time) ([]store.VitalSample, error)
 	FetchErrorCounts(ctx context.Context, hourStart time.Time) ([]store.ErrorCount, error)
-	UpsertErrorRollup(ctx context.Context, p store.UpsertErrorRollupParams) error
-	UpsertVitalRollup(ctx context.Context, p store.UpsertVitalRollupParams) error
+	UpsertErrorRollupsBatch(ctx context.Context, params []store.UpsertErrorRollupParams) error
+	UpsertVitalRollupsBatch(ctx context.Context, params []store.UpsertVitalRollupParams) error
+
+	FetchNetworkRequestSamples(ctx context.Context, hourStart time.Time) ([]store.NetworkRequestSample, error)
+	UpsertNetworkRollupsBatch(ctx context.Context, params []store.UpsertNetworkRollupParams) error
+
+	FetchNavSamples(ctx context.Context, hourStart time.Time) ([]store.NavSample, error)
+	UpsertNavRollupsBatch(ctx context.Context, params []store.UpsertNavRollupParams) error
 
 	DeleteExpiredEvents(ctx context.Context, before time.Time) (deleted int64, err error)
 }
@@ -112,6 +119,8 @@ func (w *Worker) runRollupAggregator(ctx context.Context) {
 			prevHour := time.Now().UTC().Truncate(time.Hour).Add(-time.Hour)
 			w.aggregateErrorRollups(ctx, prevHour)
 			w.aggregateVitalRollups(ctx, prevHour)
+			w.aggregateNetworkRollups(ctx, prevHour)
+			w.aggregateNavRollups(ctx, prevHour)
 		case <-ctx.Done():
 			return
 		}
@@ -124,8 +133,9 @@ func (w *Worker) aggregateErrorRollups(ctx context.Context, hourStart time.Time)
 		slog.ErrorContext(ctx, "worker: fetch error counts", "error", err)
 		return
 	}
+	params := make([]store.UpsertErrorRollupParams, 0, len(counts))
 	for _, c := range counts {
-		p := store.UpsertErrorRollupParams{
+		params = append(params, store.UpsertErrorRollupParams{
 			ProjectID:     c.ProjectID,
 			EnvironmentID: c.EnvironmentID,
 			Route:         c.Route,
@@ -133,10 +143,10 @@ func (w *Worker) aggregateErrorRollups(ctx context.Context, hourStart time.Time)
 			PeriodStart:   c.PeriodStart,
 			ErrorCount:    c.Count,
 			SessionCount:  c.SessionCount,
-		}
-		if err := w.store.UpsertErrorRollup(ctx, p); err != nil {
-			slog.ErrorContext(ctx, "worker: upsert error rollup", "error", err)
-		}
+		})
+	}
+	if err := w.store.UpsertErrorRollupsBatch(ctx, params); err != nil {
+		slog.ErrorContext(ctx, "worker: upsert error rollups", "error", err)
 	}
 }
 
@@ -183,8 +193,9 @@ func (w *Worker) aggregateVitalRollups(ctx context.Context, hourStart time.Time)
 		}
 	}
 
+	params := make([]store.UpsertVitalRollupParams, 0, len(buckets))
 	for k, b := range buckets {
-		p := store.UpsertVitalRollupParams{
+		params = append(params, store.UpsertVitalRollupParams{
 			ProjectID:     k.projectID,
 			EnvironmentID: k.environmentID,
 			Route:         k.route,
@@ -194,10 +205,144 @@ func (w *Worker) aggregateVitalRollups(ctx context.Context, hourStart time.Time)
 			SampleCount:   b.count,
 			SumValue:      b.sum,
 			Samples:       b.samples,
+		})
+	}
+	if err := w.store.UpsertVitalRollupsBatch(ctx, params); err != nil {
+		slog.ErrorContext(ctx, "worker: upsert vital rollups", "error", err)
+	}
+}
+
+func (w *Worker) aggregateNetworkRollups(ctx context.Context, hourStart time.Time) {
+	samples, err := w.store.FetchNetworkRequestSamples(ctx, hourStart)
+	if err != nil {
+		slog.ErrorContext(ctx, "worker: fetch network request samples", "error", err)
+		return
+	}
+
+	// Group by (project, env, url, method, status_code, hour).
+	type key struct {
+		projectID, environmentID, url, method string
+		statusCode                             int
+		periodStart                            time.Time
+	}
+	type bucket struct {
+		count    int64
+		sessions map[string]struct{}
+		lastSeen time.Time
+	}
+	buckets := make(map[key]*bucket)
+
+	for i := range samples {
+		s := &samples[i]
+		k := key{
+			projectID:     s.ProjectID,
+			environmentID: s.EnvironmentID,
+			url:           s.URL,
+			method:        s.Method,
+			statusCode:    s.StatusCode,
+			periodStart:   s.PeriodStart,
 		}
-		if err := w.store.UpsertVitalRollup(ctx, p); err != nil {
-			slog.ErrorContext(ctx, "worker: upsert vital rollup", "error", err)
+		b, ok := buckets[k]
+		if !ok {
+			b = &bucket{sessions: make(map[string]struct{})}
+			buckets[k] = b
 		}
+		b.count++
+		if s.SessionID != "" {
+			b.sessions[s.SessionID] = struct{}{}
+		}
+		if s.OccurredAt.After(b.lastSeen) {
+			b.lastSeen = s.OccurredAt
+		}
+	}
+
+	params := make([]store.UpsertNetworkRollupParams, 0, len(buckets))
+	for k, b := range buckets {
+		params = append(params, store.UpsertNetworkRollupParams{
+			ProjectID:     k.projectID,
+			EnvironmentID: k.environmentID,
+			URL:           k.url,
+			Method:        k.method,
+			StatusCode:    k.statusCode,
+			PeriodStart:   k.periodStart,
+			RequestCount:  b.count,
+			FailureCount:  b.count,
+			SessionCount:  int64(len(b.sessions)),
+			LastSeenAt:    b.lastSeen,
+		})
+	}
+	if err := w.store.UpsertNetworkRollupsBatch(ctx, params); err != nil {
+		slog.ErrorContext(ctx, "worker: upsert network rollups", "error", err)
+	}
+}
+
+func (w *Worker) aggregateNavRollups(ctx context.Context, hourStart time.Time) {
+	samples, err := w.store.FetchNavSamples(ctx, hourStart)
+	if err != nil {
+		slog.ErrorContext(ctx, "worker: fetch nav samples", "error", err)
+		return
+	}
+
+	// Group by (project, env, route, nav_type, hour).
+	type key struct {
+		projectID, environmentID, route, navType string
+		periodStart                               time.Time
+	}
+	type bucket struct {
+		sessions map[string]struct{}
+		dns      []float64
+		tcp      []float64
+		tls      []float64
+		ttfb     []float64
+		dom      []float64
+	}
+	buckets := make(map[key]*bucket)
+
+	for i := range samples {
+		s := &samples[i]
+		k := key{
+			projectID:     s.ProjectID,
+			environmentID: s.EnvironmentID,
+			route:         s.Route,
+			navType:       s.NavType,
+			periodStart:   s.PeriodStart,
+		}
+		b, ok := buckets[k]
+		if !ok {
+			b = &bucket{sessions: make(map[string]struct{})}
+			buckets[k] = b
+		}
+		if s.SessionID != "" {
+			b.sessions[s.SessionID] = struct{}{}
+		}
+		// Cap stored samples at 200 per bucket to bound memory use.
+		if len(b.dns) < 200 {
+			b.dns = append(b.dns, s.DNS)
+			b.tcp = append(b.tcp, s.TCP)
+			b.tls = append(b.tls, s.TLS)
+			b.ttfb = append(b.ttfb, s.TTFB)
+			b.dom = append(b.dom, s.DOM)
+		}
+	}
+
+	params := make([]store.UpsertNavRollupParams, 0, len(buckets))
+	for k, b := range buckets {
+		params = append(params, store.UpsertNavRollupParams{
+			ProjectID:     k.projectID,
+			EnvironmentID: k.environmentID,
+			Route:         k.route,
+			NavType:       k.navType,
+			PeriodStart:   k.periodStart,
+			SessionCount:  int64(len(b.sessions)),
+			DNSP75:        stats.P75(b.dns),
+			TCPP75:        stats.P75(b.tcp),
+			TLSP75:        stats.P75(b.tls),
+			TTFBP75:       stats.P75(b.ttfb),
+			DOMP75:        stats.P75(b.dom),
+		})
+	}
+	if err := w.store.UpsertNavRollupsBatch(ctx, params); err != nil {
+		slog.ErrorContext(ctx, "worker: upsert nav rollups", "error", err)
 	}
 }
 
