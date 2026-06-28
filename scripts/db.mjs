@@ -11,7 +11,7 @@
 
 import { execSync } from "node:child_process"
 import { existsSync, readFileSync } from "node:fs"
-import { resolve, dirname } from "node:path"
+import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const __dir = dirname(fileURLToPath(import.meta.url))
@@ -73,9 +73,9 @@ switch (cmd) {
   default:
     console.error(
       `Usage: node scripts/db.mjs <seed|truncate|reset>\n\n` +
-      `  seed     — insert/overwrite analytics data into existing project\n` +
-      `  truncate — clear analytics data (keeps org/users/projects/envs/keys)\n` +
-      `  reset    — truncate then seed (useful before each test run)\n`,
+        `  seed     — insert/overwrite analytics data into existing project\n` +
+        `  truncate — clear analytics data (keeps org/users/projects/envs/keys)\n` +
+        `  reset    — truncate then seed (useful before each test run)\n`,
     )
     process.exit(1)
 }
