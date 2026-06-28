@@ -13,11 +13,12 @@ When real users experience frontend issues, the SDK sends safe browser telemetry
 ## High-Level Flow
 
 ```txt
-Developer
-  └── opens Watch dashboard
-        └── creates project
-              └── gets browser ingestion key
-                    └── installs Watch SDK in frontend app
+Developer (owner)
+  └── self-hosts Watch and creates the owner account
+        └── invites teammates (optional)
+              └── creates one project per frontend app
+                    └── gets a browser ingestion key per environment
+                          └── installs Watch SDK in the frontend app
 
 User browser
   └── runs frontend app
@@ -43,29 +44,65 @@ V1 includes:
 
 This backend belongs to Watch itself. It is not the business application backend.
 
-## 2. Create A Project
+### First-run owner setup
 
-A developer logs into the Watch dashboard and creates a project.
+When Watch starts with no users, the dashboard shows a one-time setup screen instead of the login page. The first person to open the dashboard becomes the `owner`:
 
-Example:
+1. Enter email, organization name, and a password.
+2. Watch creates the organization and the owner account.
+3. The setup endpoint returns `409` on every subsequent visit — setup runs exactly once.
+
+After this, the dashboard is accessible at the login screen. Everyone else joins via an invite.
+
+## 2. Create Projects
+
+The owner logs in and creates a project for each frontend application the team wants to monitor. A Watch deployment can host many projects at once.
+
+Example organization with three projects:
 
 ```txt
-Project: Customer Portal
-Environment: production
-Allowed origin: https://app.company.com
+Organization: Acme Financial
+├── Project: Customer Portal
+│   ├── Environment: production   (key: wk_live_...)
+│   └── Environment: staging      (key: wk_stag_...)
+├── Project: Admin Dashboard
+│   └── Environment: production   (key: wk_live_...)
+└── Project: Marketing Site
+    └── Environment: production   (key: wk_live_...)
 ```
 
-Watch generates a browser ingestion key or DSN for that project.
+Each environment gets its own ingestion key so staging events do not mix with production data. Keys can be rotated or revoked independently without affecting other environments.
 
-Example:
+Watch generates a browser ingestion key for each environment:
 
 ```txt
-https://watch.company.com/ingest/pk_abc123
+wk_live_a8f3c2d1e9b7f4a2
 ```
 
-This key is safe to put in frontend code. It identifies the project and environment, but it does not grant dashboard access.
+This key is safe to embed in frontend code. It identifies the project and environment but does not grant dashboard access.
 
-## 3. Install The Browser SDK
+## 3. Invite Your Team
+
+Watch is built for teams. After the owner creates the first project, they invite colleagues from Settings → Users.
+
+Each invite assigns a role:
+
+| Role | What they can do |
+|------|----------------|
+| `owner` | Full control. Created once during setup. |
+| `admin` | Create projects, rotate keys, invite users, configure settings. |
+| `member` | View all projects, manage alert rules. Cannot manage users or rotate keys. |
+| `viewer` | Read-only. Good for stakeholders and executives. |
+
+All roles can see all projects in the organization. The role controls what they can do, not which projects they can reach.
+
+**Invite by email** (requires SMTP, which is also used for alerts): Watch sends a link to the invited address.
+
+**Copy a one-time link** (always available): the owner copies a secure link, valid for 72 hours, and shares it directly.
+
+Either way, the invited user clicks the link, sets a display name and password, and lands directly in the dashboard. They skip the setup wizard because the organization and projects already exist.
+
+## 4. Install The Browser SDK
 
 The developer installs the Watch browser SDK in the frontend project.
 
@@ -105,7 +142,7 @@ watch.setUser({
 
 This is used only to count affected users. It is not used to authenticate ingestion requests or dashboard users.
 
-## 4. SDK Observes Frontend Health
+## 5. SDK Observes Frontend Health
 
 The SDK runs in the user's browser and observes frontend signals.
 
@@ -135,7 +172,7 @@ It must not collect:
 - Screen recordings
 - Passwords, tokens, card data, account data, or transaction data
 
-## 5. SDK Sends Events To Ingestion API
+## 6. SDK Sends Events To Ingestion API
 
 When an event happens, the SDK batches it and sends it to Watch.
 
@@ -154,7 +191,7 @@ The ingestion API is public-facing because browsers need to reach it, but it is 
 
 The browser ingestion key is not a dashboard login token. It only authorizes event submission for a project/environment.
 
-## 6. Watch Stores Raw Events
+## 7. Watch Stores Raw Events
 
 Accepted events are stored in Postgres as raw events for short-term debugging.
 
@@ -162,7 +199,7 @@ Raw events are retained for a limited period, such as 14 days by default.
 
 Rejected events are not silently ignored. Watch should keep counters showing why events were dropped, such as invalid schema, oversized payload, unknown project key, blocked origin, or rate limit.
 
-## 7. Workers Process Events
+## 8. Workers Process Events
 
 Background workers turn raw events into useful product data.
 
@@ -181,7 +218,7 @@ Workers create:
 
 Workers also enforce retention and resolve source maps where available.
 
-## 8. Dashboard Reads Through The Dashboard API
+## 9. Dashboard Reads Through The Dashboard API
 
 The Watch dashboard does not read directly from the SDK ingestion endpoint.
 
@@ -207,7 +244,7 @@ This API requires user login and powers:
 
 In v1, dashboard login is handled by Watch local auth. OIDC and trusted reverse-proxy auth are future roadmap items.
 
-## 9. Ingestion API And Dashboard API Are Different Surfaces
+## 10. Ingestion API And Dashboard API Are Different Surfaces
 
 Watch has two logical API surfaces.
 
@@ -225,7 +262,7 @@ They can run inside the same Go server, but they must have different security ru
 
 The ingestion API accepts browser events. The Dashboard API manages and displays data.
 
-## 10. Developer Debugs Issues
+## 11. Developer Debugs Issues
 
 When a frontend issue happens, Watch helps answer:
 

@@ -1,3 +1,4 @@
+import { Monitor, Moon, Sun } from "lucide-react"
 import { useEffect, useState } from "react"
 
 type ThemeMode = "light" | "dark" | "auto"
@@ -62,20 +63,26 @@ export default function ThemeToggle() {
     window.localStorage.setItem("theme", nextMode)
   }
 
-  const label =
-    mode === "auto"
-      ? "Theme mode: auto (system). Click to switch to light mode."
-      : `Theme mode: ${mode}. Click to switch mode.`
+  const displayLabel =
+    mode === "dark" ? "Light mode" : mode === "light" ? "Auto" : "Dark mode"
+  const ariaLabel = `Theme: ${mode}. Click to switch.`
 
   return (
     <button
       type="button"
       onClick={toggleMode}
-      aria-label={label}
-      title={label}
-      className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] shadow-[0_8px_22px_rgba(30,90,72,0.08)] transition hover:-translate-y-0.5"
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      className="inline-flex h-7 items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-muted/80"
     >
-      {mode === "auto" ? "Auto" : mode === "dark" ? "Dark" : "Light"}
+      {mode === "dark" ? (
+        <Moon className="size-3 shrink-0" aria-hidden />
+      ) : mode === "light" ? (
+        <Monitor className="size-3 shrink-0" aria-hidden />
+      ) : (
+        <Sun className="size-3 shrink-0" aria-hidden />
+      )}
+      {displayLabel}
     </button>
   )
 }

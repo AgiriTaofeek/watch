@@ -18,6 +18,7 @@ const (
 	requestIDKey ctxKey = iota // 0
 	sessionKey                 // 1
 	userKey                    // 2
+	loggerKey                  // 3
 )
 
 // responseRecorder wraps http.ResponseWriter to capture the status code and
@@ -43,13 +44,22 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 	return n, err
 }
 
-// requestID assigns each request a short random id, echoes it on the response
-// via X-Request-Id, and stores it in the request context for logs and handlers.
+// Flush forwards to the underlying ResponseWriter so SSE and streaming
+// handlers work correctly through the logging middleware wrapper.
+func (r *responseRecorder) Flush() {
+	http.NewResponseController(r.ResponseWriter).Flush() //nolint:errcheck
+}
+
+// requestID assigns each request a short random id, stores it in context,
+// echoes it on the response via X-Request-Id, and derives a request-scoped
+// slog.Logger that carries the id automatically on every log call.
 func requestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := newRequestID()
 		w.Header().Set("X-Request-Id", id)
+		logger := slog.Default().With("request_id", id)
 		ctx := context.WithValue(r.Context(), requestIDKey, id)
+		ctx = context.WithValue(ctx, loggerKey, logger)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -61,13 +71,12 @@ func requestLogger(next http.Handler) http.Handler {
 		start := time.Now()
 		rec := &responseRecorder{ResponseWriter: w}
 		defer func() {
-			slog.LogAttrs(r.Context(), slog.LevelInfo, "http request",
+			LoggerFromContext(r.Context()).LogAttrs(r.Context(), slog.LevelInfo, "http request",
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.Int("status", rec.status),
 				slog.Int("bytes", rec.bytes),
 				slog.Int64("duration_ms", time.Since(start).Milliseconds()),
-				slog.String("request_id", RequestIDFromContext(r.Context())),
 			)
 		}()
 		next.ServeHTTP(rec, r)
@@ -80,9 +89,8 @@ func recoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {
-				slog.ErrorContext(r.Context(), "panic recovered",
+				LoggerFromContext(r.Context()).ErrorContext(r.Context(), "panic recovered",
 					"error", rec,
-					"request_id", RequestIDFromContext(r.Context()),
 					"stack", string(debug.Stack()),
 				)
 				writeError(w, http.StatusInternalServerError, "internal server error")
@@ -103,4 +111,13 @@ func newRequestID() string {
 func RequestIDFromContext(ctx context.Context) string {
 	id, _ := ctx.Value(requestIDKey).(string)
 	return id
+}
+
+// LoggerFromContext returns the request-scoped logger stored by the requestID
+// middleware. Falls back to the default slog logger if none is present.
+func LoggerFromContext(ctx context.Context) *slog.Logger {
+	if l, ok := ctx.Value(loggerKey).(*slog.Logger); ok {
+		return l
+	}
+	return slog.Default()
 }

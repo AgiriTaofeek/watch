@@ -77,6 +77,14 @@ func (l *loginRateLimiter) recordFailure(key string) {
 	if !ok || l.now().Sub(a.windowStart) >= l.window {
 		if len(l.attempts) >= loginLimiterMaxEntries {
 			l.pruneExpiredLocked()
+			// If the map is still full after pruning (all entries are within an
+			// active window), skip tracking this new key rather than growing
+			// memory without bound. The email goes untracked, which is
+			// preferable to a memory-exhaustion DoS from an attacker spraying
+			// millions of unique addresses.
+			if len(l.attempts) >= loginLimiterMaxEntries {
+				return
+			}
 		}
 		l.attempts[key] = &loginAttempt{count: 1, windowStart: l.now()}
 		return

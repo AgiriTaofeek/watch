@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -68,13 +67,11 @@ func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Read body with size guard.
-	body, err := io.ReadAll(io.LimitReader(r.Body, maxIngestBodyBytes+1))
+	// 2. Read body with size guard. MaxBytesReader closes the connection on
+	// overflow so slow-drip attacks cannot hold the goroutine open.
+	r.Body = http.MaxBytesReader(w, r.Body, maxIngestBodyBytes)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "could not read body")
-		return
-	}
-	if len(body) > maxIngestBodyBytes {
 		a.dropAndRespond(ctx, w, &key.EnvironmentID, "oversized_payload", http.StatusRequestEntityTooLarge, "payload too large")
 		return
 	}
@@ -138,11 +135,8 @@ func (a *API) handleIngest(w http.ResponseWriter, r *http.Request) {
 func (a *API) dropAndRespond(ctx context.Context, w http.ResponseWriter, environmentID *string, reason string, status int, msg string) {
 	day := time.Now().UTC()
 	if err := a.store.IncrementDroppedCounter(ctx, environmentID, reason, day); err != nil {
-		slog.ErrorContext(ctx, "failed to increment dropped counter",
-			"error", err,
-			"reason", reason,
-			"request_id", RequestIDFromContext(ctx),
-		)
+		LoggerFromContext(ctx).ErrorContext(ctx, "failed to increment dropped counter",
+			"error", err, "reason", reason)
 	}
 	writeError(w, status, msg)
 }

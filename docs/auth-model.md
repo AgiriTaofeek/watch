@@ -40,12 +40,56 @@ It lets Watch work out of the box without depending on any external auth provide
 
 Expected behavior:
 
-- First admin created during setup
-- Invite-only user creation
+- First owner created during one-time setup
+- Invite-only user creation after setup
 - Password hashing with Argon2id or bcrypt
 - Secure session cookies
 - CSRF protection for mutations
 - Roles: `owner`, `admin`, `member`, `viewer`
+
+#### Roles and permissions
+
+Every dashboard user has one role that applies across all projects in the organization. Access is org-wide — all roles can see all projects; the role controls what they can do, not which projects they can reach.
+
+| Capability | `owner` | `admin` | `member` | `viewer` |
+|-----------|:-------:|:-------:|:--------:|:--------:|
+| View all projects, issues, vitals, performance, network | ✓ | ✓ | ✓ | ✓ |
+| Manage alert rules | ✓ | ✓ | ✓ | — |
+| Create projects and environments | ✓ | ✓ | — | — |
+| Rotate and revoke ingestion keys | ✓ | ✓ | — | — |
+| Invite users | ✓ | ✓ | — | — |
+| Change a user's role | ✓ | ✓ | — | — |
+| Remove users | ✓ | ✓ | — | — |
+| Configure deployment settings (retention, SMTP, webhooks) | ✓ | ✓ | — | — |
+| Delete the organization | ✓ | — | — | — |
+
+#### First-run owner setup
+
+`POST /auth/setup` creates the first owner account. It accepts:
+
+- `email` — the owner's email address
+- `organization_name` — displayed to invited team members
+- `password` — hashed with Argon2id before storage
+
+The endpoint returns `409 Conflict` once any user exists. Watch checks this on every request — there is no configuration flag to re-enable setup. The only way to start fresh is to drop and recreate the database.
+
+After setup the dashboard shows the normal login screen for all subsequent visits.
+
+#### User invite flow
+
+After setup, the owner or an admin invites additional users from Settings → Users. There is no open registration.
+
+The invite flow:
+
+1. Owner or admin enters an email address and selects a role for the new user.
+2. Watch generates a signed, time-limited invite token (expires 72 hours from creation).
+3. **If SMTP is configured** — Watch sends an invitation email containing the invite link. SMTP is the same configuration used for alert emails.
+   **If SMTP is not configured** — the dashboard displays a one-time invite link for the inviter to copy and share directly (for example, via Slack or email outside Watch).
+4. The invited person opens the link and sees a join screen showing who invited them, which organization they are joining, and what role they will have.
+5. They set a display name and a password. Watch creates the account and invalidates the invite token.
+6. The new user lands directly in the dashboard. They skip the setup wizard — the organization, projects, and data already exist.
+
+Invite tokens are single-use and expire after 72 hours. An expired or already-used link shows a clear error with instructions to request a new invite.
 
 Example config:
 

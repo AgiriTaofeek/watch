@@ -20,6 +20,8 @@ import (
 	"github.com/AgiriTaofeek/watch/apps/server/internal/worker"
 )
 
+// I SHOULD USE init() function for configurations initialization
+
 func main() {
 	cfg, err := config.Load()
 	if err != nil {

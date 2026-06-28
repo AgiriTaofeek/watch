@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router"
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  redirect,
+  useRouterState,
+} from "@tanstack/react-router"
 import { Menu } from "lucide-react"
 import { useState } from "react"
 import ThemeToggle from "#/components/theme-toggle"
@@ -10,11 +16,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "#/components/ui/sheet"
-import { LogoutButton } from "#/features/auth/logout-button"
 import { AppSidebar } from "#/features/shell/app-sidebar"
-import { EnvironmentSwitcher } from "#/features/shell/environment-switcher"
-import { ProjectSwitcher } from "#/features/shell/project-switcher"
-import { projectsQueryOptions } from "#/lib/api/queries"
+import { meQueryOptions, projectsQueryOptions } from "#/lib/api/queries"
+import { NAV } from "#/lib/nav"
 
 type ProjectSearch = { environment_id?: string }
 
@@ -30,35 +34,56 @@ export const Route = createFileRoute("/_protected/projects/$projectId")({
       projectsQueryOptions(),
     )
     const project = projects.find((p) => p.id === params.projectId)
-    // Unknown project id in the URL → back to the resolver at the index.
     if (!project) throw redirect({ to: "/" })
   },
   component: ProjectShell,
 })
 
+// Maps URL leaf segments to human-readable page labels for the breadcrumb.
+const SEGMENT_LABELS = new Map<string, string>(
+  NAV.flatMap((g) => g.items).map((item) => [item.segment, item.label]),
+)
+
+function usePageTitle(): string {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const segments = pathname.split("/")
+  // Walk from end so issue detail (/issues/$id) resolves to "Issues".
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const label = SEGMENT_LABELS.get(segments[i])
+    if (label) return label
+  }
+  return ""
+}
+
 function ProjectShell() {
   const { projectId } = Route.useParams()
   const { environment_id } = Route.useSearch()
   const { data: projects = [] } = useQuery(projectsQueryOptions())
+  const { data: user = null } = useQuery(meQueryOptions())
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const pageTitle = usePageTitle()
 
   const project = projects.find((p) => p.id === projectId)
   const environments = project?.environments ?? []
-  // The URL is authoritative; fall back to the first environment when absent.
   const environmentId = environment_id ?? environments[0]?.id ?? ""
 
+  const sidebarProps = {
+    projectId,
+    projects,
+    environments,
+    environmentId,
+    user,
+  }
+
   return (
-    <div className="grid min-h-screen grid-rows-[auto_1fr] md:grid-cols-[240px_1fr] md:grid-rows-1">
+    <div className="grid min-h-screen grid-rows-[auto_1fr] md:grid-cols-[232px_1fr] md:grid-rows-1">
       {/* Desktop sidebar */}
       <aside className="hidden border-r bg-sidebar md:block">
-        <div className="flex h-14 items-center px-5 font-semibold tracking-tight">
-          Watch
-        </div>
-        <AppSidebar projectId={projectId} />
+        <AppSidebar {...sidebarProps} />
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur">
+        <header className="flex h-11.5 shrink-0 items-center gap-3 border-b bg-card px-5.5">
           {/* Mobile nav trigger */}
           <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
             <SheetTrigger asChild>
@@ -71,30 +96,35 @@ function ProjectShell() {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <SheetTitle className="px-5 pt-5 font-semibold">Watch</SheetTitle>
+            <SheetContent side="left" className="w-58 p-0">
+              <SheetTitle className="sr-only">Watch navigation</SheetTitle>
               <AppSidebar
-                projectId={projectId}
+                {...sidebarProps}
                 onNavigate={() => setMobileNavOpen(false)}
               />
             </SheetContent>
           </Sheet>
 
-          {project ? (
-            <>
-              <ProjectSwitcher projects={projects} projectId={projectId} />
-              {environments.length > 0 && (
-                <EnvironmentSwitcher
-                  environments={environments}
-                  environmentId={environmentId}
-                />
+          {/* Breadcrumb */}
+          {project && (
+            <nav
+              aria-label="Breadcrumb"
+              className="flex items-center gap-1.5 text-sm"
+            >
+              <span className="font-medium text-foreground">
+                {project.name}
+              </span>
+              {pageTitle && (
+                <>
+                  <span className="text-muted-foreground/50">/</span>
+                  <span className="text-muted-foreground">{pageTitle}</span>
+                </>
               )}
-            </>
-          ) : null}
+            </nav>
+          )}
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto">
             <ThemeToggle />
-            <LogoutButton />
           </div>
         </header>
 

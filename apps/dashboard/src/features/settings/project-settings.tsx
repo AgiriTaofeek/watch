@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "#/components/ui/card"
 import { Input } from "#/components/ui/input"
+import { Label } from "#/components/ui/label"
 import { LogoutButton } from "#/features/auth/logout-button"
 import {
   createEnvironment,
@@ -19,7 +20,7 @@ import {
   mintKey,
   revokeKey,
 } from "#/lib/api"
-import { projectsQueryOptions } from "#/lib/api/queries"
+import { meQueryOptions, projectsQueryOptions } from "#/lib/api/queries"
 import { dsnFor } from "#/lib/ingest"
 
 type Panel = "general" | "keys" | "account"
@@ -50,21 +51,23 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         <p className="text-sm text-muted-foreground">{project.name}</p>
       </div>
 
-      <div className="flex gap-6 items-start">
+      <div className="flex items-start gap-6">
         {/* Sidebar nav */}
-        <nav className="w-44 shrink-0 overflow-hidden rounded-lg border bg-card">
+        <nav className="w-45 shrink-0 overflow-hidden rounded-lg border bg-card">
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => setPanel(id)}
-              className={`flex w-full items-center gap-2 border-b px-3.5 py-2.5 text-left text-sm font-medium transition-colors last:border-b-0 ${
+              className={`flex h-9.5 w-full items-center gap-2 border-b px-3.5 text-left text-sm font-medium transition-colors last:border-b-0 ${
                 panel === id
                   ? "bg-primary/8 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <Icon className="size-3.5 shrink-0 opacity-70" />
+              <Icon
+                className={`size-3.5 shrink-0 ${panel === id ? "opacity-100" : "opacity-65"}`}
+              />
               {label}
             </button>
           ))}
@@ -130,6 +133,19 @@ function GeneralPanel({
           )}
         </CardContent>
       </Card>
+
+      <div className="mt-2 rounded-lg border border-destructive/20 p-4">
+        <p className="text-[13px] font-semibold text-destructive">
+          Danger zone
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Permanently delete this project, all environments, ingestion keys,
+          events, and associated data. This action cannot be undone.
+        </p>
+        <Button size="sm" variant="destructive" className="mt-3" disabled>
+          Delete project
+        </Button>
+      </div>
     </div>
   )
 }
@@ -162,6 +178,7 @@ function KeysPanel({
 }
 
 function AccountPanel() {
+  const { data: user } = useQuery(meQueryOptions())
   return (
     <div className="space-y-4">
       <div>
@@ -170,6 +187,50 @@ function AccountPanel() {
           Manage your session and account settings
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Email</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1.5">
+          <Input disabled value={user?.email ?? ""} className="opacity-60" />
+          <p className="text-xs text-muted-foreground">
+            Email cannot be changed after account creation.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Change password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="flex flex-col gap-3"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="new-password">New password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="Min. 12 characters"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="confirm-password">Confirm password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="Repeat new password"
+              />
+            </div>
+            <Button type="submit" size="sm" className="self-start" disabled>
+              Update password
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="flex items-center justify-between pt-6">
@@ -196,7 +257,13 @@ function EnvironmentCard({ env }: { env: EnvironmentDetail }) {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle className="text-base">{env.name}</CardTitle>
+        <div className="flex items-center gap-2">
+          <span
+            className={`size-1.75 shrink-0 rounded-full ${env.name.toLowerCase() === "production" ? "bg-emerald-500" : "bg-amber-400"}`}
+            aria-hidden
+          />
+          <CardTitle className="text-base">{env.name}</CardTitle>
+        </div>
         <Button
           size="sm"
           variant="outline"
@@ -236,41 +303,58 @@ function KeyRow({ apiKey }: { apiKey: IngestionKey }) {
     setTimeout(() => setCopied(false), 1500)
   }
 
+  const createdDate = new Date(apiKey.created_at).toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+
   return (
-    <div className="flex items-center gap-2 rounded-md border p-2">
-      <code
-        className={`flex-1 truncate text-xs ${revoked ? "text-muted-foreground line-through" : ""}`}
-        title={dsn}
-      >
-        {dsn}
-      </code>
-      {revoked ? (
-        <Badge variant="secondary">revoked</Badge>
-      ) : (
-        <>
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label="Copy DSN"
-            onClick={copy}
-          >
-            {copied ? (
-              <Check className="size-4 text-success" />
-            ) : (
-              <Copy className="size-4" />
-            )}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-destructive hover:text-destructive"
-            onClick={() => revoke.mutate()}
-            disabled={revoke.isPending}
-          >
-            Revoke
-          </Button>
-        </>
-      )}
+    <div className="rounded-md border">
+      {/* Key ID + date row */}
+      <div className="flex items-center gap-2 border-b px-3 py-1.5">
+        <code className="flex-1 truncate font-mono text-xs text-muted-foreground">
+          {apiKey.public_key.slice(0, 16)}…
+        </code>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {createdDate}
+        </span>
+        {revoked && <Badge variant="secondary">revoked</Badge>}
+      </div>
+      {/* DSN row */}
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        <code
+          className={`flex-1 truncate text-xs ${revoked ? "text-muted-foreground line-through" : ""}`}
+          title={dsn}
+        >
+          {dsn}
+        </code>
+        {!revoked && (
+          <>
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="Copy DSN"
+              onClick={copy}
+            >
+              {copied ? (
+                <Check className="size-4 text-success" />
+              ) : (
+                <Copy className="size-4" />
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive hover:text-destructive"
+              onClick={() => revoke.mutate()}
+              disabled={revoke.isPending}
+            >
+              Revoke
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   )
 }

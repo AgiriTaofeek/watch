@@ -95,8 +95,20 @@ export function IssuesList({
     )
   })
 
+  const openCount = status === "all" || status === "open" ? total : undefined
+
   return (
     <div className="space-y-4">
+      {/* Page header */}
+      <div className="flex items-center gap-2.5">
+        <h1 className="text-xl font-semibold tracking-tight">Issues</h1>
+        {openCount != null && openCount > 0 && (
+          <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-semibold text-destructive">
+            {openCount} open
+          </span>
+        )}
+      </div>
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-52">
@@ -187,6 +199,9 @@ export function IssuesList({
                   <TableHead className="text-xs font-medium uppercase tracking-wide">
                     Issue
                   </TableHead>
+                  <TableHead className="text-xs font-medium uppercase tracking-wide">
+                    Route
+                  </TableHead>
                   <TableHead className="w-28 text-xs font-medium uppercase tracking-wide">
                     Status
                   </TableHead>
@@ -216,11 +231,9 @@ export function IssuesList({
                         >
                           {issue.title}
                         </Link>
-                        {issue.culprit && (
-                          <div className="mt-0.5 font-mono text-xs text-muted-foreground">
-                            {issue.culprit}
-                          </div>
-                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {issue.culprit ?? "—"}
                       </TableCell>
                       <TableCell>
                         <IssueStatusBadge status={issue.status} />

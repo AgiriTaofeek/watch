@@ -11,7 +11,14 @@ export {
   revokeKey,
 } from "./projects"
 export type { RollupParams } from "./rollups"
-export { getErrorRollups, getVitalRollups } from "./rollups"
+export {
+  getErrorRollups,
+  getNavSummary,
+  getNetworkRollups,
+  getRouteRollups,
+  getSystemHealth,
+  getVitalRollups,
+} from "./rollups"
 export type {
   Environment,
   EnvironmentDetail,
@@ -19,8 +26,15 @@ export type {
   IngestionKey,
   Issue,
   IssueStatus,
+  NavRouteRow,
+  NavSummaryResult,
+  NavTiming,
+  NetworkFailure,
   Project,
   ProjectDetail,
+  RouteHealthResult,
+  RouteSummary,
+  SystemHealth,
   User,
   VitalBucket,
   VitalMetric,

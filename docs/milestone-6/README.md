@@ -86,8 +86,16 @@ follow upstream docs at the moment the PR is created.
 - **CSRF token** - a per-session token returned by `POST /auth/login`. Mutating
   `/api/*` requests must send it back so a third-party site cannot make a
   logged-in browser mutate Watch state.
-- **Project onboarding** - the first workflow after login: create a project,
-  create an environment, mint an ingestion key, and copy the SDK DSN.
+- **Project onboarding** - the guided first-run workflow for a new owner. Five
+  steps: (1) create the owner account and organization name, (2) create the
+  first project and choose a framework, (3) install the SDK using a
+  framework-specific snippet with the ingestion key pre-filled, (4) wait for
+  the first live event to confirm the connection, (5) optionally invite team
+  members by email or a one-time copy link. Each step is a full screen; skip
+  is available at every step after account creation, with empty states guiding
+  the user back. Invited team members bypass this wizard and land directly in
+  the dashboard. Design previews live in
+  [docs/milestone-6/v3/](v3/).
 - **Selected project context** - the project and environment currently driving
   dashboard reads. Issue and rollup endpoints require both IDs, so the UI needs
   one obvious selected context.
@@ -129,19 +137,22 @@ The dashboard should make those capabilities visible and ergonomic.
 M6 should produce a usable vertical slice, not every future screen from the
 roadmap. A developer should be able to:
 
-1. Create the first owner account.
+1. Create the first owner account and organization name (one-time setup screen).
 2. Log in and keep a session across refreshes.
-3. Create a project with allowed origins.
-4. Create an environment.
-5. Mint and revoke ingestion keys.
-6. Copy an SDK DSN for a project/environment.
+3. Complete the project onboarding wizard: create a project, pick a framework,
+   copy the SDK snippet with the ingestion key pre-filled, and verify the
+   connection by waiting for the first live event.
+4. Create additional projects, environments, and ingestion keys from the dashboard.
+5. Mint and revoke ingestion keys independently per environment.
+6. Invite a team member by email or copy a one-time invite link; the invited
+   user sets a name and password and lands directly in the dashboard.
 7. See a project overview backed by rollups.
 8. See issues, filter by status, inspect an issue, and change its status.
 9. See Web Vital rollup buckets for `LCP`, `CLS`, `INP`, `FCP`, and `TTFB`.
 10. Log out.
 
 That is enough to close the loop from "install Watch locally" to "create a
-project, send events, and inspect the result."
+project, send events, and inspect the result" — with a real team already invited.
 
 ## 5. Frontend Platform Stack
 
@@ -520,10 +531,48 @@ long-name stories/tests.
 
 ### Task 10 - `feat/m6-project-onboarding`
 
-Build project onboarding: create project with allowed origins, create
-environment, mint key, revoke key, and show the copyable SDK DSN. This task
-should make a fresh deployment usable with the browser SDK. Include MSW-backed
-Storybook states and Playwright coverage for the happy path.
+Build the full onboarding flow for a new Watch deployment.
+
+**Owner journey** — five steps, each a full screen:
+
+1. **Account** (`setup.html` pattern) — email, organization name, password with
+   strength indicator. Creates the owner account and org. The setup endpoint
+   returns `409` once any user exists, so the UI detects this and redirects to
+   login instead of showing a duplicate form.
+2. **Project** — project name input plus a framework picker (React, Next.js,
+   React Router v7, Vue, Svelte, Other). Framework selection is stored in
+   session so the next screen can pre-fill the right snippet.
+3. **Install** — shows the npm install command and a framework-specific init
+   snippet with the environment's ingestion key already embedded. Snippet
+   updates instantly when the user switches framework tabs. Copy buttons on
+   each block. A "production" environment is pre-selected; additional
+   environments are created in Settings after onboarding.
+4. **Verify** — a live-feeling screen with a pulsing ring animation waiting for
+   the first event. When the first event arrives (polled from the server), the
+   ring transitions to a green check, an event card appears, and two CTAs are
+   shown: "Explore your dashboard" and "Invite your team first". Skip is always
+   available.
+5. **Invite** (post-activation) — email input rows with role picker per row.
+   Each role shows what the person will be able to do. Two send options:
+   email invite (requires SMTP) or copy a one-time link valid for 72 hours.
+   Skippable — the owner can invite from Settings → Users at any time.
+
+**Invited user journey** — no wizard. The invite link opens a join screen
+showing the inviter's name, the organization name, and the assigned role. The
+invited person sets a display name and password and lands directly in the
+dashboard.
+
+Design previews for all screens:
+- [setup.html](v3/setup.html) — step 1
+- [onboarding-project.html](v3/onboarding-project.html) — step 2
+- [onboarding-install.html](v3/onboarding-install.html) — step 3
+- [onboarding-waiting.html](v3/onboarding-waiting.html) — step 4
+- [onboarding-invite.html](v3/onboarding-invite.html) — step 5
+- [invite-accept.html](v3/invite-accept.html) — invited user join screen
+
+Include MSW-backed Storybook states for each screen, Playwright coverage for
+both journeys (owner happy path + invite accept), and unit tests for the
+framework-snippet generator and invite token validation.
 
 ### Task 11 - `feat/m6-overview-rollups`
 
@@ -570,8 +619,11 @@ repeatable scripted/manual verification documented in the PR.
   server has a dedicated query shape.
 - **Asset/chunk failure screen** - same as network failures: wait for a focused
   server read model.
-- **User and role management** - M6 uses the first owner account. Full user
-  administration can land after the dashboard proves the main monitoring loop.
+- **Full user administration UI** - M6 ships the invite flow (send invite or
+  copy link, invite-accept screen, role description at invite time) but not the
+  full Settings → Users management screen for viewing the member list, changing
+  existing roles, removing members, or revoking active sessions. That lands
+  after the dashboard proves the main monitoring loop.
 - **OIDC or trusted-header auth** - deferred by the auth model.
 - **Custom dashboard builder** - explicitly outside v1 scope.
 - **Raw event explorer** - useful later, but M6 should prove processed issues

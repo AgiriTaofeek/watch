@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch — Accept your invitation</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .auth-root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-base);
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 420px;
+  }
+  .auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .auth-brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.03em;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(167,139,250,0.3), 0 4px 16px rgba(124,58,237,0.25);
+  }
+  .auth-brand-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+  }
+
+  /* ── Invite context card ── */
+  .invite-ctx {
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .invite-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--accent-muted);
+    border: 1px solid rgba(167,139,250,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-text);
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+  }
+  .invite-ctx-body { min-width: 0; }
+  .invite-ctx-from {
+    font-size: 0.8125rem;
+    color: var(--text-2);
+    margin-bottom: 2px;
+    line-height: 1.4;
+  }
+  .invite-ctx-from strong { color: var(--text-1); }
+  .invite-ctx-org {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-1);
+    margin-bottom: 4px;
+  }
+  .invite-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: var(--r-full);
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.2);
+    color: var(--p-sky-400);
+  }
+  .invite-badge-outer {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .invite-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: var(--r-full);
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--accent-text);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .auth-heading {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .auth-sub {
+    font-size: 0.8125rem;
+    color: var(--text-3);
+    margin-bottom: 28px;
+    line-height: 1.55;
+  }
+
+  .auth-form { display: flex; flex-direction: column; gap: 14px; }
+  .field { display: flex; flex-direction: column; }
+  .lbl {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .pw-wrap { position: relative; }
+  .pw-wrap .input { padding-right: 36px; width: 100%; box-sizing: border-box; }
+  .pw-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--text-3);
+    display: flex;
+    align-items: center;
+  }
+  .pw-toggle:hover { color: var(--text-1); }
+  .sep-line { height: 1px; background: var(--border); margin: 4px 0; }
+  .strength-bar {
+    height: 3px;
+    background: var(--bg-sunken);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.2s, background 0.2s;
+  }
+  .hint-text {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* ── What you'll see blurb ── */
+  .access-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    margin-top: 4px;
+  }
+  .access-note-icon { color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+  .access-note-text {
+    font-size: 0.78rem;
+    color: var(--text-3);
+    line-height: 1.55;
+  }
+  .access-note-text strong { color: var(--text-2); }
+
+  .auth-foot {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-3);
+  }
+  .auth-theme {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="auth-root">
+  <div class="auth-card">
+
+    <div class="auth-brand">
+      <div class="auth-brand-mark">W</div>
+      <span class="auth-brand-name">Watch</span>
+    </div>
+
+    <!-- Invite context -->
+    <div class="invite-ctx">
+      <div class="invite-avatar">AT</div>
+      <div class="invite-ctx-body">
+        <div class="invite-ctx-from"><strong>Agiri Taofeek</strong> invited you to</div>
+        <div class="invite-ctx-org">Acme Financial</div>
+        <div class="invite-role-badge">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Member
+        </div>
+      </div>
+      <div class="invite-badge-outer">
+        <div class="invite-badge">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Invite
+        </div>
+      </div>
+    </div>
+
+    <h1 class="auth-heading">Create your account</h1>
+    <p class="auth-sub">Set your name and a password to join <strong style="color:var(--text-2)">Acme Financial</strong> on Watch. Your team is already monitoring production.</p>
+
+    <form class="auth-form" onsubmit="return false">
+
+      <div class="field">
+        <label class="lbl" for="acc-email">Email address</label>
+        <input class="input" type="email" id="acc-email" value="alex@acme.com" readonly style="opacity:0.6;cursor:not-allowed">
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="acc-name">Your name</label>
+        <input class="input" type="text" id="acc-name" placeholder="Alex Johnson" autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="acc-pw">Choose a password</label>
+        <div class="pw-wrap">
+          <input class="input" type="password" id="acc-pw" placeholder="••••••••" oninput="updateStrength(this.value)">
+          <button class="pw-toggle" type="button" onclick="togglePw('acc-pw')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <div class="hint-text" id="strength-label">Use 12+ characters with letters, numbers, and symbols.</div>
+      </div>
+
+      <div class="sep-line"></div>
+
+      <div class="access-note">
+        <div class="access-note-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="access-note-text">
+          As a <strong>Member</strong>, you can view all projects, issues, performance data, and manage alert rules. You cannot rotate ingestion keys or manage other users.
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="acceptInvite()" style="margin-top:4px">
+        Accept invitation
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <p class="auth-foot">Invite expires in 47 hours. <a href="login.html" style="color:var(--accent);text-decoration:none">Already have an account? Sign in →</a></p>
+
+  </div>
+</div>
+
+<div class="auth-theme">
+  <button class="toggle-pill" onclick="toggleMode()">
+    <svg id="ico-moon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg id="ico-sun"  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg>
+    <span id="mode-label">Light mode</span>
+  </button>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+<script src="shell.js"></script>
+<script>
+  (() => {
+    const mode = localStorage.getItem('watch-mode') || 'dark';
+    document.documentElement.classList.add(mode);
+    Shell.updateToggle(mode);
+  })();
+
+  function togglePw(id) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+  }
+
+  function updateStrength(val) {
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+    let score = 0;
+    if (val.length >= 8)  score++;
+    if (val.length >= 12) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^a-zA-Z0-9]/.test(val)) score++;
+    const levels = [
+      { w: '0%',   bg: 'transparent',       txt: 'Use 12+ characters with letters, numbers, and symbols.' },
+      { w: '25%',  bg: 'var(--danger)',      txt: 'Weak — add length and symbols.' },
+      { w: '50%',  bg: 'var(--warning)',     txt: 'Fair — getting better.' },
+      { w: '75%',  bg: 'rgba(250,204,21,1)', txt: 'Good — one more character type would help.' },
+      { w: '100%', bg: 'var(--success)',     txt: 'Strong password.' },
+    ];
+    const lvl = levels[score] || levels[0];
+    fill.style.width      = lvl.w;
+    fill.style.background = lvl.bg;
+    label.textContent     = lvl.txt;
+  }
+
+  function acceptInvite() {
+    const name = document.getElementById('acc-name').value.trim();
+    const pw   = document.getElementById('acc-pw').value;
+    if (!name) { Shell.toast('Enter your name to continue.', 'warning'); return; }
+    if (pw.length < 8) { Shell.toast('Choose a stronger password.', 'warning'); return; }
+    Shell.toast('Welcome to Acme Financial on Watch!', 'success');
+    setTimeout(() => { window.location.href = 'overview.html'; }, 900);
+  }
+
+  function toggleMode() {
+    const html = document.documentElement;
+    const next = html.classList.contains('dark') ? 'light' : 'dark';
+    html.classList.remove('dark', 'light');
+    html.classList.add(next);
+    localStorage.setItem('watch-mode', next);
+    Shell.updateToggle(next);
+  }
+</script>
+</body>
+</html>

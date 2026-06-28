@@ -115,12 +115,21 @@ against).
 The SDK→server boundary is separate from dashboard auth (a leaked ingestion key
 never grants dashboard access).
 
-- **[built-in]** Project/environment-scoped keys, rotation, revocation, per-key
-  rate limiting, **origin allowlists**, schema validation, payload size caps, and
-  **server-side redaction**. Details in [security-privacy.md](security-privacy.md).
-- **[operator]** If the ingestion endpoint is public, front it with a WAF/CDN rate
-  limiter — per-key limits don't stop distributed abuse (see
-  [threat-model.md](threat-model.md)).
+- **[built-in]** Project/environment-scoped keys, rotation, revocation, **origin
+  allowlists**, schema validation, payload size caps, and **server-side
+  redaction**. Details in [security-privacy.md](security-privacy.md).
+- **[gap] Per-key rate limiting** — not yet implemented. The ingest handler
+  accepts events at whatever rate the caller sends. Compensate with a WAF or
+  CDN-level rate limiter in front of `/ingest` until application-level limiting
+  lands. This is the highest-priority ingestion gap.
+- **[gap] Event deduplication** — no client-generated event ID; SDK retries
+  produce duplicate raw events. Error counts and metric samples are inflated
+  on network instability. Fix: add a stable `sdk_event_id` UUID per event,
+  store it in `raw_events`, and deduplicate on insert with a unique constraint.
+  See [threat-model.md](threat-model.md) for the full analysis.
+- **[operator]** If the ingestion endpoint is public, front it with a WAF/CDN
+  rate limiter regardless of the per-key gap above — application-level limits
+  do not stop distributed abuse.
 
 ## 7. Data protection & privacy
 
@@ -160,6 +169,90 @@ never grants dashboard access).
 - **[operator]** Put a reverse proxy / WAF in front (TLS, HSTS, security headers,
   rate limiting) — it's where several **[gap]** items above are best handled today.
 
+### Restricting dashboard access by network
+
+Watch's application-level auth (password login, sessions, roles) controls *who* can
+use the dashboard once they reach it. If you want to control *which machines or
+networks* can reach Watch at all, that is an infrastructure concern — Watch has no
+built-in IP allowlist, but it is straightforward to add one at any of the layers below.
+
+> **`/ingest` caveat.** The SDK runs in your users' browsers, so the ingestion
+> endpoint must stay reachable from wherever those browsers are — typically the public
+> internet. If your dashboard and ingestion are on the same host/port, apply IP
+> restrictions *only to the dashboard paths* at the reverse proxy, not to
+> `/ingest`. If you want a clean split, run ingestion on a separate hostname or
+> container and firewall the dashboard host entirely.
+
+**Tier 1 — Firewall / security-group rules** (cloud or on-prem)
+
+Restrict ingress to ports 443/80 on the dashboard host to known CIDRs — your office
+ranges, VPN egress IPs, or build-agent addresses. This is the lowest-effort option and
+works at the infrastructure level before any packet touches Watch.
+
+```
+# AWS security group — allow HTTPS only from office + VPN egress
+Type: HTTPS  Protocol: TCP  Port: 443  Source: 203.0.113.0/24  # office
+Type: HTTPS  Protocol: TCP  Port: 443  Source: 198.51.100.5/32 # VPN egress
+```
+
+Update the allowlist when IPs change (dynamic IPs are a maintenance burden here —
+consider Tier 3 instead).
+
+**Tier 2 — Reverse proxy IP allowlist** (nginx / Caddy / Traefik)
+
+If you need path-level control (restrict `/` but not `/ingest`), enforce it at the
+reverse proxy. Examples:
+
+```nginx
+# nginx — allow dashboard to trusted CIDRs only; pass /ingest to anyone
+location /ingest {
+    proxy_pass http://watch:3000;
+}
+
+location / {
+    allow 203.0.113.0/24;  # office
+    allow 198.51.100.5;    # VPN egress
+    deny  all;
+    proxy_pass http://watch:3000;
+}
+```
+
+```
+# Caddy — route-based IP restriction
+handle /ingest* {
+    reverse_proxy watch:3000
+}
+handle {
+    @blocked not remote_ip 203.0.113.0/24 198.51.100.5/32
+    respond @blocked 403
+    reverse_proxy watch:3000
+}
+```
+
+Traefik users: use the `ipAllowList` middleware on the dashboard router, not on the
+ingestion router.
+
+**Tier 3 — VPN / zero-trust network access** (recommended for high-security deployments)
+
+Put the Watch host on a private network (no public ingress at all) and require every
+operator to connect via VPN before they can reach the dashboard. This removes the
+public attack surface entirely — no login page visible to the internet, no rate-limit
+evasion possible.
+
+Common options, roughly in order of ops overhead:
+
+| Option | Notes |
+|---|---|
+| **Tailscale** | Zero-config WireGuard mesh; `tailscale serve` can expose Watch only on the tailnet. Low ops, good for small teams. |
+| **WireGuard** (self-managed) | Standard, widely supported; more setup than Tailscale but no third-party control plane. |
+| **Cloudflare Access / ZeroTrust** | OIDC-based; adds MFA and identity-aware access on top of network restriction. Good if you are already in the Cloudflare ecosystem. |
+| **Internal VPC only** | On AWS/GCP/Azure, put Watch in a private subnet with no internet gateway; access via VPN or bastion. Classic pattern for internal tooling. |
+
+If your monitored apps are public, split ingestion onto a separate public hostname and
+keep the dashboard on the private tailnet or VPN — operators connect to
+`watch-internal.company.com` via VPN; the SDK points to
+`ingest.company.com` which is public.
+
 ## 10. Logging, monitoring & audit
 
 - **[built-in]** One structured access log per request with a request ID
@@ -180,9 +273,59 @@ never grants dashboard access).
   externally hosted assets. Keep dependencies current per
   [AGENTS.md](../AGENTS.md) discipline.
 
+## 12. Operational and architectural gaps
+
+These are not security issues in the traditional sense but are architectural risks
+that affect reliability, data integrity, and operational stability in production.
+They are documented here so operators understand the current limits and can plan
+compensating controls.
+
+### Real-time data delay
+
+The rollup worker processes only the **previous complete hour**, not the current
+one. New events do not appear in dashboard charts for up to 65 minutes after
+they are ingested. The PRD promises "useful data within 1-2 minutes." That
+promise is currently unmet. Compensating control: lower the worker interval and
+process the current partial hour as well. Live event feeds require SSE
+infrastructure (not yet built). Alerts (Milestone 7, unimplemented) are the
+most important real-time capability for production on-call.
+
+### Worker memory pressure
+
+The rollup worker fetches all raw events for a one-hour window into memory at
+once — no server-side pagination. At 1M events/day that is ~40,000 rows per
+batch. The worker runs in the same process as the web server; an OOM kill takes
+down both. Monitor RSS under load; add a `LIMIT` + multi-page fetch or
+switch to streaming row scanning if event volume grows.
+
+### Missing index for worker queries
+
+Worker queries filter `raw_events` by `(event_type, event_timestamp)`. No
+index covers that combination — only `(project_id, received_at)` and
+`(environment_id, received_at)` exist. Worker aggregation will do a sequential
+scan as the table grows. Add `CREATE INDEX ... ON raw_events (event_type,
+event_timestamp)` before high traffic.
+
+### Single-instance constraints
+
+The in-memory login rate limiter and the rollup worker both assume one running
+process. Running two instances simultaneously diverges rate-limit state and
+causes duplicate worker computation. Do not scale horizontally without adding
+a distributed lock (Postgres advisory lock is the lowest-ops option) for the
+worker and moving the login limiter to a shared store.
+
+### No server-side event sampling
+
+Every event sent by the SDK is stored. At high event volume (>1M events/day),
+storage and worker load grow proportionally. Neither the SDK nor the server
+supports a server-side sampling rate today. For high-traffic apps, implement
+a configurable head-based sampling rate (e.g., store 10% of `web_vital` events
+while keeping 100% of `frontend_error` events) before raw_events outgrows
+the host.
+
 ---
 
-## 12. Operator quick checklist
+## 13. Operator quick checklist
 
 Before exposing Watch to real traffic:
 
@@ -192,6 +335,9 @@ Before exposing Watch to real traffic:
 - [ ] Postgres: TLS (`sslmode=require`+), least-privilege user, encryption at rest, encrypted backups.
 - [ ] Secrets via env/secrets manager; nothing committed; DB creds rotated.
 - [ ] Go API bound to a private network; only the dashboard + `/ingest` exposed.
+- [ ] If dashboard should not be public: IP allowlist or VPN/zero-trust gate at the reverse proxy or firewall; keep `/ingest` open only to monitored app origins (see §9).
+- [ ] WAF or CDN rate limiter in front of `/ingest` until per-key application rate limiting is implemented (see §6).
+- [ ] Worker memory and index risks reviewed against expected daily event volume (see §12).
 - [ ] Containers run non-root; network segmented.
 - [ ] Logs centralized; alerts on auth failures / 5xx; consider a SIEM for audit.
 - [ ] Only trusted operators have dashboard accounts (per-route RBAC not enforced yet).

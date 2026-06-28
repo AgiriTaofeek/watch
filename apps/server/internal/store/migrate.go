@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" // registers postgres:// driver
+	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5" // registers pgx5:// driver; keeps lib/pq out of the binary
 )
 
 // migrationsFS holds the SQL migrations compiled into the binary. The all:
@@ -29,7 +30,11 @@ func RunMigrations(databaseURL string) (int, error) {
 		return 0, fmt.Errorf("load embedded migrations: %w", err)
 	}
 
-	m, err := migrate.NewWithSourceInstance("iofs", src, databaseURL)
+	// The pgx/v5 migrate driver registers under the "pgx5" scheme.
+	// Convert postgres:// or postgresql:// so the right driver is selected.
+	pgxURL := strings.NewReplacer("postgres://", "pgx5://", "postgresql://", "pgx5://").
+		Replace(databaseURL)
+	m, err := migrate.NewWithSourceInstance("iofs", src, pgxURL)
 
 	if err != nil {
 		return 0, fmt.Errorf("init migrate: %w", err)

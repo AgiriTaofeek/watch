@@ -1,6 +1,14 @@
 import { createServerFn } from "@tanstack/react-start"
 import { serverRequest } from "./server/request"
-import type { ErrorBucket, VitalBucket, VitalMetric } from "./types"
+import type {
+  ErrorBucket,
+  NavSummaryResult,
+  NetworkFailure,
+  RouteHealthResult,
+  SystemHealth,
+  VitalBucket,
+  VitalMetric,
+} from "./types"
 
 // Reads only. These throw ApiError on failure, which is fine for TanStack Query —
 // it just needs an error to enter its error state, and the message survives the
@@ -47,3 +55,44 @@ export const getVitalRollups = createServerFn({ method: "GET" })
       `/api/projects/${data.projectId}/rollups/vitals?${q}`,
     )
   })
+
+export const getRouteRollups = createServerFn({ method: "GET" })
+  .validator((data: { projectId: string } & RollupParams) => data)
+  .handler(async ({ data }) => {
+    const q = new URLSearchParams({ environment_id: data.environmentId })
+    if (data.from) q.set("from", toIso(data.from))
+    if (data.to) q.set("to", toIso(data.to))
+    return serverRequest<RouteHealthResult>(
+      "GET",
+      `/api/projects/${data.projectId}/rollups/routes?${q}`,
+    )
+  })
+
+export const getNetworkRollups = createServerFn({ method: "GET" })
+  .validator((data: { projectId: string } & RollupParams) => data)
+  .handler(async ({ data }) => {
+    const q = new URLSearchParams({ environment_id: data.environmentId })
+    if (data.from) q.set("from", toIso(data.from))
+    if (data.to) q.set("to", toIso(data.to))
+    const result = await serverRequest<{ failed_requests: NetworkFailure[] }>(
+      "GET",
+      `/api/projects/${data.projectId}/rollups/network?${q}`,
+    )
+    return result.failed_requests
+  })
+
+export const getNavSummary = createServerFn({ method: "GET" })
+  .validator((data: { projectId: string } & RollupParams) => data)
+  .handler(async ({ data }) => {
+    const q = new URLSearchParams({ environment_id: data.environmentId })
+    if (data.from) q.set("from", toIso(data.from))
+    if (data.to) q.set("to", toIso(data.to))
+    return serverRequest<NavSummaryResult>(
+      "GET",
+      `/api/projects/${data.projectId}/rollups/navigation?${q}`,
+    )
+  })
+
+export const getSystemHealth = createServerFn({ method: "GET" }).handler(
+  async () => serverRequest<SystemHealth>("GET", "/api/system/health"),
+)
